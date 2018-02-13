@@ -8,14 +8,16 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"sync"
 )
+
+var pluginfile string = "gitdo_trello.py"
 
 func main() {
 	fmt.Println("Gitdo running...")
 
 	// Run a git diff to look for changes --cached to be added for precommit hook
 	cmd := exec.Command("git", "diff", "--cached")
+	//cmd := exec.Command("git", "diff")
 	resp, err := cmd.Output()
 
 	// If error running git diff abort all
@@ -34,23 +36,40 @@ func main() {
 		os.Exit(1)
 	}
 
+	taskChan := make(chan []Task)
+
 	// Create waitgroup to sync handling of all files
-	var wg sync.WaitGroup
-	wg.Add(len(diff.Files))
 
 	// Loop over files and run go routines for each file changed
 	for _, file := range diff.Files {
-		go ProcessFileDiff(file, &wg)
+		go ProcessFileDiff(file, taskChan)
 	}
-	wg.Wait()
+
+	allTasks := make([]Task, 0)
+
+	for range diff.Files {
+		allTasks = append(allTasks, <-taskChan...)
+	}
+
+	b, err := json.Marshal(allTasks)
+	if err != nil {
+		log.Fatalf("Error marshalling task array to json: %v", err)
+		os.Exit(1)
+	}
+
+	plugin := exec.Command("python3", ".git/gitdo/"+pluginfile, fmt.Sprintf("%s", b))
+	resp, err = plugin.Output()
+	if err != nil {
+		log.Fatalf("Gitdo plugin failed: %v", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Plugin: %s\n", resp)
 
 	fmt.Println("Gitdo stopping...")
 }
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
-func ProcessFileDiff(file *diffparser.DiffFile, wg *sync.WaitGroup) {
-	defer wg.Done()
-
+func ProcessFileDiff(file *diffparser.DiffFile, taskChan chan<- []Task) {
 	re := regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO:[[:space:]](.*)`)
 
 	stagedTasks := make([]Task, 0)
@@ -72,10 +91,5 @@ func ProcessFileDiff(file *diffparser.DiffFile, wg *sync.WaitGroup) {
 		}
 	}
 
-	b, err := json.Marshal(stagedTasks)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%s\n", b)
+	taskChan <- stagedTasks
 }
