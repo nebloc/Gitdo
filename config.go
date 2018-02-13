@@ -5,5 +5,8 @@ package main
 // TODO: with tab then space
 
 func test() {
-	// TODO: Create test suite
+}
+
+func hello() {
+	// TODO: Cleanup
 }

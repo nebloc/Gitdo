@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/waigani/diffparser"
 	"log"
@@ -14,7 +15,7 @@ func main() {
 	fmt.Println("Gitdo running...")
 
 	// Run a git diff to look for changes --cached to be added for precommit hook
-	cmd := exec.Command("git", "diff")
+	cmd := exec.Command("git", "diff", "--cached")
 	resp, err := cmd.Output()
 
 	// If error running git diff abort all
@@ -24,12 +25,13 @@ func main() {
 	}
 
 	// Save output as string
-	cmdOutput := fmt.Sprintf("\n%s", resp)
+	cmdOutput := fmt.Sprintf("%s", resp)
 
 	// Parse diff output
 	diff, err := diffparser.Parse(cmdOutput)
 	if err != nil {
 		log.Fatalf("Error processing diff: %v", err)
+		os.Exit(1)
 	}
 
 	// Create waitgroup to sync handling of all files
@@ -45,36 +47,35 @@ func main() {
 	fmt.Println("Gitdo stopping...")
 }
 
+// ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 func ProcessFileDiff(file *diffparser.DiffFile, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	re := regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO:[[:space:]](.*)`)
 
-	output := fmt.Sprintf("%s\n", file.NewName)
-	for _, hunk := range file.Hunks {
-		for _, line := range hunk.NewRange.Lines {
-			if line.Mode == 0 {
+	stagedTasks := make([]Task, 0)
+
+	// TODO: Clean up this spaghetti code
+	for _, hunk := range file.Hunks { // Loop through diff hunks
+		for _, line := range hunk.NewRange.Lines { // Loop over line changes
+			if line.Mode == 0 { // if line was added
 				match := re.FindStringSubmatch(line.Content)
-				if len(match) > 0 {
+				if len(match) > 0 { // if match was found
 					t := Task{
 						file.NewName,
 						match[1],
-						line.Position,
+						line.Number,
 					}
-					output += t.ToString() + "\n"
+					stagedTasks = append(stagedTasks, t)
 				}
 			}
 		}
 	}
-	fmt.Println(output)
-}
 
-type Task struct {
-	FileName string
-	TaskName string
-	Position int
-}
+	b, err := json.Marshal(stagedTasks)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-func (t *Task) ToString() string {
-	return fmt.Sprintf("File: %s, Task: %s, Pos: %d", t.FileName, t.TaskName, t.Position)
+	fmt.Printf("%s\n", b)
 }
