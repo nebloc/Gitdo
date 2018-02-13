@@ -3,5 +3,5 @@ install:
 	mv Gitdo .git/gitdo/
 
 rm_commit:
-	git reset HEAD~
+	git reset --soft HEAD~
 	git status

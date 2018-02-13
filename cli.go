@@ -8,11 +8,13 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"time"
 )
 
 var pluginfile string = "gitdo_trello.py"
 
 func main() {
+	startTime := time.Now()
 	fmt.Println("Gitdo running...")
 
 	// Run a git diff to look for changes --cached to be added for precommit hook
@@ -66,6 +68,8 @@ func main() {
 	fmt.Printf("Plugin: %s\n", resp)
 
 	fmt.Println("Gitdo stopping...")
+	// TODO: Benchmark timer
+	fmt.Println(time.Now().Sub(startTime))
 }
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
