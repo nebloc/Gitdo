@@ -48,6 +48,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO: Load from config for XXX HACK FIXME and Custom annotation
 	TODOReg = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO:[[:space:]](.*)`)
 
 	// Parse diff output
