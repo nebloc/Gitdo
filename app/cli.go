@@ -11,8 +11,10 @@ import (
 	"time"
 )
 
-var TODOReg *regexp.Regexp
-var pluginfile string = "gitdo_trello.py"
+var (
+	TODOReg *regexp.Regexp
+	config  Config
+)
 
 // GetDiff runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
 func GetDiff() (string, error) {
@@ -39,6 +41,12 @@ func GetDiff() (string, error) {
 func main() {
 	startTime := time.Now() // To Benchmark
 	log.Print("Gitdo started")
+
+	err := LoadConfig()
+	if err != nil {
+		log.Print("couldn't load config: ", err)
+		os.Exit(1)
+	}
 
 	rawDiff, err := GetDiff()
 	if err != nil {
@@ -87,7 +95,7 @@ func RunPlugin(allTasks []Task) {
 	}
 
 	// Run Plugin
-	plugin := exec.Command("python3", ".git/gitdo/"+pluginfile, fmt.Sprintf("%s", b))
+	plugin := exec.Command(config.PluginCmd, config.PluginFile, fmt.Sprintf("%s", b))
 	resp, err := plugin.CombinedOutput()
 	log.Printf("Plugin output:\n%s", resp)
 	if err != nil {
@@ -123,6 +131,7 @@ func CheckTask(line *diffparser.DiffLine, fileName string) (Task, bool) {
 			fileName,
 			match[1],
 			line.Number,
+			config.Author,
 		}
 		return t, true
 	}
@@ -133,4 +142,5 @@ type Task struct {
 	FileName string `json:"file_name"`
 	TaskName string `json:"task_name"`
 	FileLine int    `json:"file_line"`
+	Author   string `json:"author"`
 }
