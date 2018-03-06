@@ -6,7 +6,7 @@ import "testing"
 
 func TestGetDiff(t *testing.T) {
 	fmt.Println("Running Test")
-	_, err := GetDiff()
+	_, err := GetDiffFromCmd()
 	if err != nil {
 		t.Fail()
 	}

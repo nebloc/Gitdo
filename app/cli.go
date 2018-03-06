@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/waigani/diffparser"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -16,8 +17,8 @@ var (
 	config  Config
 )
 
-// GetDiff runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
-func GetDiff() (string, error) {
+// GetDiffFromCmd runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
+func GetDiffFromCmd() (string, error) {
 	// Run a git diff to look for changes --cached to be added for precommit hook
 	// cmd := exec.Command("git", "diff", "--cached")
 	cmd := exec.Command("git", "diff")
@@ -38,6 +39,14 @@ func GetDiff() (string, error) {
 	return fmt.Sprintf("%s", resp), nil
 }
 
+func GetDiffFromFile() (string, error) {
+	bDiff, err := ioutil.ReadFile(config.DiffFrom)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s", bDiff), nil
+}
+
 func main() {
 	startTime := time.Now() // To Benchmark
 	log.Print("Gitdo started")
@@ -46,6 +55,11 @@ func main() {
 	if err != nil {
 		log.Print("couldn't load config: ", err)
 		os.Exit(1)
+	}
+
+	GetDiff := GetDiffFromFile
+	if config.DiffFrom == "cmd" {
+		GetDiff = GetDiffFromCmd
 	}
 
 	rawDiff, err := GetDiff()
@@ -95,7 +109,7 @@ func RunPlugin(allTasks []Task) {
 	}
 
 	// Run Plugin
-	plugin := exec.Command(config.PluginCmd, config.PluginFile, fmt.Sprintf("%s", b))
+	plugin := exec.Command(config.PluginCmd, config.PluginName, fmt.Sprintf("%s", b))
 	resp, err := plugin.CombinedOutput()
 	log.Printf("Plugin output:\n%s", resp)
 	if err != nil {
