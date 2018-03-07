@@ -100,6 +100,7 @@ func main() {
 	log.Print("Gitdo finished in ", time.Now().Sub(startTime))
 }
 
+// TODO: Need to handle plugins better
 func RunPlugin(allTasks []Task) {
 	// JSONify all tasks for plugins
 	b, err := json.Marshal(allTasks)

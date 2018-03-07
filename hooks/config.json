@@ -1,6 +1,6 @@
 {
 	"author":"Ben Coleman",
-	"plugin_cmd":"python3",
-	"plugin_name":"./gitdo_trello.py",
+	"plugin_cmd":"node",
+	"plugin_name":"./trello_js/trello.js",
 	"diff_from":"example.txt"
 }
