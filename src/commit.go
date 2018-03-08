@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/nebbers1111/diffparse"
 	"io/ioutil"
+	// TODO: add logrus package to support verbose options
 	"log"
 	"os"
 	"os/exec"
@@ -13,16 +15,21 @@ import (
 )
 
 var (
-	TODOReg *regexp.Regexp
-	config  Config
+	TODOReg    *regexp.Regexp
+	config     Config
+	cachedFlag *bool
 )
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
 func GetDiffFromCmd() (string, error) {
+	log.Printf("Running git diff with cached set to %v", *cachedFlag)
 	// Run a git diff to look for changes --cached to be added for precommit hook
-	// cmd := exec.Command("git", "diff", "--cached")
-	cmd := exec.Command("git", "diff")
-
+	var cmd *exec.Cmd
+	if *cachedFlag {
+		cmd = exec.Command("git", "diff", "--cached")
+	} else {
+		cmd = exec.Command("git", "diff")
+	}
 	resp, err := cmd.Output()
 
 	// If error running git diff abort all
@@ -47,9 +54,13 @@ func GetDiffFromFile() (string, error) {
 	return fmt.Sprintf("%s", bDiff), nil
 }
 
+// TODO: Refactor main in to smaller functions
 func main() {
 	startTime := time.Now() // To Benchmark
 	log.Print("Gitdo started")
+
+	cachedFlag = flag.Bool("c", false, "a flag that adds --cached to the git diff command")
+	flag.Parse()
 
 	err := LoadConfig()
 	if err != nil {

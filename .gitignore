@@ -1,4 +1,6 @@
 hooks/
+bin
+bin/*
 hooks/*
 plugins/trello_js/node_modules/*
 plugins/trello_js/node_modules/

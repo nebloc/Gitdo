@@ -8,3 +8,6 @@ build: clean
 	
 run: build
 	cd ./bin/ && ./gitdo
+
+cached: build 
+	cd ./bin/ && ./gitdo -c
