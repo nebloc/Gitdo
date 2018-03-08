@@ -1,10 +1,10 @@
 package main
 
 import (
+	"diffparse"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/nebbers1111/diffparse"
 	"io/ioutil"
 	// TODO: add logrus package to support verbose options
 	"log"
