@@ -1,5 +1,5 @@
 {
-	"author":"Ben Coleman",
+	"author":"benjamin.coleman@me.com",
 	"plugin_cmd":"node",
 	"plugin_name":"./trello_js/trello.js",
 	"diff_from":"../diff_examples/example.txt"

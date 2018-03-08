@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/nebbers1111/diffparse"
 	"io/ioutil"
@@ -86,6 +87,23 @@ func main() {
 		log.Print(task)
 	}
 
+	file, err := os.OpenFile("staged_tasks.json", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Print(err.Error())
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	btask, err := json.Marshal(tasks)
+	if err != nil {
+		log.Print(err.Error())
+		os.Exit(1)
+	}
+	_, err = file.Write(btask)
+	if err != nil {
+		log.Print(err.Error())
+		os.Exit(1)
+	}
 	log.Print("Gitdo finished in ", time.Now().Sub(startTime))
 }
 
