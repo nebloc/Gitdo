@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// TODO: Load from config for XXX HACK FIXME and Custom annotation
-	TODOReg = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO:[[:space:]](.*)`)
+	TODOReg = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
@@ -111,6 +111,9 @@ func main() {
 func ProcessDiff(lines []diffparse.SourceLine) []Task {
 	var stagedTasks []Task
 	for _, line := range lines {
+		if line.Mode == diffparse.REMOVED {
+			continue
+		}
 		task, found := CheckTask(line)
 		if found {
 			stagedTasks = append(stagedTasks, task)

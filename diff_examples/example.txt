@@ -37,7 +37,7 @@ index 30d4ebc..ca12716 100644
 -	output := fmt.Sprintf("%s\n", file.NewName)
 +	stagedTasks := make([]Task, 0)
 +
-+	// TODO: Clean up this spaghetti code
++	// TODO(benjamin.coleman@me.com): Clean up this spaghetti code
  	for _, hunk := range file.Hunks {
  		for _, line := range hunk.NewRange.Lines {
 -			if line.Mode == 0 {
