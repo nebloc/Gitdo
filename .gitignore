@@ -1,1 +1,4 @@
-./hooks
+hooks/
+hooks/*
+plugins/trello_js/node_modules/*
+plugins/trello_js/node_modules/

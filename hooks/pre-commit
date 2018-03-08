@@ -6,7 +6,8 @@ git stash -q --keep-index
 # echo "running gitdo"
 # Edit your project files here
 # python ../Gitdo/inspect_git.py "$(git diff --cached)"
-.git/gitdo/Gitdo
+#.git/gitdo/Gitdo
+./hooks/Gitdo
 
 echo "staging updated files"
 # Stage updated files
