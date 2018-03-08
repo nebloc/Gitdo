@@ -33,15 +33,16 @@ const (
 	DELETED
 )
 
-func ParseGitDiff(rawDiff string) (Diff, error) {
+func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 	diffLines := strings.Split(rawDiff, "\n")
-
-	var diff Diff
-	var file *DiffFile
-	var hunk *Hunk
 
 	isFirstFile := true
 	inHeader := true
+
+	var sourceLines []SourceLine
+
+	var fromFileName string
+	var toFileName string
 
 	// Loop over diff
 	for _, line := range diffLines {
@@ -53,54 +54,42 @@ func ParseGitDiff(rawDiff string) (Diff, error) {
 			} else {
 				isFirstFile = false
 			}
-
-			file = &DiffFile{}
-			diff.Files = append(diff.Files, file)
 		case strings.HasPrefix(line, fromFilePrefix):
-			file.FromFileName = strings.TrimPrefix(line, fromFilePrefix)
+			fromFileName = strings.TrimPrefix(line, fromFilePrefix)
 
 		case strings.HasPrefix(line, toFilePrefix):
-			file.ToFileName = strings.TrimPrefix(line, toFilePrefix)
-
-		case strings.HasPrefix(line, newFilePrefix):
-			file.Mode = NEW
-
-		case strings.HasPrefix(line, delFilePrefix):
-			file.Mode = DELETED
+			toFileName = strings.TrimPrefix(line, toFilePrefix)
 
 		case strings.HasPrefix(line, "@@ "):
 			inHeader = false
-			hunk = &Hunk{}
-			file.Hunks = append(file.Hunks, hunk)
+
 		case !inHeader:
 			if line == `\ No newline at end of file` {
 				break
 			}
 			if strings.HasPrefix(line, "+") && !strings.HasPrefix(line, "++") {
-				hunk.Added += strings.TrimPrefix(line, "+") + "\n"
+				l := SourceLine{
+					fromFileName,
+					toFileName,
+					strings.TrimPrefix(line, "+"),
+					0,
+					ADDED,
+				}
+				sourceLines = append(sourceLines, l)
 			} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "--") {
-				hunk.Removed += strings.TrimPrefix(line, "-") + "\n"
-
+				l := SourceLine{
+					fromFileName,
+					toFileName,
+					strings.TrimPrefix(line, "-"),
+					0,
+					REMOVED,
+				}
+				sourceLines = append(sourceLines, l)
 			}
 		}
 	}
 
-	return diff, nil
-}
-
-type Diff struct {
-	Files []*DiffFile
-}
-
-// MODE Modified, new, del
-type DiffFile struct {
-	FromFileName, ToFileName string
-	Mode                     FileMode
-	Hunks                    []*Hunk
-}
-
-type Hunk struct {
-	Added, Removed string
+	return sourceLines, nil
 }
 
 type SourceLine struct {
