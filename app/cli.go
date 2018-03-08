@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/waigani/diffparser"
+	"github.com/nebbers1111/diffparse"
 	"io/ioutil"
 	"log"
 	"os"
@@ -64,6 +63,7 @@ func main() {
 
 	rawDiff, err := GetDiff()
 	if err != nil {
+		log.Print("error getting diff: ", err.Error())
 		os.Exit(1)
 	} else if rawDiff == "" {
 		log.Print("No git diff output - exiting")
@@ -74,78 +74,40 @@ func main() {
 	TODOReg = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO:[[:space:]](.*)`)
 
 	// Parse diff output
-	diff, err := diffparser.Parse(rawDiff)
+	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
 		log.Fatalf("Error processing diff: %v", err)
 		os.Exit(1)
 	}
 
-	// Create channel for task arrays to be returned from goroutines processing files
-	taskChan := make(chan []Task)
-	// Task array for all tasks to be added to
-	allTasks := make([]Task, 0)
-
 	// Loop over files and run go routines for each file changed
-	for _, file := range diff.Files {
-		go ProcessFileDiff(file, taskChan)
+	tasks := ProcessDiff(lines)
+	for _, task := range tasks {
+		log.Print(task)
 	}
-
-	// Capture all tasks sent back and add them to the full list
-	for range diff.Files {
-		allTasks = append(allTasks, <-taskChan...)
-	}
-
-	RunPlugin(allTasks)
 
 	log.Print("Gitdo finished in ", time.Now().Sub(startTime))
 }
 
-// TODO: Need to handle plugins better
-func RunPlugin(allTasks []Task) {
-	// JSONify all tasks for plugins
-	b, err := json.Marshal(allTasks)
-	if err != nil {
-		log.Fatalf("Error marshalling task array to json: %v", err)
-		os.Exit(1)
-	}
-
-	// Run Plugin
-	plugin := exec.Command(config.PluginCmd, config.PluginName, fmt.Sprintf("%s", b))
-	resp, err := plugin.CombinedOutput()
-	log.Printf("Plugin output:\n%s", resp)
-	if err != nil {
-		log.Fatalf("Gitdo plugin failed: %v", err)
-		os.Exit(1)
-	}
-}
-
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
-func ProcessFileDiff(file *diffparser.DiffFile, taskChan chan<- []Task) {
-	stagedTasks := make([]Task, 0)
-
-	// TODO: Clean up this spaghetti code
-	for _, hunk := range file.Hunks { // Loop through diff hunks
-		for _, line := range hunk.NewRange.Lines { // Loop over line changes
-			if line.Mode == 0 { // if line was added
-				task, found := CheckTask(line, file.NewName)
-				if found {
-					stagedTasks = append(stagedTasks, task)
-				}
-			}
+func ProcessDiff(lines []diffparse.SourceLine) []Task {
+	var stagedTasks []Task
+	for _, line := range lines {
+		task, found := CheckTask(line)
+		if found {
+			stagedTasks = append(stagedTasks, task)
 		}
 	}
-
-	taskChan <- stagedTasks
+	return stagedTasks
 }
 
-//TODO: Create test function for task reg
-func CheckTask(line *diffparser.DiffLine, fileName string) (Task, bool) {
+func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	match := TODOReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{
-			fileName,
+			line.FileTo,
 			match[1],
-			line.Number,
+			line.Position,
 			config.Author,
 		}
 		return t, true
