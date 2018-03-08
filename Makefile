@@ -1,3 +1,6 @@
+init: 
+	mkdir bin
+	mkrir pkg
 clean:
 	rm -rf ./bin
 
