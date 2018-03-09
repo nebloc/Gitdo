@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 )
 
 type Config struct {
@@ -23,6 +23,11 @@ func LoadConfig() error {
 	if err != nil {
 		return err
 	}
-	log.Print("Config loaded\n", config)
+	log.WithFields(log.Fields{
+		"author":             config.Author,
+		"plugin_name":        config.PluginName,
+		"plugin_interpreter": config.PluginCmd,
+		"diff_source":        config.DiffFrom,
+	}).Debug("Config")
 	return nil
 }

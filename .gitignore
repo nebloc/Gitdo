@@ -120,3 +120,6 @@ typings/
 
 # dotenv environment variables file
 .env
+
+src/github.com/
+src/golang.org/
