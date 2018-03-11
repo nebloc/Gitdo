@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
@@ -10,14 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"time"
-)
-
-var (
-	TODOReg        *regexp.Regexp
-	config         Config
-	cachedFlag     *bool
-	verboseLogFlag *bool
 )
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
@@ -67,19 +58,7 @@ func GetDiffFromFile() (string, error) {
 	return fmt.Sprintf("%s", bDiff), nil
 }
 
-func HandleLog() {
-	log.SetLevel(log.InfoLevel)
-	if *verboseLogFlag {
-		log.SetLevel(log.DebugLevel)
-	}
-}
-
-func HandleFlags() {
-	verboseLogFlag = flag.Bool("v", false, "verbose output")
-	cachedFlag = flag.Bool("c", false, "a flag that adds --cached to the git diff command")
-	flag.Parse()
-}
-
+// HandleDiffSource checks the current config and gets the diff from the specified source (command or file)
 func HandleDiffSource() string {
 	GetDiff := GetDiffFromFile
 	if config.DiffFrom == "cmd" {
@@ -96,8 +75,14 @@ func HandleDiffSource() string {
 	return rawDiff
 }
 
+// WriteStagedTasks writes the given task array to a staged tasks file
 func WriteStagedTasks(tasks []Task) {
-	file, err := os.OpenFile("staged_tasks.json", os.O_RDWR|os.O_CREATE, 0644)
+	if len(tasks) < 1 {
+		return
+	}
+
+	// BUG: Currently overwriting the already staged tasks rather than appending
+	file, err := os.OpenFile(StagedTasksFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatal(err.Error())
 		os.Exit(1)
@@ -116,25 +101,8 @@ func WriteStagedTasks(tasks []Task) {
 	}
 }
 
-// TODO: Refactor main in to smaller functions
-func main() {
-	startTime := time.Now() // To Benchmark
-
-	HandleFlags()
-	HandleLog()
-
-	log.Info("Gitdo started")
-
-	err := LoadConfig()
-	if err != nil {
-		log.WithError(err).Fatal("couldn't load config")
-		os.Exit(1)
-	}
-
+func Commit() {
 	rawDiff := HandleDiffSource()
-
-	// TODO: Load from config for XXX HACK FIXME and Custom annotation
-	TODOReg = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
@@ -151,11 +119,15 @@ func main() {
 
 	WriteStagedTasks(tasks)
 
-	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
 }
+
+// TODO: Should todoReg be a global variable?
+// todoReg is a compiled regex to match the TODO comments
+var todoReg *regexp.Regexp = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 func ProcessDiff(lines []diffparse.SourceLine) []Task {
+
 	var stagedTasks []Task
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
@@ -170,7 +142,7 @@ func ProcessDiff(lines []diffparse.SourceLine) []Task {
 }
 
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	match := TODOReg.FindStringSubmatch(line.Content)
+	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{
 			line.FileTo,
@@ -181,16 +153,4 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 		return t, true
 	}
 	return Task{}, false
-}
-
-type Task struct {
-	FileName string `json:"file_name"`
-	TaskName string `json:"task_name"`
-	FileLine int    `json:"file_line"`
-	Author   string `json:"author"`
-}
-
-func (t *Task) toString() string {
-	return fmt.Sprintf("Author: %s, Task: %s, File: %s, Position: %d",
-		t.Author, t.TaskName, t.FileName, t.FileLine)
 }

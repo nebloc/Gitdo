@@ -7,13 +7,17 @@ import (
 )
 
 type Config struct {
-	Author     string `json:"author"`
+	// Author to attach to task in task manager.
+	Author string `json:"author"`
+	// Plugin to use at push time
 	PluginName string `json:"plugin_name"`
-	PluginCmd  string `json:"plugin_cmd"`
-	DiffFrom   string `json:"diff_from"`
+	// Plugin interpreter to use
+	PluginCmd string `json:"plugin_cmd"`
+	// Where to load the diff from. Currently for debugging only.
+	DiffFrom string `json:"diff_from"`
 }
 
-//TODO: load config from file test
+// LoadConfig opens a configuration file and reads it in to the Config struct
 func LoadConfig() error {
 	bConfig, err := ioutil.ReadFile("./config.json")
 	if err != nil {
