@@ -11,7 +11,8 @@ type Task struct {
 	Author   string `json:"author"`
 }
 
-func (t *Task) toString() string {
+// String prints the Task in a readable format
+func (t *Task) String() string {
 	return fmt.Sprintf("Author: %s, Task: %s, File: %s, Position: %d",
 		t.Author, t.TaskName, t.FileName, t.FileLine)
 }

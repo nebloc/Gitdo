@@ -114,7 +114,7 @@ func Commit() {
 	// Loop over files and run go routines for each file changed
 	tasks := ProcessDiff(lines)
 	for _, task := range tasks {
-		log.WithField("task", task.toString()).Debug("New task")
+		log.WithField("task", task.String()).Debug("New task")
 	}
 
 	WriteStagedTasks(tasks)
