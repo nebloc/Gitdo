@@ -1,10 +1,10 @@
 package main
 
 import (
-	"diffparse"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
@@ -90,7 +90,7 @@ func HandleDiffSource() string {
 		log.Fatal("error getting diff: ", err.Error())
 		os.Exit(1)
 	} else if rawDiff == "" {
-		log.Fatal("No git diff output - exiting")
+		log.Warn("No git diff output - exiting")
 		os.Exit(1)
 	}
 	return rawDiff
