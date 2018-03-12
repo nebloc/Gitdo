@@ -11,13 +11,15 @@ import (
 	"regexp"
 )
 
-// GetDiffFromCmd runs the git diff command on the OS and returns a string of the result or the error that the cmd produced.
+// GetDiffFromCmd runs the git diff command on the OS and returns a string of
+// the result or the error that the cmd produced.
 func GetDiffFromCmd() (string, error) {
 	log.WithFields(log.Fields{
 		"cached": *cachedFlag,
 	}).Debug("Running Git diff")
 
-	// Run a git diff to look for changes --cached to be added for precommit hook
+	// Run a git diff to look for changes --cached to be added for
+	// precommit hook
 	var cmd *exec.Cmd
 	if *cachedFlag {
 		cmd = exec.Command("git", "diff", "--cached")
@@ -49,7 +51,8 @@ func GetDiffFromCmd() (string, error) {
 	return diff, nil
 }
 
-// GetDiffFromFile reads in the filepath specified in the config and returns a string of the contents and any read errors
+// GetDiffFromFile reads in the filepath specified in the config and returns a
+// string of the contents and any read errors
 func GetDiffFromFile() (string, error) {
 	bDiff, err := ioutil.ReadFile(config.DiffFrom)
 	if err != nil {
@@ -58,7 +61,8 @@ func GetDiffFromFile() (string, error) {
 	return fmt.Sprintf("%s", bDiff), nil
 }
 
-// HandleDiffSource checks the current config and gets the diff from the specified source (command or file)
+// HandleDiffSource checks the current config and gets the diff from the
+// specified source (command or file)
 func HandleDiffSource() string {
 	GetDiff := GetDiffFromFile
 	if config.DiffFrom == "cmd" {
@@ -81,7 +85,8 @@ func WriteStagedTasks(tasks []Task) {
 		return
 	}
 
-	// BUG: Currently overwriting the already staged tasks rather than appending
+	// BUG: Currently overwriting the already staged tasks rather than
+	// appending
 	file, err := os.OpenFile(StagedTasksFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -101,6 +106,8 @@ func WriteStagedTasks(tasks []Task) {
 	}
 }
 
+// Commit is called when commit mode. It gathers the git diff, parses it in to
+// source lines and starts the processing for tasks and writing of staged tasks.
 func Commit() {
 	rawDiff := HandleDiffSource()
 
@@ -123,7 +130,8 @@ func Commit() {
 
 // TODO: Should todoReg be a global variable?
 // todoReg is a compiled regex to match the TODO comments
-var todoReg *regexp.Regexp = regexp.MustCompile(`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
+var todoReg *regexp.Regexp = regexp.MustCompile(
+	`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 func ProcessDiff(lines []diffparse.SourceLine) []Task {

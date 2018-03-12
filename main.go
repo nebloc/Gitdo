@@ -17,7 +17,8 @@ var (
 )
 
 const (
-	// File name for writing and reading staged tasks from (between commit and push)
+	// File name for writing and reading staged tasks from (between commit
+	// and push)
 	StagedTasksFile = "staged_tasks.json"
 )
 

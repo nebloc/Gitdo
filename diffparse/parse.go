@@ -1,24 +1,8 @@
 package diffparse
 
 import (
-	"fmt"
-	"os/exec"
 	"strings"
 )
-
-func GetGitDiff() (string, error) {
-	gitCmd := exec.Command("git", "diff", "--cached")
-	bDiff, err := gitCmd.Output()
-	if err != nil {
-		if err, ok := err.(*exec.ExitError); ok {
-			return "", fmt.Errorf("git diff failed to exit: %v", err.Stderr)
-		} else {
-			return "", fmt.Errorf("git diff couldn't be run: %v", err.Stderr)
-		}
-	}
-
-	return fmt.Sprintf("%s", bDiff), nil
-}
 
 const fromFilePrefix = "--- a/"
 const toFilePrefix = "+++ b/"
@@ -28,11 +12,14 @@ const delFilePrefix = "+++ /dev/null"
 type FileMode int
 
 const (
-	MODIFIED FileMode = iota
-	NEW
-	DELETED
+	// Type of change to file in git diff
+	MODIFIED FileMode = iota // File contains a change
+	NEW                      // File is new to git
+	DELETED                  // File has been deleted
 )
 
+// ParseGitDiff loops over the given diff string and maps it to an array of
+// SourceLine structs
 func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 	diffLines := strings.Split(rawDiff, "\n")
 

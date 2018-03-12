@@ -4,14 +4,6 @@ import (
 	"testing"
 )
 
-func TestGetGitDiff(t *testing.T) {
-	diff, err := GetGitDiff()
-	if err != nil {
-		t.Errorf("GetGitDiff returned error: %v", err)
-	}
-	t.Logf("GetGitDiff returned: %s", diff)
-}
-
 func TestParseGitDiff(t *testing.T) {
 	lines, err := ParseGitDiff(example_diff)
 	if err != nil {
