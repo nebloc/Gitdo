@@ -73,8 +73,7 @@ func HandleDiffSource() string {
 		log.Fatal("error getting diff: ", err.Error())
 		os.Exit(1)
 	} else if rawDiff == "" {
-		log.Warn("No git diff output - exiting")
-		os.Exit(1)
+		log.Warn("No git diff output")
 	}
 	return rawDiff
 }
@@ -126,6 +125,7 @@ func Commit() {
 
 	WriteStagedTasks(tasks)
 
+	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
 }
 
 // TODO: Should todoReg be a global variable?
