@@ -61,9 +61,9 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 				return nil, err
 			}
 
-			linePos = newHunkLine
-
+			linePos = newHunkLine - 1
 		case !inHeader:
+			linePos++
 			if line == `\ No newline at end of file` {
 				break
 			}
@@ -75,7 +75,6 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 					linePos,
 					ADDED,
 				}
-				linePos++
 				sourceLines = append(sourceLines, l)
 			} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "--") {
 				l := SourceLine{
