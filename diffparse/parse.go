@@ -1,6 +1,8 @@
 package diffparse
 
 import (
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -30,6 +32,9 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 
 	var fromFileName string
 	var toFileName string
+	var linePos int
+
+	hunkHeadReg := regexp.MustCompile(`@@ \-(\d+),?(\d+)? \+(\d+),?(\d+)? @@`)
 
 	// Loop over diff
 	for _, line := range diffLines {
@@ -49,6 +54,14 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 
 		case strings.HasPrefix(line, "@@ "):
 			inHeader = false
+			match := hunkHeadReg.FindStringSubmatch(line)
+
+			newHunkLine, err := strconv.Atoi(match[3])
+			if err != nil {
+				return nil, err
+			}
+
+			linePos = newHunkLine
 
 		case !inHeader:
 			if line == `\ No newline at end of file` {
@@ -59,18 +72,20 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 					fromFileName,
 					toFileName,
 					strings.TrimPrefix(line, "+"),
-					0,
+					linePos,
 					ADDED,
 				}
+				linePos++
 				sourceLines = append(sourceLines, l)
 			} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "--") {
 				l := SourceLine{
 					fromFileName,
 					toFileName,
 					strings.TrimPrefix(line, "-"),
-					0,
+					linePos,
 					REMOVED,
 				}
+				linePos--
 				sourceLines = append(sourceLines, l)
 			}
 		}
