@@ -88,13 +88,14 @@ func WriteStagedTasks(tasks []Task) {
 	bExisting, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Warn("No existing tasks")
-	}
-	err = json.Unmarshal(bExisting, &existingTasks)
-	if err != nil {
-		log.WithError(err).Fatal("Could not read existing tasks")
-	}
+	} else {
+		err = json.Unmarshal(bExisting, &existingTasks)
+		if err != nil {
+			log.WithError(err).Fatal("Poorly formatted staged JSON")
+		}
 
-	tasks = append(existingTasks, tasks...)
+		tasks = append(existingTasks, tasks...)
+	}
 
 	file, err := os.OpenFile(StagedTasksFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
