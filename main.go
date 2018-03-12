@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	log "github.com/sirupsen/logrus"
+	"io/ioutil"
 	"time"
 )
 
@@ -43,7 +45,8 @@ func main() {
 		log.Debug("Starting in push mode")
 		// Push()
 	default:
-		log.Warn("No mode given, please use --commit or --push")
+		log.Warn("No mode given (--commit or --push)")
+		PrintStaged()
 	}
 
 	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
@@ -64,4 +67,17 @@ func HandleLog() {
 	if *verboseLogFlag {
 		log.SetLevel(log.DebugLevel)
 	}
+}
+
+func PrintStaged() {
+	bJson, err := ioutil.ReadFile(StagedTasksFile)
+	if err != nil {
+		log.WithError(err).Warn("Could't print staged tasks")
+	}
+	var tasks []Task
+	err = json.Unmarshal(bJson, &tasks)
+	if err != nil {
+		log.WithError(err).Warn("Could't print staged tasks")
+	}
+	log.Print(tasks)
 }

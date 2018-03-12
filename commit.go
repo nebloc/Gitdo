@@ -80,12 +80,22 @@ func HandleDiffSource() string {
 
 // WriteStagedTasks writes the given task array to a staged tasks file
 func WriteStagedTasks(tasks []Task) {
-	if len(tasks) < 1 {
+	if len(tasks) == 0 {
 		return
 	}
 
-	// BUG: Currently overwriting the already staged tasks rather than
-	// appending
+	var existingTasks []Task
+	bExisting, err := ioutil.ReadFile(StagedTasksFile)
+	if err != nil {
+		log.WithError(err).Fatal("Could not read existing tasks")
+	}
+	err = json.Unmarshal(bExisting, &existingTasks)
+	if err != nil {
+		log.WithError(err).Fatal("Could not read existing tasks")
+	}
+
+	tasks = append(existingTasks, tasks...)
+
 	file, err := os.OpenFile(StagedTasksFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -135,7 +145,6 @@ var todoReg *regexp.Regexp = regexp.MustCompile(
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 func ProcessDiff(lines []diffparse.SourceLine) []Task {
-
 	var stagedTasks []Task
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
