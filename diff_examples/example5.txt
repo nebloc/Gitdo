@@ -1,0 +1,12 @@
+diff --git a/test.txt b/test.txt
+index d90eea3..849126d 100644
+--- a/test.txt
++++ b/test.txt
+@@ -1,5 +1,5 @@
+ Hello Ben
+ How Are you
+-
+ Testing git pos
+ To see if it works
++//TODO: hello
+
