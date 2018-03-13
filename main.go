@@ -5,11 +5,12 @@ import (
 	"flag"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
+	"os"
 	"time"
 )
 
 var (
-	config Config
+	config *Config
 
 	// Flags
 	cachedFlag     *bool
@@ -19,9 +20,11 @@ var (
 )
 
 const (
+	GitdoDir = ".git/gitdo/"
+
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
-	StagedTasksFile = "staged_tasks.json"
+	StagedTasksFile = GitdoDir + "staged_tasks.json"
 )
 
 func main() {
@@ -29,12 +32,16 @@ func main() {
 
 	HandleFlags()
 	HandleLog()
+	CheckFolder()
 
 	log.Info("Gitdo started")
 
 	err := LoadConfig()
 	if err != nil {
-		log.WithError(err).Fatal("Could not load configuration file")
+		err = LoadDefaultConfig()
+		if err != nil {
+			log.WithError(err).Fatal("Could not set config")
+		}
 	}
 
 	switch {
@@ -72,7 +79,8 @@ func HandleLog() {
 func PrintStaged() {
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
-		log.WithError(err).Warn("Could't print staged tasks")
+		log.WithError(err).Warn("Could not print staged tasks")
+		return
 	}
 	var tasks []Task
 	err = json.Unmarshal(bJson, &tasks)
@@ -80,4 +88,14 @@ func PrintStaged() {
 		log.WithError(err).Warn("Could't print staged tasks")
 	}
 	log.Print(tasks)
+}
+
+func CheckFolder() error {
+	if _, err := os.Stat(GitdoDir); os.IsNotExist(err) {
+		err = os.Mkdir(GitdoDir, os.ModePerm|os.ModeDir)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
