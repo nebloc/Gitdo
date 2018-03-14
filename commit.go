@@ -152,6 +152,7 @@ var todoReg *regexp.Regexp = regexp.MustCompile(
 	`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
+// TODO: Handle multi line todo messages
 func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 	var stagedTasks []Task
 	for _, line := range lines {
