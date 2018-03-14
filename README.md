@@ -1,5 +1,10 @@
 # Gitdo
 
+## NOT yet ready for pull requests.
+## Using experimental vgo tool for dependencies.
+install: `go get -u golang/x/vgo`
+[See research by Russ Cox here](http://test.go)
+
 Suboptimal code is not correctly tracked and corrected in modern software methodologies, often leading to quality or performance issues later in the application lifecycle.
 
 When pushed for time or pressured from other priorities, developers may annotate unfinished code, with certain terms, in order to show that the following code is not complete. However, these annotations are often not visible enough and go long periods without being fixed.
