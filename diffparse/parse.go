@@ -11,15 +11,6 @@ const toFilePrefix = "+++ b/"
 const newFilePrefix = "--- /dev/null"
 const delFilePrefix = "+++ /dev/null"
 
-type FileMode int
-
-const (
-	// Type of change to file in git diff
-	MODIFIED FileMode = iota // File contains a change
-	NEW                      // File is new to git
-	DELETED                  // File has been deleted
-)
-
 // ParseGitDiff loops over the given diff string and maps it to an array of
 // SourceLine structs
 func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
@@ -51,6 +42,11 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 
 		case strings.HasPrefix(line, toFilePrefix):
 			toFileName = strings.TrimPrefix(line, toFilePrefix)
+
+		case strings.HasPrefix(line, delFilePrefix):
+			toFileName = ""
+		case strings.HasPrefix(line, newFilePrefix):
+			fromFileName = ""
 
 		case strings.HasPrefix(line, "@@ "):
 			inHeader = false
@@ -103,6 +99,6 @@ type SourceLine struct {
 type LineMode int
 
 const (
-	ADDED = iota
+	ADDED LineMode = iota
 	REMOVED
 )
