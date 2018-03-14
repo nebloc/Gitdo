@@ -42,6 +42,10 @@ func main() {
 		if err != nil {
 			log.WithError(err).Fatal("Could not set config")
 		}
+		err = WriteConfig()
+		if err != nil {
+			log.WithError(err).Warn("Couldn't save config")
+		}
 	}
 
 	switch {
