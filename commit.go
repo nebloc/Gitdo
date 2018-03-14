@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 )
 
 // TODO: Change diff method to be io.reader and pass file reader or exec reader
@@ -107,7 +108,7 @@ func WriteStagedTasks(tasks []Task) {
 	}
 	defer file.Close()
 
-	btask, err := json.Marshal(tasks)
+	btask, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
 		log.Fatal(err.Error())
 		os.Exit(1)
@@ -131,14 +132,17 @@ func Commit() {
 		os.Exit(1)
 	}
 
-	// Loop over files and run go routines for each file changed
-	tasks := ProcessDiff(lines)
+	taskChan := make(chan Task, 2)
+	done := make(chan bool)
+
+	go MarkLinesAsExtracted(taskChan, done)
+
+	tasks := ProcessDiff(lines, taskChan)
 	for _, task := range tasks {
 		log.WithField("task", task.String()).Debug("New task")
 	}
-
 	WriteStagedTasks(tasks)
-
+	<-done
 	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
 }
 
@@ -148,7 +152,7 @@ var todoReg *regexp.Regexp = regexp.MustCompile(
 	`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
-func ProcessDiff(lines []diffparse.SourceLine) []Task {
+func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 	var stagedTasks []Task
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
@@ -157,9 +161,38 @@ func ProcessDiff(lines []diffparse.SourceLine) []Task {
 		task, found := CheckTask(line)
 		if found {
 			stagedTasks = append(stagedTasks, task)
+			taskChan <- task
 		}
 	}
+	close(taskChan)
+	log.Debug("Task channel closed")
 	return stagedTasks
+}
+
+func MarkLinesAsExtracted(taskChan <-chan Task, done chan<- bool) {
+	for {
+		task, open := <-taskChan
+		if open {
+			fileCont, err := ioutil.ReadFile(task.FileName)
+			if err != nil {
+				log.WithError(err).Error("Could not mark source code as extracted")
+				continue
+			}
+			lines := strings.Split(string(fileCont), "\n")
+			for i, line := range lines {
+				if i == task.FileLine - 1 {
+					lines[i] = line + " <GITDO>"
+				}
+			}
+			err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
+			if err != nil {
+				log.WithError(err).Error("Could not mark source code as extracted")
+			}
+		} else {
+			done <- true
+			return
+		}
+	}
 }
 
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
