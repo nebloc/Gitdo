@@ -9,6 +9,8 @@ import (
 	"os/exec"
 )
 
+const ConfigFilePath = GitdoDir + "config.json"
+
 type Config struct {
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
@@ -22,7 +24,7 @@ type Config struct {
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
 func LoadConfig() error {
-	bConfig, err := ioutil.ReadFile(".git/gitdo/config.json")
+	bConfig, err := ioutil.ReadFile(ConfigFilePath)
 	if err != nil {
 		return err
 	}
@@ -65,4 +67,13 @@ func getGitEmail() (string, error) {
 	email := fmt.Sprintf("%s", resp)
 	email = email[:len(email)-1]
 	return email, nil
+}
+
+func WriteConfig() error {
+	bConf, err := json.MarshalIndent(config, "", "\t")
+	if err != nil {
+		return err
+	}
+	ioutil.WriteFile(ConfigFilePath, bConf, os.ModePerm)
+	return nil
 }

@@ -173,6 +173,8 @@ func MarkLinesAsExtracted(taskChan <-chan Task, done chan<- bool) {
 	for {
 		task, open := <-taskChan
 		if open {
+			// TODO: Benchmark quickest way of adding the tag to the
+			// source code
 			fileCont, err := ioutil.ReadFile(task.FileName)
 			if err != nil {
 				log.WithError(err).Error("Could not mark source code as extracted")
@@ -180,7 +182,7 @@ func MarkLinesAsExtracted(taskChan <-chan Task, done chan<- bool) {
 			}
 			lines := strings.Split(string(fileCont), "\n")
 			for i, line := range lines {
-				if i == task.FileLine - 1 {
+				if i == task.FileLine-1 {
 					lines[i] = line + " <GITDO>"
 				}
 			}
