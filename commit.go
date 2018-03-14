@@ -11,6 +11,9 @@ import (
 	"regexp"
 )
 
+// TODO: Change diff method to be io.reader and pass file reader or exec reader
+// instead
+
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
 func GetDiffFromCmd() (string, error) {
