@@ -3,7 +3,7 @@
 ## NOT yet ready for pull requests.
 ## Using experimental vgo tool for dependencies.
 install: `go get -u golang/x/vgo`
-[See research by Russ Cox here](http://test.go)
+[See research by Russ Cox here](http://https://research.swtch.com/vgo)
 
 Suboptimal code is not correctly tracked and corrected in modern software methodologies, often leading to quality or performance issues later in the application lifecycle.
 
