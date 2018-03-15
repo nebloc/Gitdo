@@ -136,7 +136,7 @@ func Commit() {
 	taskChan := make(chan Task, 2)
 	done := make(chan bool)
 
-	go MarkLinesAsExtracted(taskChan, done)
+	go SourceChanger(taskChan, done)
 
 	tasks := ProcessDiff(lines, taskChan)
 	for _, task := range tasks {
@@ -170,8 +170,7 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 	return stagedTasks
 }
 
-//TODO: Name this better
-func MarkLinesAsExtracted(taskChan <-chan Task, done chan<- bool) {
+func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 	for {
 		task, open := <-taskChan
 		if open {
