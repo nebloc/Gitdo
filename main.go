@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"time"
+	"runtime"
 )
 
 var (
@@ -74,6 +76,10 @@ func HandleFlags() {
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag
 func HandleLog() {
+	if runtime.GOOS == "windows" {
+		log.SetFormatter(&log.TextFormatter{ForceColors: true})
+		log.SetOutput(colorable.NewColorableStdout())
+	}
 	log.SetLevel(log.InfoLevel)
 	if *verboseLogFlag {
 		log.SetLevel(log.DebugLevel)
