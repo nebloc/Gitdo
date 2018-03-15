@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nebbers1111/gitdo/diffparse"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/nebbers1111/gitdo/diffparse"
+	log "github.com/sirupsen/logrus"
 )
 
 // TODO: Change diff method to be io.reader and pass file reader or exec reader
@@ -166,7 +167,6 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 		}
 	}
 	close(taskChan)
-	log.Debug("Task channel closed")
 	return stagedTasks
 }
 

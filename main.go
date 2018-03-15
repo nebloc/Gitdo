@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"github.com/mattn/go-colorable"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
-	"time"
 	"runtime"
+	"time"
+
+	colorable "github.com/mattn/go-colorable"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -58,7 +58,7 @@ func main() {
 		log.Debug("Starting in push mode")
 		// Push()
 	default:
-		log.Warn("No mode given (--commit or --push)")
+		log.Info("No mode given. Use --help to see options")
 		PrintStaged()
 	}
 
@@ -89,15 +89,10 @@ func HandleLog() {
 func PrintStaged() {
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
-		log.WithError(err).Warn("Could not print staged tasks")
+		log.WithError(err).Info("No staged tasks")
 		return
 	}
-	var tasks []Task
-	err = json.Unmarshal(bJson, &tasks)
-	if err != nil {
-		log.WithError(err).Warn("Could't print staged tasks")
-	}
-	log.Print(tasks)
+	log.Print(string(bJson))
 }
 
 func CheckFolder() error {
