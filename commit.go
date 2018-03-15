@@ -170,32 +170,40 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 	return stagedTasks
 }
 
+//TODO: Name this better
 func MarkLinesAsExtracted(taskChan <-chan Task, done chan<- bool) {
 	for {
 		task, open := <-taskChan
 		if open {
-			// TODO: Benchmark quickest way of adding the tag to the
-			// source code
-			fileCont, err := ioutil.ReadFile(task.FileName)
+			err := MarkSourceLines(task)
 			if err != nil {
-				log.WithError(err).Error("Could not mark source code as extracted")
 				continue
-			}
-			lines := strings.Split(string(fileCont), "\n")
-			for i, line := range lines {
-				if i == task.FileLine-1 {
-					lines[i] = line + " <GITDO>"
-				}
-			}
-			err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
-			if err != nil {
-				log.WithError(err).Error("Could not mark source code as extracted")
 			}
 		} else {
 			done <- true
 			return
 		}
 	}
+}
+
+func MarkSourceLines(task Task) error {
+	fileCont, err := ioutil.ReadFile(task.FileName)
+	if err != nil {
+		log.WithError(err).Error("Could not mark source code as extracted")
+		return err
+	}
+	lines := strings.Split(string(fileCont), "\n")
+	for i, line := range lines {
+		if i == task.FileLine-1 {
+			lines[i] = line + " <GITDO>"
+		}
+	}
+	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
+	if err != nil {
+		log.WithError(err).Error("Could not mark source code as extracted")
+		return err
+	}
+	return nil
 }
 
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
