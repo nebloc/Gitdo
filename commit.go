@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +13,11 @@ import (
 	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli"
+)
+
+var (
+	ErrNotGitDir = errors.New("directory is not a git repo")
+	ErrNoDiff    = errors.New("diff is empty")
 )
 
 // TODO: Change diff method to be io.reader and pass file reader or exec reader
@@ -27,7 +33,7 @@ func GetDiffFromCmd(ctx *cli.Context) (string, error) {
 	// Run a git diff to look for changes --cached to be added for
 	// precommit hook
 	var cmd *exec.Cmd
-	if ctx.Bool("cached") {
+	if cachedFlag {
 		cmd = exec.Command("git", "diff", "--cached")
 	} else {
 		cmd = exec.Command("git", "diff")
@@ -36,11 +42,14 @@ func GetDiffFromCmd(ctx *cli.Context) (string, error) {
 
 	// If error running git diff abort all
 	if err != nil {
+		if err.Error() == "exit status 129" {
+			return "", ErrNotGitDir
+		}
 		if err, ok := err.(*exec.ExitError); ok {
 			log.WithFields(log.Fields{
 				"exit code": err,
 				"stderr":    fmt.Sprintf("%s", resp),
-			}).Fatal("Git diff failed to exit")
+			}).Error("error exiting git")
 			return "", err
 		} else {
 			log.WithError(err).Fatal("Git diff couldn't be ran")
@@ -69,25 +78,26 @@ func GetDiffFromFile(ctx *cli.Context) (string, error) {
 
 // HandleDiffSource checks the current config and gets the diff from the
 // specified source (command or file)
-func HandleDiffSource(ctx *cli.Context) string {
+func HandleDiffSource(ctx *cli.Context) (string, error) {
 	GetDiff := GetDiffFromFile
 	if config.DiffFrom == "cmd" {
 		GetDiff = GetDiffFromCmd
 	}
 	rawDiff, err := GetDiff(ctx)
 	if err != nil {
-		log.Fatal("error getting diff: ", err.Error())
-		os.Exit(1)
+		log.Error("error getting diff")
+		return "", err
 	} else if rawDiff == "" {
 		log.Warn("No git diff output")
+		return "", ErrNoDiff
 	}
-	return rawDiff
+	return rawDiff, nil
 }
 
 // WriteStagedTasks writes the given task array to a staged tasks file
-func WriteStagedTasks(tasks []Task) {
+func WriteStagedTasks(tasks []Task) error {
 	if len(tasks) == 0 {
-		return
+		return nil
 	}
 
 	var existingTasks []Task
@@ -97,40 +107,38 @@ func WriteStagedTasks(tasks []Task) {
 	} else {
 		err = json.Unmarshal(bExisting, &existingTasks)
 		if err != nil {
-			log.WithError(err).Fatal("Poorly formatted staged JSON")
+			log.Error("Poorly formatted staged JSON")
+			return err
 		}
 
 		tasks = append(existingTasks, tasks...)
 	}
 
-	file, err := os.OpenFile(StagedTasksFile, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		log.Fatal(err.Error())
-		os.Exit(1)
-	}
-	defer file.Close()
-
 	btask, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
-		log.Fatal(err.Error())
-		os.Exit(1)
+		log.Error("couldn't marshal tasks")
+		return err
 	}
-	_, err = file.Write(btask)
+	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
 	if err != nil {
-		log.Fatal(err.Error())
-		os.Exit(1)
+		log.Error("HUH?")
+		return err
 	}
+	return nil
 }
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(ctx *cli.Context) error {
-	rawDiff := HandleDiffSource(ctx)
+	rawDiff, err := HandleDiffSource(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		log.Fatalf("Error processing diff: %v", err)
+		log.Errorf("Error processing diff: %v", err)
 		return err
 	}
 
@@ -143,7 +151,10 @@ func Commit(ctx *cli.Context) error {
 	for _, task := range tasks {
 		log.WithField("task", task.String()).Debug("New task")
 	}
-	WriteStagedTasks(tasks)
+	err = WriteStagedTasks(tasks)
+	if err != nil {
+		return err
+	}
 	<-done
 	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
 	return nil
@@ -172,12 +183,16 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 	return stagedTasks
 }
 
+// SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
+// on them. When all tasks have been sent and the channel is closed it finishes
+// it's write and sends a done signal
 func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 	for {
 		task, open := <-taskChan
 		if open {
 			err := MarkSourceLines(task)
 			if err != nil {
+				log.Error("error tagging source: %v", err)
 				continue
 			}
 		} else {
@@ -187,6 +202,8 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 	}
 }
 
+// MarkSourceLines takes a task, opens it's original file and replaces the
+// corresponding comments file line with the same line plus a tag in the form "<GITDO>"
 func MarkSourceLines(task Task) error {
 	fileCont, err := ioutil.ReadFile(task.FileName)
 	if err != nil {
@@ -194,11 +211,10 @@ func MarkSourceLines(task Task) error {
 		return err
 	}
 	lines := strings.Split(string(fileCont), "\n")
-	for i, line := range lines {
-		if i == task.FileLine-1 {
-			lines[i] = line + " <GITDO>"
-		}
-	}
+
+	taskIndex := task.FileLine - 1
+	lines[taskIndex] += " <GITDO>"
+
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
 		log.WithError(err).Error("Could not mark source code as extracted")
@@ -207,6 +223,8 @@ func MarkSourceLines(task Task) error {
 	return nil
 }
 
+// CheckTask takes the given source line and checks for a match against the TODO regex.
+// If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found

@@ -1,16 +1,25 @@
 package main
 
 import (
-	"flag"
-	"testing"
+	cli "github.com/urfave/cli"
 )
 
+var gitdo *cli.App
+
 func init() {
-	HandleFlags()
+	gitdo = AppBuilder()
+	cachedFlag = true
+	verboseLogFlag = true
 }
 
-func TestHandleFlags(t *testing.T) {
-	flag.Set("v", "true")
+/**
+func TestSetup(t *testing.T) {
+	args := []string{"not_a_command"}
+	t.Logf("Args: %v", args)
 
-	t.Log(verboseLogFlag)
+	err := gitdo.Run(args)
+	if err != nil {
+		t.Error(err)
+	}
 }
+*/

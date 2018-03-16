@@ -30,6 +30,16 @@ const (
 func main() {
 	startTime := time.Now() // To Benchmark
 
+	gitdo := AppBuilder()
+	err := gitdo.Run(os.Args)
+	if err != nil {
+		log.WithError(err).Fatal("Gitdo Failed.")
+	}
+
+	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
+}
+
+func AppBuilder() *cli.App {
 	gitdo := cli.NewApp()
 	gitdo.Name = "gitdo"
 	gitdo.Usage = "track source code TODO comments"
@@ -69,14 +79,15 @@ func main() {
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,
 		},
+		{
+			Name:  "not_a_command",
+			Usage: "ITS FUCKED",
+			Action: func(ctx *cli.Context) error {
+				return cli.NewExitError("Not implemented yet", 99)
+			},
+		},
 	}
-
-	err := gitdo.Run(os.Args)
-	if err != nil {
-		log.WithError(err).Fatal("Gitdo Failed.")
-	}
-
-	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
+	return gitdo
 }
 
 func Setup(ctx *cli.Context) error {
@@ -87,6 +98,7 @@ func Setup(ctx *cli.Context) error {
 		err = LoadDefaultConfig()
 		if err != nil {
 			log.WithError(err).Fatal("Could not get config")
+			cli.NewExitError("Could not get email address from git user.Email", 2)
 		}
 		err = WriteConfig()
 		if err != nil {
