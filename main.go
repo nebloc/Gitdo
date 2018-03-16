@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -17,8 +18,6 @@ var (
 	// Flags
 	cachedFlag     *bool
 	verboseLogFlag *bool
-	commitMode     *bool
-	pushMode       *bool
 )
 
 const (
@@ -32,7 +31,9 @@ const (
 func main() {
 	startTime := time.Now() // To Benchmark
 
-	HandleFlags()
+	if !SetArgs() {
+		os.Exit(1)
+	}
 	HandleLog()
 	CheckFolder()
 
@@ -51,27 +52,35 @@ func main() {
 	}
 
 	switch {
-	case *commitMode:
+	case flag.Arg(0) == "commit":
 		log.Debug("Starting in commit mode")
 		Commit()
-	case *pushMode:
+	case flag.Arg(0) == "push":
 		log.Debug("Starting in push mode")
 		// Push()
 	default:
-		log.Info("No mode given. Use --help to see options")
-		PrintStaged()
+		log.Errorf("%s is not a valid command", flag.Arg(0))
 	}
 
 	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
 }
 
-// HandleFlags sets up the command line flag options and parses them
-func HandleFlags() {
+func PrintOptions() {
+	fmt.Fprintln(os.Stderr, "Welcome to gitdo.\n\n==Options==\nlist: Prints a list of currently staged tasks\ncommit: To be invoked by the precommit hook to add staged tasks\npush: To be invoked by the push hook\n\nflags:")
+	flag.PrintDefaults()
+}
+
+// SetArgs sets up the command line flag options and parses them
+func SetArgs() bool {
 	verboseLogFlag = flag.Bool("v", false, "Verbose output")
 	cachedFlag = flag.Bool("c", false, "Git diff ran with cached flag")
-	commitMode = flag.Bool("commit", false, "Tool runs in commit mode")
-	pushMode = flag.Bool("push", false, "Tool runs in push mode")
 	flag.Parse()
+
+	if flag.Arg(0) == "" {
+		PrintOptions()
+		return false
+	}
+	return true
 }
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag

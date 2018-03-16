@@ -6,10 +6,10 @@ import (
 )
 
 func init() {
-	HandleFlags()
+	SetArgs()
 }
 
-func TestHandleFlags(t *testing.T) {
+func TestSetArgs(t *testing.T) {
 	flag.Set("v", "true")
 
 	t.Log(verboseLogFlag)
