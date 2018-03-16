@@ -30,28 +30,14 @@ const (
 func main() {
 	startTime := time.Now() // To Benchmark
 
-	err := LoadConfig()
-	if err != nil {
-		err = LoadDefaultConfig()
-		if err != nil {
-			log.WithError(err).Fatal("Could not set config")
-		}
-		err = WriteConfig()
-		if err != nil {
-			log.WithError(err).Warn("Couldn't save config")
-		}
-	}
-
 	gitdo := cli.NewApp()
 	gitdo.Name = "gitdo"
 	gitdo.Usage = "track source code TODO comments"
 	gitdo.Version = "0.0.0-a1"
-
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",
 	}
-
 	gitdo.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:        "verbose, v",
@@ -59,34 +45,56 @@ func main() {
 			Destination: &verboseLogFlag,
 		},
 	}
-
+	gitdo.Before = Setup
 	gitdo.Commands = []cli.Command{
 		{
-			Name:    "list",
-			Aliases: []string{"l"},
-			Usage:   "prints the json of staged tasks",
-			Action:  PrintStaged,
+			Name:   "list",
+			Usage:  "prints the json of staged tasks",
+			Action: List,
 		},
 		{
-			Name:    "commit",
-			Aliases: []string{""},
-			Usage:   "gets git diff and stages any new tasks - normally ran from pre-commit",
-			Action:  Commit,
+			Name:   "commit",
+			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
+			Action: Commit,
 			Flags: []cli.Flag{
 				cli.BoolFlag{
-					Name:  "cached, c",
-					Usage: "Diff is executed with --cached flag in commit mode",
+					Name:        "cached, c",
+					Usage:       "Diff is executed with --cached flag in commit mode",
+					Destination: &cachedFlag,
 				},
 			},
 		},
+		{
+			Name:   "push",
+			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
+			Action: Push,
+		},
 	}
 
-	err = gitdo.Run(os.Args)
+	err := gitdo.Run(os.Args)
 	if err != nil {
-		log.WithError(err).Fatal("uh oh")
+		log.WithError(err).Fatal("Gitdo Failed.")
 	}
 
 	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
+}
+
+func Setup(ctx *cli.Context) error {
+	CheckFolder()
+	HandleLog()
+	err := LoadConfig()
+	if err != nil {
+		err = LoadDefaultConfig()
+		if err != nil {
+			log.WithError(err).Fatal("Could not get config")
+		}
+		err = WriteConfig()
+		if err != nil {
+			log.WithError(err).Warn("Couldn't save config")
+		}
+		return nil
+	}
+	return nil
 }
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag
@@ -101,7 +109,7 @@ func HandleLog() {
 	}
 }
 
-func PrintStaged(c *cli.Context) error {
+func List(c *cli.Context) error {
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Info("No staged tasks")

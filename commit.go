@@ -21,7 +21,7 @@ import (
 // the result or the error that the cmd produced.
 func GetDiffFromCmd(ctx *cli.Context) (string, error) {
 	log.WithFields(log.Fields{
-		"cached": ctx.Bool("cached"),
+		"cached": cachedFlag,
 	}).Debug("Running Git diff")
 
 	// Run a git diff to look for changes --cached to be added for
