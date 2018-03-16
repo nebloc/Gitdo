@@ -12,7 +12,7 @@ import (
 
 	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -20,12 +20,11 @@ var (
 	ErrNoDiff    = errors.New("diff is empty")
 )
 
-// TODO: Change diff method to be io.reader and pass file reader or exec reader
-// instead
+// TODO: Change diff method to be io.reader and pass file reader or exec reader instead
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
-func GetDiffFromCmd(ctx *cli.Context) (string, error) {
+func GetDiffFromCmd(_ *cli.Context) (string, error) {
 	log.WithFields(log.Fields{
 		"cached": cachedFlag,
 	}).Debug("Running Git diff")
@@ -66,9 +65,9 @@ func GetDiffFromCmd(ctx *cli.Context) (string, error) {
 	return diff, nil
 }
 
-// GetDiffFromFile reads in the filepath specified in the config and returns a
+// GetDiffFromFile reads in the file path specified in the config and returns a
 // string of the contents and any read errors
-func GetDiffFromFile(ctx *cli.Context) (string, error) {
+func GetDiffFromFile(_ *cli.Context) (string, error) {
 	bDiff, err := ioutil.ReadFile(config.DiffFrom)
 	if err != nil {
 		return "", err
@@ -192,7 +191,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 		if open {
 			err := MarkSourceLines(task)
 			if err != nil {
-				log.Error("error tagging source: %v", err)
+				log.Errorf("error tagging source: %v", err)
 				continue
 			}
 		} else {
