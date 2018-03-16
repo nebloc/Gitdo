@@ -79,13 +79,6 @@ func AppBuilder() *cli.App {
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,
 		},
-		{
-			Name:  "not_a_command",
-			Usage: "ITS FUCKED",
-			Action: func(ctx *cli.Context) error {
-				return cli.NewExitError("Not implemented yet", 99)
-			},
-		},
 	}
 	return gitdo
 }
