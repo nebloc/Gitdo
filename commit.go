@@ -11,6 +11,7 @@ import (
 
 	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
+	cli "github.com/urfave/cli"
 )
 
 // TODO: Change diff method to be io.reader and pass file reader or exec reader
@@ -18,15 +19,15 @@ import (
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
-func GetDiffFromCmd() (string, error) {
+func GetDiffFromCmd(ctx *cli.Context) (string, error) {
 	log.WithFields(log.Fields{
-		"cached": *cachedFlag,
+		"cached": ctx.Bool("cached"),
 	}).Debug("Running Git diff")
 
 	// Run a git diff to look for changes --cached to be added for
 	// precommit hook
 	var cmd *exec.Cmd
-	if *cachedFlag {
+	if ctx.Bool("cached") {
 		cmd = exec.Command("git", "diff", "--cached")
 	} else {
 		cmd = exec.Command("git", "diff")
@@ -58,7 +59,7 @@ func GetDiffFromCmd() (string, error) {
 
 // GetDiffFromFile reads in the filepath specified in the config and returns a
 // string of the contents and any read errors
-func GetDiffFromFile() (string, error) {
+func GetDiffFromFile(ctx *cli.Context) (string, error) {
 	bDiff, err := ioutil.ReadFile(config.DiffFrom)
 	if err != nil {
 		return "", err
@@ -68,12 +69,12 @@ func GetDiffFromFile() (string, error) {
 
 // HandleDiffSource checks the current config and gets the diff from the
 // specified source (command or file)
-func HandleDiffSource() string {
+func HandleDiffSource(ctx *cli.Context) string {
 	GetDiff := GetDiffFromFile
 	if config.DiffFrom == "cmd" {
 		GetDiff = GetDiffFromCmd
 	}
-	rawDiff, err := GetDiff()
+	rawDiff, err := GetDiff(ctx)
 	if err != nil {
 		log.Fatal("error getting diff: ", err.Error())
 		os.Exit(1)
@@ -123,14 +124,14 @@ func WriteStagedTasks(tasks []Task) {
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
-func Commit() {
-	rawDiff := HandleDiffSource()
+func Commit(ctx *cli.Context) error {
+	rawDiff := HandleDiffSource(ctx)
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
 		log.Fatalf("Error processing diff: %v", err)
-		os.Exit(1)
+		return err
 	}
 
 	taskChan := make(chan Task, 2)
@@ -145,6 +146,7 @@ func Commit() {
 	WriteStagedTasks(tasks)
 	<-done
 	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
+	return nil
 }
 
 // TODO: Should todoReg be a global variable?

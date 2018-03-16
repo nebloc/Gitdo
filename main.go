@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -9,16 +8,15 @@ import (
 
 	colorable "github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
+	cli "github.com/urfave/cli"
 )
 
 var (
 	config *Config
 
 	// Flags
-	cachedFlag     *bool
-	verboseLogFlag *bool
-	commitMode     *bool
-	pushMode       *bool
+	cachedFlag     bool
+	verboseLogFlag bool
 )
 
 const (
@@ -32,12 +30,6 @@ const (
 func main() {
 	startTime := time.Now() // To Benchmark
 
-	HandleFlags()
-	HandleLog()
-	CheckFolder()
-
-	log.Info("Gitdo started")
-
 	err := LoadConfig()
 	if err != nil {
 		err = LoadDefaultConfig()
@@ -50,28 +42,51 @@ func main() {
 		}
 	}
 
-	switch {
-	case *commitMode:
-		log.Debug("Starting in commit mode")
-		Commit()
-	case *pushMode:
-		log.Debug("Starting in push mode")
-		// Push()
-	default:
-		log.Info("No mode given. Use --help to see options")
-		PrintStaged()
+	gitdo := cli.NewApp()
+	gitdo.Name = "gitdo"
+	gitdo.Usage = "track source code TODO comments"
+	gitdo.Version = "0.0.0-a1"
+
+	cli.VersionFlag = cli.BoolFlag{
+		Name:  "version, V",
+		Usage: "print the app version",
+	}
+
+	gitdo.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:        "verbose, v",
+			Usage:       "sets logging to debug level",
+			Destination: &verboseLogFlag,
+		},
+	}
+
+	gitdo.Commands = []cli.Command{
+		{
+			Name:    "list",
+			Aliases: []string{"l"},
+			Usage:   "prints the json of staged tasks",
+			Action:  PrintStaged,
+		},
+		{
+			Name:    "commit",
+			Aliases: []string{""},
+			Usage:   "gets git diff and stages any new tasks - normally ran from pre-commit",
+			Action:  Commit,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "cached, c",
+					Usage: "Diff is executed with --cached flag in commit mode",
+				},
+			},
+		},
+	}
+
+	err = gitdo.Run(os.Args)
+	if err != nil {
+		log.WithError(err).Fatal("uh oh")
 	}
 
 	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
-}
-
-// HandleFlags sets up the command line flag options and parses them
-func HandleFlags() {
-	verboseLogFlag = flag.Bool("v", false, "Verbose output")
-	cachedFlag = flag.Bool("c", false, "Git diff ran with cached flag")
-	commitMode = flag.Bool("commit", false, "Tool runs in commit mode")
-	pushMode = flag.Bool("push", false, "Tool runs in push mode")
-	flag.Parse()
 }
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag
@@ -81,18 +96,19 @@ func HandleLog() {
 		log.SetOutput(colorable.NewColorableStdout())
 	}
 	log.SetLevel(log.InfoLevel)
-	if *verboseLogFlag {
+	if verboseLogFlag {
 		log.SetLevel(log.DebugLevel)
 	}
 }
 
-func PrintStaged() {
+func PrintStaged(c *cli.Context) error {
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Info("No staged tasks")
-		return
+		return err
 	}
 	log.Print(string(bJson))
+	return nil
 }
 
 func CheckFolder() error {
