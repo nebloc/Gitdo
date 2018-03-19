@@ -102,7 +102,7 @@ func WriteStagedTasks(tasks []Task) error {
 	var existingTasks []Task
 	bExisting, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
-		log.WithError(err).Warn("No existing tasks")
+		log.WithError(err).Debug("No existing tasks")
 	} else {
 		err = json.Unmarshal(bExisting, &existingTasks)
 		if err != nil {

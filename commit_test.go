@@ -24,18 +24,16 @@ func TestCommit(t *testing.T) {
 
 	ctx := cli.NewContext(gitdo, nil, nil)
 
-	t.Log("expect not a git repo error")
 	err := Commit(ctx)
 	if err != ErrNotGitDir {
-		t.Fail()
+		t.Errorf("Expected: %v, got: %v", ErrNotGitDir, err)
 	}
 
 	testStartRepoHelper(t)
 
-	t.Log("expect no diff error")
 	err = Commit(ctx)
 	if err != ErrNoDiff {
-		t.Fail()
+		t.Errorf("Expected: %v, got: %v", ErrNoDiff, err)
 	}
 
 	fileName := testMockFileHelper(t)
@@ -50,7 +48,7 @@ func TestCommit(t *testing.T) {
 		t.Fatalf("couldn't read in file to against golden: %v", err)
 	}
 	if bytes.Compare([]byte(goldenFileContent), bMock) != 0 {
-		t.Errorf("expected %s got %s", goldenFileContent, bMock)
+		t.Errorf("expected:\n%s \n\ngot:\n%s", goldenFileContent, bMock)
 	}
 
 }
