@@ -13,3 +13,7 @@ This project will aim to aid development in this problem domain by providing an 
 
 The hope is that a dedicated tool will push teams to formalise their use of TODO annotations and allow them to be tracked more efficiently.
 
+### Architecture
+![Loose architecture design](./docs/images/GitdoNapkin.png)
+#### Sequence Diagram
+![Sequence Diagram](./docs/images/SequenceDiagram.png)
