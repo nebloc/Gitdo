@@ -37,15 +37,15 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 			} else {
 				isFirstFile = false
 			}
-		case strings.HasPrefix(line, fromFilePrefix):
+		case strings.HasPrefix(line, fromFilePrefix) && inHeader:
 			fromFileName = strings.TrimPrefix(line, fromFilePrefix)
 
-		case strings.HasPrefix(line, toFilePrefix):
+		case strings.HasPrefix(line, toFilePrefix) && inHeader:
 			toFileName = strings.TrimPrefix(line, toFilePrefix)
 
-		case strings.HasPrefix(line, delFilePrefix):
+		case strings.HasPrefix(line, delFilePrefix) && inHeader:
 			toFileName = ""
-		case strings.HasPrefix(line, newFilePrefix):
+		case strings.HasPrefix(line, newFilePrefix) && inHeader:
 			fromFileName = ""
 
 		case strings.HasPrefix(line, "@@ "):
