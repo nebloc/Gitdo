@@ -17,6 +17,7 @@ func (t *Task) String() string {
 		t.Author, t.TaskName, t.FileName, t.FileLine)
 }
 
-func (t1 *Task) CheckEqual(t2 Task) bool {
-	return false
+type Tasks struct {
+	Staged    []Task `json:"staged_task"`
+	Committed []Task `json:"committed_tasks"`
 }

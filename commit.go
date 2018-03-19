@@ -99,7 +99,7 @@ func WriteStagedTasks(tasks []Task) error {
 		return nil
 	}
 
-	var existingTasks []Task
+	var existingTasks Tasks
 	bExisting, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Debug("No existing tasks")
@@ -110,17 +110,18 @@ func WriteStagedTasks(tasks []Task) error {
 			return err
 		}
 
-		tasks = append(existingTasks, tasks...)
+		tasks = append(existingTasks.Staged, tasks...)
 	}
 
-	btask, err := json.MarshalIndent(tasks, "", "\t")
+	existingTasks.Staged = tasks
+	btask, err := json.MarshalIndent(existingTasks, "", "\t")
 	if err != nil {
 		log.Error("couldn't marshal tasks")
 		return err
 	}
 	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
 	if err != nil {
-		log.Error("HUH?")
+		log.Error("couldn't write new staged tasks")
 		return err
 	}
 	return nil
@@ -163,6 +164,8 @@ func Commit(ctx *cli.Context) error {
 // todoReg is a compiled regex to match the TODO comments
 var todoReg *regexp.Regexp = regexp.MustCompile(
 	`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
+
+const tag string = " <GITDO>"
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 // TODO: Handle multi line todo messages
@@ -225,6 +228,10 @@ func MarkSourceLines(task Task) error {
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
+	if strings.HasSuffix(line.Content, tag) {
+		return Task{}, false
+	}
+
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{

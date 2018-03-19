@@ -24,7 +24,7 @@ const (
 
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
-	StagedTasksFile = GitdoDir + "staged_tasks.json"
+	StagedTasksFile = GitdoDir + "tasks.json"
 )
 
 func main() {
