@@ -63,7 +63,7 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 			if line == `\ No newline at end of file` {
 				break
 			}
-			if strings.HasPrefix(line, "+") && !strings.HasPrefix(line, "++") {
+			if strings.HasPrefix(line, "+") {
 				l := SourceLine{
 					fromFileName,
 					toFileName,
@@ -72,7 +72,7 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 					ADDED,
 				}
 				sourceLines = append(sourceLines, l)
-			} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "--") {
+			} else if strings.HasPrefix(line, "-") {
 				l := SourceLine{
 					fromFileName,
 					toFileName,
