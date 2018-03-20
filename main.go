@@ -73,9 +73,16 @@ func AppBuilder() *cli.App {
 			After: After,
 		},
 		{
-			Name:   "init",
-			Usage:  "sets the gitdo configuration for the current git repo",
-			Action: Init,
+			Name:  "init",
+			Usage: "sets the gitdo configuration for the current git repo",
+			Subcommands: []cli.Command{
+				{
+					Name:   "with-git",
+					Usage:  "Initialises git in the directory and then initialises gitdo",
+					Action: InitGit,
+				},
+			},
+			After: Init,
 		},
 		{
 			Name:   "post-commit",
