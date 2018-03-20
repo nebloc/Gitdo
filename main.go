@@ -28,6 +28,8 @@ const (
 	StagedTasksFile = GitdoDir + "tasks.json"
 )
 
+var version string
+
 func main() {
 	gitdo := AppBuilder()
 	err := gitdo.Run(os.Args)
@@ -41,6 +43,9 @@ func AppBuilder() *cli.App {
 	gitdo.Name = "gitdo"
 	gitdo.Usage = "track source code TODO comments"
 	gitdo.Version = "0.0.0-a1"
+	if version != "" {
+		gitdo.Version = version
+	}
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",

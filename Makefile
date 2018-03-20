@@ -1,3 +1,5 @@
+HASH = $(shell git rev-parse --short HEAD)
+
 init: 
 	mkdir bin
 	mkdir pkg
@@ -22,3 +24,6 @@ crosscompile:
 	env GOOS=windows GOARCH=amd64 vgo build -o ./out/gitdo_win_amd64.exe .
 	env GOOS=darwin GOARCH=amd64 vgo build -o ./out/gitdo_mac_amd64 .
 	env GOOS=darwin GOARCH=386 vgo build -o ./out/gitdo_mac_386 .
+
+install: 
+	vgo install -ldflags "-X main.version=0.0.1-$(HASH)"
