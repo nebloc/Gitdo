@@ -73,6 +73,11 @@ func AppBuilder() *cli.App {
 			After: After,
 		},
 		{
+			Name:   "init",
+			Usage:  "sets the gitdo configuration for the current git repo",
+			Action: Init,
+		},
+		{
 			Name:   "post-commit",
 			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
 			Action: PostCommit,
