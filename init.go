@@ -8,6 +8,12 @@ import (
 )
 
 func Init(ctx *cli.Context) error {
+	if ctx.Bool("with-git") {
+		if err := InitGit(); err != nil {
+			return err
+		}
+	}
+
 	cmd := exec.Command("git", "config", "core.hooksPath", "~/Dev/Go/src/github.com/nebbers1111/gitdo/hooks")
 	if _, err := cmd.Output(); err != nil {
 		log.WithError(err).Error("could not set hooks path")
@@ -17,7 +23,7 @@ func Init(ctx *cli.Context) error {
 	return nil
 }
 
-func InitGit(ctx *cli.Context) error {
+func InitGit() error {
 	cmd := exec.Command("git", "init")
 	if _, err := cmd.Output(); err != nil {
 		return err
