@@ -18,6 +18,6 @@ func (t *Task) String() string {
 }
 
 type Tasks struct {
-	Staged    []Task `json:"staged_task"`
-	Committed []Task `json:"committed_tasks"`
+	Staged    []Task `json:"staged_task,omitempty"`
+	Committed []Task `json:"committed_tasks,omitempty"`
 }
