@@ -156,7 +156,22 @@ func Commit(ctx *cli.Context) error {
 		return err
 	}
 	<-done
+	for _, task := range tasks {
+		err := RestageTasks(task)
+		if err != nil {
+			log.WithError(err).Error("could not restage task after tagging")
+		}
+	}
+
 	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
+	return nil
+}
+
+func RestageTasks(task Task) error {
+	cmd := exec.Command("git", "add", task.FileName)
+	if _, err := cmd.Output(); err != nil {
+		return err
+	}
 	return nil
 }
 
