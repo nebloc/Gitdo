@@ -77,6 +77,11 @@ func AppBuilder() *cli.App {
 			},
 		},
 		{
+			Name:   "post-commit",
+			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
+			Action: PostCommit,
+		},
+		{
 			Name:   "push",
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,

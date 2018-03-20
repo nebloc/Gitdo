@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"os/exec"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const ConfigFilePath = GitdoDir + "config.json"
@@ -64,9 +65,13 @@ func getGitEmail() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	email := fmt.Sprintf("%s", resp)
-	email = email[:len(email)-1]
-	return email, nil
+	return stripNewlineChar(resp), nil
+}
+
+func stripNewlineChar(orig []byte) string {
+	new := string(orig)
+	new = new[:len(new)-1]
+	return new
 }
 
 func WriteConfig() error {

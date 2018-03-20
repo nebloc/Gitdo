@@ -239,6 +239,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 			match[1],
 			line.Position,
 			config.Author,
+			"",
 		}
 		return t, true
 	}

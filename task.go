@@ -9,6 +9,7 @@ type Task struct {
 	TaskName string `json:"task_name"`
 	FileLine int    `json:"file_line"`
 	Author   string `json:"author"`
+	Hash     string `json:"hash"`
 }
 
 // String prints the Task in a readable format
