@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -120,7 +122,14 @@ func List(c *cli.Context) error {
 		log.WithError(err).Info("No staged tasks")
 		return err
 	}
-	log.Print(string(bJson))
+
+	var tasks Tasks
+	err = json.Unmarshal(bJson, &tasks)
+	if err != nil {
+		log.WithError(err).Error("poor formatted json")
+		return err
+	}
+	fmt.Println(tasks.String())
 	return nil
 }
 

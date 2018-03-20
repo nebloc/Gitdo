@@ -13,11 +13,23 @@ type Task struct {
 
 // String prints the Task in a readable format
 func (t *Task) String() string {
-	return fmt.Sprintf("Author: %s, Task: %s, File: %s, Position: %d",
-		t.Author, t.TaskName, t.FileName, t.FileLine)
+	return fmt.Sprintf("%s#%d: %s",
+		t.FileName, t.FileLine, t.TaskName)
 }
 
 type Tasks struct {
 	Staged    []Task `json:"staged_task,omitempty"`
 	Committed []Task `json:"committed_tasks,omitempty"`
+}
+
+func (t *Tasks) String() (str string) {
+	str = "===Staged Tasks===\n"
+	for _, task := range t.Staged {
+		str += fmt.Sprintf("%s\n", task.String())
+	}
+	str += "===Commited Tasks===\n"
+	for _, task := range t.Committed {
+		str += fmt.Sprintf("%s\n", task.String())
+	}
+	return
 }
