@@ -22,7 +22,7 @@ func PostCommit(ctx *cli.Context) error {
 	bFile, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Info("No staged tasks file")
-		return err
+		return nil
 	}
 
 	var tasks Tasks

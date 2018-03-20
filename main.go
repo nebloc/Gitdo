@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
-	"time"
 
 	colorable "github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
@@ -30,15 +29,11 @@ const (
 )
 
 func main() {
-	startTime := time.Now() // To Benchmark
-
 	gitdo := AppBuilder()
 	err := gitdo.Run(os.Args)
 	if err != nil {
 		log.WithError(err).Fatal("Gitdo Failed.")
 	}
-
-	log.WithField("time", time.Now().Sub(startTime)).Info("Gitdo finished")
 }
 
 func AppBuilder() *cli.App {
@@ -75,19 +70,27 @@ func AppBuilder() *cli.App {
 					Destination: &cachedFlag,
 				},
 			},
+			After: After,
 		},
 		{
 			Name:   "post-commit",
 			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
 			Action: PostCommit,
+			After:  After,
 		},
 		{
 			Name:   "push",
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,
+			After:  After,
 		},
 	}
 	return gitdo
+}
+
+func After(ctx *cli.Context) error {
+	log.Infof("Gitdo finished %s", ctx.Command.Name)
+	return nil
 }
 
 func Setup(ctx *cli.Context) error {
