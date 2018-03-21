@@ -135,7 +135,7 @@ const goldenFileContent string = `package main
 
 import "fmt"
 
-// TODO: Test <GITDO>
+// TODO: Test <3554657>
 func main(){
 	fmt.Println("Hello Ben")
 }`

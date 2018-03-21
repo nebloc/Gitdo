@@ -42,6 +42,7 @@ func (ts *Tasks) String() (str string) {
 	return
 }
 
+//TODO: Change function to remove in the least number of loops possible
 func (ts *Tasks) RemoveTasks(ids []string) {
 	for i := len(ts.Staged) - 1; i >= 0; i-- {
 		fmt.Printf("Loop: %d\n", i)
