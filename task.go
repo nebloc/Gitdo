@@ -28,9 +28,15 @@ func (t *Tasks) String() (str string) {
 	for _, task := range t.Staged {
 		str += fmt.Sprintf("%s\n", task.String())
 	}
+	if len(t.Staged) == 0 {
+		str += "no staged tasks\n"
+	}
 	str += "===Commited Tasks===\n"
 	for _, task := range t.Committed {
 		str += fmt.Sprintf("%s\n", task.String())
+	}
+	if len(t.Committed) == 0 {
+		str += "no committed tasks\n"
 	}
 	return
 }
