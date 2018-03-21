@@ -95,8 +95,8 @@ func HandleDiffSource(ctx *cli.Context) (string, error) {
 }
 
 // WriteStagedTasks writes the given task array to a staged tasks file
-func WriteStagedTasks(tasks []Task) error {
-	if len(tasks) == 0 {
+func WriteStagedTasks(tasks []Task, deleted []string) error {
+	if len(tasks) == 0 && len(deleted) == 0 {
 		return nil
 	}
 
@@ -110,6 +110,9 @@ func WriteStagedTasks(tasks []Task) error {
 			log.Error("Poorly formatted staged JSON")
 			return err
 		}
+
+		log.Info("Here")
+		existingTasks.RemoveTasks(deleted)
 
 		tasks = append(existingTasks.Staged, tasks...)
 	}
@@ -148,11 +151,11 @@ func Commit(ctx *cli.Context) error {
 
 	go SourceChanger(taskChan, done)
 
-	tasks := ProcessDiff(lines, taskChan)
+	tasks, deleted := ProcessDiff(lines, taskChan)
 	for _, task := range tasks {
 		log.WithField("task", task.String()).Debug("New task")
 	}
-	err = WriteStagedTasks(tasks)
+	err = WriteStagedTasks(tasks, deleted)
 	if err != nil {
 		return err
 	}
@@ -176,20 +179,27 @@ func RestageTasks(task Task) error {
 	return nil
 }
 
-// TODO: Should todoReg be a global variable?
-// todoReg is a compiled regex to match the TODO comments
-var todoReg *regexp.Regexp = regexp.MustCompile(
-	`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
-
-const tag string = " <GITDO>"
+var (
+	// TODO: Should todoReg be a global variable?
+	// todoReg is a compiled regex to match the TODO comments
+	todoReg *regexp.Regexp = regexp.MustCompile(
+		`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
+	taggedReg *regexp.Regexp = regexp.MustCompile(
+		`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.{7})>`)
+)
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 // TODO: Handle multi line todo messages
-func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
+func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []string) {
 	var stagedTasks []Task
+	var deleted []string
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
-			continue
+			id, found := CheckTagged(line)
+			if !found {
+				continue
+			}
+			deleted = append(deleted, id)
 		}
 		task, found := CheckTask(line)
 		if found {
@@ -198,7 +208,15 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) []Task {
 		}
 	}
 	close(taskChan)
-	return stagedTasks
+	return stagedTasks, deleted
+}
+
+func CheckTagged(line diffparse.SourceLine) (string, bool) {
+	match := taggedReg.FindStringSubmatch(line.Content)
+	if len(match) != 2 {
+		return "", false
+	}
+	return match[1], true
 }
 
 // SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
@@ -245,14 +263,14 @@ func MarkSourceLines(task Task) error {
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	if strings.HasSuffix(line.Content, tag) {
+	tagged := taggedReg.MatchString(line.Content)
+	if tagged {
 		return Task{}, false
 	}
-
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		// This is done to improve chance of uniqueness accross developer local repos
-		id := hex.EncodeToString([]byte(fmt.Sprintf("%s%d%s", line.Content, line.Position, line.FileTo)))
+		id := hex.EncodeToString([]byte(fmt.Sprintf("%d%s%s", line.Position, match[1], line.FileTo)))
 
 		t := Task{
 			id,
@@ -265,4 +283,8 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 		return t, true
 	}
 	return Task{}, false
+}
+
+func TaskRemoved() {
+
 }
