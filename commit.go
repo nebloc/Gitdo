@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -230,8 +231,9 @@ func MarkSourceLines(task Task) error {
 	lines := strings.Split(string(fileCont), "\n")
 
 	taskIndex := task.FileLine - 1
-	lines[taskIndex] += " <GITDO>"
 
+	//Short id is used to improve readability, and file line / name helps tie short id to long
+	lines[taskIndex] += " <" + task.ID[:7] + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
 		log.WithError(err).Error("Could not mark source code as extracted")
@@ -249,7 +251,11 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
+		// This is done to improve chance of uniqueness accross developer local repos
+		id := hex.EncodeToString([]byte(fmt.Sprintf("%s%d%s", line.Content, line.Position, line.FileTo)))
+
 		t := Task{
+			id,
 			line.FileTo,
 			match[1],
 			line.Position,

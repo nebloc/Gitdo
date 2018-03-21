@@ -5,6 +5,7 @@ import (
 )
 
 type Task struct {
+	ID       string `json:"id"`
 	FileName string `json:"file_name"`
 	TaskName string `json:"task_name"`
 	FileLine int    `json:"file_line"`
