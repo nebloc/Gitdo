@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"encoding/json"
+	log "github.com/sirupsen/logrus"
 )
 
 type Task struct {
@@ -61,4 +65,34 @@ func inArray(taskID string, arr []string) bool {
 		}
 	}
 	return false
+}
+
+func getTasksFile() (Tasks, error) {
+	var existingTasks Tasks
+
+	bExisting, err := ioutil.ReadFile(StagedTasksFile)
+	if err != nil {
+		return Tasks{}, err
+	}
+	err = json.Unmarshal(bExisting, &existingTasks)
+	if err != nil {
+		log.Error("Poorly formatted staged JSON")
+		return Tasks{}, err
+	}
+
+	return existingTasks, nil
+}
+
+func writeTasksFile(tasks Tasks) error {
+	btask, err := json.MarshalIndent(tasks, "", "\t")
+	if err != nil {
+		log.Error("couldn't marshal tasks")
+		return err
+	}
+	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
+	if err != nil {
+		log.Error("couldn't write new staged tasks")
+		return err
+	}
+	return nil
 }

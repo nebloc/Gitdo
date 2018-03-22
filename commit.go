@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -95,39 +94,23 @@ func HandleDiffSource(ctx *cli.Context) (string, error) {
 }
 
 // WriteStagedTasks writes the given task array to a staged tasks file
-func WriteStagedTasks(tasks []Task, deleted []string) error {
-	if len(tasks) == 0 && len(deleted) == 0 {
+func WriteStagedTasks(newTasks []Task, deleted []string) error {
+	if len(newTasks) == 0 && len(deleted) == 0 {
 		return nil
 	}
 
-	var existingTasks Tasks
-	bExisting, err := ioutil.ReadFile(StagedTasksFile)
+	tasks, err := getTasksFile()
 	if err != nil {
-		log.WithError(err).Debug("No existing tasks")
-	} else {
-		err = json.Unmarshal(bExisting, &existingTasks)
-		if err != nil {
-			log.Error("Poorly formatted staged JSON")
-			return err
-		}
-
-		existingTasks.RemoveTasks(deleted)
-
-		tasks = append(existingTasks.Staged, tasks...)
+		log.WithError(err).Warn("could not read existing newTasks")
 	}
 
-	existingTasks.Staged = tasks
-	btask, err := json.MarshalIndent(existingTasks, "", "\t")
-	if err != nil {
-		log.Error("couldn't marshal tasks")
-		return err
+	if len(tasks.Staged) != 0 {
+		tasks.RemoveTasks(deleted)
+		newTasks = append(tasks.Staged, newTasks...)
 	}
-	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
-	if err != nil {
-		log.Error("couldn't write new staged tasks")
-		return err
-	}
-	return nil
+
+	tasks.Staged = newTasks
+	return writeTasksFile(tasks)
 }
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
