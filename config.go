@@ -16,9 +16,28 @@ type Config struct {
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
 	// Plugin to use at push time
-	PluginName string `json:"plugin_name"`
-	// Where to load the diff from. Currently for debugging only.
-	DiffFrom string `json:"diff_from"`
+	Plugin string `json:"plugin_name"`
+}
+
+func (c *Config) String() string {
+	return fmt.Sprintf("Author: %s\nPlugin: %s", c.Author, c.Plugin)
+}
+
+func (c *Config) IsSet() bool {
+	if !c.pluginIsSet() {
+		return false
+	}
+	if !c.authorIsSet() {
+		return false
+	}
+	return true
+}
+
+func (c *Config) pluginIsSet() bool {
+	return c.Plugin != ""
+}
+func (c *Config) authorIsSet() bool {
+	return c.Author != ""
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
@@ -35,23 +54,9 @@ func LoadConfig() error {
 		return err
 	}
 	log.WithFields(log.Fields{
-		"author":      config.Author,
-		"plugin_name": config.PluginName,
-		"diff_source": config.DiffFrom,
+		"author": config.Author,
+		"plugin": config.Plugin,
 	}).Debug("Config")
-	return nil
-}
-
-func LoadDefaultConfig() error {
-	email, err := getGitEmail()
-	if err != nil {
-		return fmt.Errorf("could not get default git email: %s", err)
-	}
-	config = &Config{
-		email,
-		"",
-		"cmd",
-	}
 	return nil
 }
 
@@ -62,12 +67,6 @@ func getGitEmail() (string, error) {
 		return "", err
 	}
 	return stripNewlineChar(resp), nil
-}
-
-func stripNewlineChar(orig []byte) string {
-	new := string(orig)
-	new = new[:len(new)-1]
-	return new
 }
 
 func WriteConfig() error {

@@ -9,7 +9,7 @@ if len(sys.argv) is not 2:
     print("not enough arguements")
     exit(1)
 
-base_url = "https://api123.trello.com/1/"
+base_url = "https://api.trello.com/1/"
 appkey = ""
 token = ""
 

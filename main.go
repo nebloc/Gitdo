@@ -62,30 +62,20 @@ func AppBuilder() *cli.App {
 		{
 			Name:   "list",
 			Usage:  "prints the json of staged tasks",
+			Flags:  []cli.Flag{cli.BoolFlag{Name: "config", Usage: "prints the current configuration"}},
 			Action: List,
 		},
 		{
 			Name:   "commit",
 			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
 			Action: Commit,
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:        "cached, c",
-					Usage:       "Diff is executed with --cached flag in commit mode",
-					Destination: &cachedFlag,
-				},
-			},
-			After: After,
+			Flags:  []cli.Flag{cli.BoolFlag{Name: "cached, c", Usage: "Diff is executed with --cached flag in commit mode", Destination: &cachedFlag}},
+			After:  After,
 		},
 		{
-			Name:  "init",
-			Usage: "sets the gitdo configuration for the current git repo",
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "with-git",
-					Usage: "Initialises a git repo first, then gitdo",
-				},
-			},
+			Name:   "init",
+			Usage:  "sets the gitdo configuration for the current git repo",
+			Flags:  []cli.Flag{cli.BoolFlag{Name: "with-git", Usage: "Initialises a git repo first, then gitdo"}},
 			Action: Init,
 		},
 		{
@@ -101,14 +91,9 @@ func AppBuilder() *cli.App {
 			After:  After,
 		},
 		{
-			Name:  "destroy",
-			Usage: "deletes all of the stored tasks",
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "yes",
-					Usage: "confirms purge of task file",
-				},
-			},
+			Name:   "destroy",
+			Usage:  "deletes all of the stored tasks",
+			Flags:  []cli.Flag{cli.BoolFlag{Name: "yes", Usage: "confirms purge of task file"}},
 			Before: ConfirmUser,
 			Action: Destroy,
 		},
@@ -122,21 +107,14 @@ func After(ctx *cli.Context) error {
 }
 
 func Setup(ctx *cli.Context) error {
-	CheckFolder()
 	HandleLog()
+	config = &Config{}
+
 	err := LoadConfig()
-	if err != nil {
-		err = LoadDefaultConfig()
-		if err != nil {
-			log.WithError(err).Fatal("Could not get config")
-			cli.NewExitError("Could not get email address from git user.Email", 2)
-		}
-		err = WriteConfig()
-		if err != nil {
-			log.WithError(err).Warn("Couldn't save config")
-		}
+	if err == nil && config.IsSet() {
 		return nil
 	}
+	SetConfig()
 	return nil
 }
 
@@ -152,7 +130,11 @@ func HandleLog() {
 	}
 }
 
-func List(c *cli.Context) {
+func List(ctx *cli.Context) {
+	if ctx.Bool("config") {
+		fmt.Println(config.String())
+		return
+	}
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Info("No staged tasks")
@@ -177,4 +159,10 @@ func CheckFolder() error {
 		}
 	}
 	return nil
+}
+
+func stripNewlineChar(orig []byte) string {
+	new := string(orig)
+	new = new[:len(new)-1]
+	return new
 }

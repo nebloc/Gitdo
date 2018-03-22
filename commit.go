@@ -254,10 +254,10 @@ func RunReservePlugin(task Task) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error marshalling task: %v\n", err)
 	}
-	cmd := exec.Command(".git/gitdo/plugins/reserve_"+config.PluginName, string(bTask))
+	cmd := exec.Command(".git/gitdo/plugins/reserve_"+config.Plugin, string(bTask))
 	res, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
+		return "", fmt.Errorf("error running plugin: %v\n", string(res))
 	}
 	return stripNewlineChar(res), nil
 }

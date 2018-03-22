@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os/exec"
+
 	log "github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli"
 )
@@ -26,6 +29,10 @@ func Push(ctx *cli.Context) error {
 }
 
 func RunActivatePlugin(task Task) error {
-	log.Infof("Activated: %s - %s", task.String(), task.ID)
+	cmd := exec.Command(".git/gitdo/plugins/activate_"+config.Plugin, task.ID)
+	res, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
+	}
 	return nil
 }
