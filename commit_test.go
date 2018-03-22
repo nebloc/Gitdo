@@ -30,8 +30,7 @@ func TestCommit(t *testing.T) {
 
 	config = &Config{
 		Author:     "benjamin.coleman@me.com",
-		PluginName: "",
-		PluginCmd:  "",
+		PluginName: "test",
 		DiffFrom:   "cmd",
 	}
 
@@ -105,6 +104,12 @@ func testStartRepoHelper(t *testing.T) {
 	}
 	if err := os.Mkdir(".git/gitdo", os.ModePerm); err != nil {
 		t.Fatal("could not create gitdo folder")
+	}
+
+	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/plugins", ".git/gitdo/")
+	if res, err := cmd.CombinedOutput(); err != nil {
+		t.Log(stripNewlineChar(res))
+		t.Fatal("could not copy plugins folder")
 	}
 }
 

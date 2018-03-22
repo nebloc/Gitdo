@@ -27,3 +27,7 @@ crosscompile:
 
 install: 
 	vgo install -ldflags "-X main.version=0.0.1-$(HASH)"
+
+test:
+	vgo test github.com/nebbers1111/gitdo
+	vgo test github.com/nebbers1111/gitdo/diffparse

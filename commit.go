@@ -24,7 +24,7 @@ var (
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
-func GetDiffFromCmd(_ *cli.Context) (string, error) {
+func GetDiffFromCmd() (string, error) {
 	log.WithFields(log.Fields{
 		"cached": cachedFlag,
 	}).Debug("Running Git diff")
@@ -55,42 +55,12 @@ func GetDiffFromCmd(_ *cli.Context) (string, error) {
 			return "", err
 		}
 	}
-
-	// TODO: Is printing the diff or length helpful?
-	diff := fmt.Sprintf("%s", resp)
-	log.WithFields(log.Fields{
-		"length": len(diff),
-	}).Debug("Returned diff")
-
-	return diff, nil
-}
-
-// GetDiffFromFile reads in the file path specified in the config and returns a
-// string of the contents and any read errors
-func GetDiffFromFile(_ *cli.Context) (string, error) {
-	bDiff, err := ioutil.ReadFile(config.DiffFrom)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s", bDiff), nil
-}
-
-// HandleDiffSource checks the current config and gets the diff from the
-// specified source (command or file)
-func HandleDiffSource(ctx *cli.Context) (string, error) {
-	GetDiff := GetDiffFromFile
-	if config.DiffFrom == "cmd" {
-		GetDiff = GetDiffFromCmd
-	}
-	rawDiff, err := GetDiff(ctx)
-	if err != nil {
-		log.Error("error getting diff")
-		return "", err
-	} else if rawDiff == "" {
-		log.Warn("No git diff output")
+	diff := string(resp)
+	if diff == "" {
 		return "", ErrNoDiff
 	}
-	return rawDiff, nil
+
+	return diff, nil
 }
 
 // WriteStagedTasks writes the given task array to a staged tasks file
@@ -116,7 +86,7 @@ func WriteStagedTasks(newTasks []Task, deleted []string) error {
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(ctx *cli.Context) error {
-	rawDiff, err := HandleDiffSource(ctx)
+	rawDiff, err := GetDiffFromCmd()
 	if err != nil {
 		return err
 	}
@@ -284,10 +254,10 @@ func RunReservePlugin(task Task) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error marshalling task: %v\n", err)
 	}
-	cmd := exec.Command(".git/gitdo/plugins/reserve_trello", string(bTask))
+	cmd := exec.Command(".git/gitdo/plugins/reserve_"+config.PluginName, string(bTask))
 	res, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("error running plugin: %v\n", err)
+		return "", fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
 	}
 	return stripNewlineChar(res), nil
 }

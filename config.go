@@ -17,8 +17,6 @@ type Config struct {
 	Author string `json:"author"`
 	// Plugin to use at push time
 	PluginName string `json:"plugin_name"`
-	// Plugin interpreter to use
-	PluginCmd string `json:"plugin_cmd"`
 	// Where to load the diff from. Currently for debugging only.
 	DiffFrom string `json:"diff_from"`
 }
@@ -37,10 +35,9 @@ func LoadConfig() error {
 		return err
 	}
 	log.WithFields(log.Fields{
-		"author":             config.Author,
-		"plugin_name":        config.PluginName,
-		"plugin_interpreter": config.PluginCmd,
-		"diff_source":        config.DiffFrom,
+		"author":      config.Author,
+		"plugin_name": config.PluginName,
+		"diff_source": config.DiffFrom,
 	}).Debug("Config")
 	return nil
 }
@@ -52,7 +49,6 @@ func LoadDefaultConfig() error {
 	}
 	config = &Config{
 		email,
-		"",
 		"",
 		"cmd",
 	}
