@@ -100,6 +100,18 @@ func AppBuilder() *cli.App {
 			Action: Push,
 			After:  After,
 		},
+		{
+			Name:  "destroy",
+			Usage: "deletes all of the stored tasks",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "yes",
+					Usage: "confirms purge of task file",
+				},
+			},
+			Before: ConfirmUser,
+			Action: Destroy,
+		},
 	}
 	return gitdo
 }
