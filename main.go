@@ -140,20 +140,21 @@ func HandleLog() {
 	}
 }
 
-func List(c *cli.Context) error {
+func List(c *cli.Context) {
 	bJson, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
 		log.WithError(err).Info("No staged tasks")
-		return err
+		return
 	}
 	var tasks Tasks
 	err = json.Unmarshal(bJson, &tasks)
 	if err != nil {
 		log.WithError(err).Error("poor formatted json")
-		return err
+		return
 	}
+
 	fmt.Println(tasks.String())
-	return nil
+	return
 }
 
 func CheckFolder() error {

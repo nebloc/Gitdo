@@ -1,0 +1,45 @@
+#!/usr/local/bin/python3
+
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+import json
+import sys
+
+base_url = "https://api.trello.com/1/"
+appkey = ""
+token = ""
+list_id = "5aa0057dae6f639766e9bff4"
+
+
+task_arg = sys.argv[1]
+task = json.loads(task_arg)
+
+print("Got task: {}".format(task["task_name"]))
+
+desc = "{}#{} by {}".format(
+    task["file_name"], task["file_line"], task["author"])
+
+card = {
+    "name": task["task_name"],
+    "desc": desc,
+    "closed": "true",
+    "idList": list_id,
+}
+
+print("opening sectrets")
+with open('.git/gitdo/secrets.json') as json_data:
+    d = json.load(json_data)
+    appkey = d["appkey"]
+    token = d["token"]
+
+url = "{}cards?key={}&token={}".format(base_url, appkey, token)
+post_fields = {
+    "idList": list_id,
+    "name": "test",
+}
+
+
+request = Request(url, urlencode(card).encode())
+resp = urlopen(request).read().decode()
+trello_card = json.loads(resp)
+print(trello_card['id'])

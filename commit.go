@@ -277,21 +277,34 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 	}
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
-		id := getID()
-
 		t := Task{
-			id,
+			"",
 			line.FileTo,
 			match[1],
 			line.Position,
 			config.Author,
 			"",
 		}
+
+		id, err := RunReservePlugin(t)
+		if err != nil {
+			log.WithError(err).Fatal("couldn't reserve task in plugin")
+		}
+		t.ID = id
 		return t, true
 	}
 	return Task{}, false
 }
 
-func TaskRemoved() {
-
+func RunReservePlugin(task Task) (string, error) {
+	bTask, err := json.Marshal(task)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling task: %v\n", err)
+	}
+	cmd := exec.Command(".git/gitdo/plugins/reserve_trello", string(bTask))
+	res, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("error running plugin: %v\n", err)
+	}
+	return stripNewlineChar(res), nil
 }
