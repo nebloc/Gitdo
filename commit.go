@@ -111,7 +111,6 @@ func WriteStagedTasks(tasks []Task, deleted []string) error {
 			return err
 		}
 
-		log.Info("Here")
 		existingTasks.RemoveTasks(deleted)
 
 		tasks = append(existingTasks.Staged, tasks...)
@@ -185,7 +184,7 @@ var (
 	todoReg *regexp.Regexp = regexp.MustCompile(
 		`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 	taggedReg *regexp.Regexp = regexp.MustCompile(
-		`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.{7})>`)
+		`(?:[[:space:]]|)//(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
 )
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
@@ -265,7 +264,7 @@ func GetIDFunc() func() string {
 	i := 0
 	return func() string {
 		i++
-		return fmt.Sprintf("%s%d", time.Now().Format("020106150405"), i)
+		return fmt.Sprintf("%s:%s%d", config.Author, time.Now().Format("020106150405"), i)
 	}
 }
 

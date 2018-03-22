@@ -45,10 +45,9 @@ func (ts *Tasks) String() (str string) {
 //TODO: Change function to remove in the least number of loops possible
 func (ts *Tasks) RemoveTasks(ids []string) {
 	for i := len(ts.Staged) - 1; i >= 0; i-- {
-		fmt.Printf("Loop: %d\n", i)
 		task := ts.Staged[i]
 		// Condition to decide if current element has to be deleted:
-		if inArray(task.ID[:7], ids) {
+		if inArray(task.ID, ids) {
 			ts.Staged = append(ts.Staged[:i], ts.Staged[i+1:]...)
 		}
 	}
@@ -56,9 +55,8 @@ func (ts *Tasks) RemoveTasks(ids []string) {
 
 func inArray(taskID string, arr []string) bool {
 	for _, id := range arr {
-		fmt.Printf("%s : %s\n", taskID, id)
 		if taskID == id {
-			fmt.Println("Deleted: " + id)
+			fmt.Printf("Deleting: %s\n", taskID)
 			return true
 		}
 	}
