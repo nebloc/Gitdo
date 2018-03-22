@@ -146,7 +146,6 @@ func List(c *cli.Context) error {
 		log.WithError(err).Info("No staged tasks")
 		return err
 	}
-
 	var tasks Tasks
 	err = json.Unmarshal(bJson, &tasks)
 	if err != nil {

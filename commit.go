@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/nebbers1111/gitdo/diffparse"
 	log "github.com/sirupsen/logrus"
@@ -193,6 +193,7 @@ var (
 func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []string) {
 	var stagedTasks []Task
 	var deleted []string
+	getID := GetIDFunc()
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
 			id, found := CheckTagged(line)
@@ -201,7 +202,7 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []
 			}
 			deleted = append(deleted, id)
 		}
-		task, found := CheckTask(line)
+		task, found := CheckTask(line, getID)
 		if found {
 			stagedTasks = append(stagedTasks, task)
 			taskChan <- task
@@ -251,7 +252,7 @@ func MarkSourceLines(task Task) error {
 	taskIndex := task.FileLine - 1
 
 	//Short id is used to improve readability, and file line / name helps tie short id to long
-	lines[taskIndex] += " <" + task.ID[:7] + ">"
+	lines[taskIndex] += " <" + task.ID + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
 		log.WithError(err).Error("Could not mark source code as extracted")
@@ -260,17 +261,24 @@ func MarkSourceLines(task Task) error {
 	return nil
 }
 
+func GetIDFunc() func() string {
+	i := 0
+	return func() string {
+		i++
+		return fmt.Sprintf("%s%d", time.Now().Format("020106150405"), i)
+	}
+}
+
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
-func CheckTask(line diffparse.SourceLine) (Task, bool) {
+func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 	tagged := taggedReg.MatchString(line.Content)
 	if tagged {
 		return Task{}, false
 	}
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
-		// This is done to improve chance of uniqueness accross developer local repos
-		id := hex.EncodeToString([]byte(fmt.Sprintf("%d%s%s", line.Position, match[1], line.FileTo)))
+		id := getID()
 
 		t := Task{
 			id,
