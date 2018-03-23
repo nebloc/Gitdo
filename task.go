@@ -1,15 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"encoding/json"
+
 	log "github.com/sirupsen/logrus"
 )
 
 type Task struct {
-	ID       string `json:"id"`
+	id       string
 	FileName string `json:"file_name"`
 	TaskName string `json:"task_name"`
 	FileLine int    `json:"file_line"`
@@ -24,8 +25,8 @@ func (t *Task) String() string {
 }
 
 type Tasks struct {
-	Staged    []Task `json:"staged_task,omitempty"`
-	Committed []Task `json:"committed_tasks,omitempty"`
+	Staged    map[string]Task `json:"staged_task,omitempty"`
+	Committed map[string]Task `json:"committed_tasks,omitempty"`
 }
 
 func (ts *Tasks) String() (str string) {
@@ -46,45 +47,39 @@ func (ts *Tasks) String() (str string) {
 	return
 }
 
-//TODO: Change function to remove in the least number of loops possible
-func (ts *Tasks) RemoveTasks(ids []string) {
-	for i := len(ts.Staged) - 1; i >= 0; i-- {
-		task := ts.Staged[i]
-		// Condition to decide if current element has to be deleted:
-		if inArray(task.ID, ids) {
-			ts.Staged = append(ts.Staged[:i], ts.Staged[i+1:]...)
-		}
-	}
-}
-
-func inArray(taskID string, arr []string) bool {
-	for _, id := range arr {
-		if taskID == id {
-			fmt.Printf("Deleting: %s\n", taskID)
-			return true
-		}
-	}
-	return false
-}
-
-func getTasksFile() (Tasks, error) {
-	var existingTasks Tasks
+func getTasksFile() (*Tasks, error) {
+	existingTasks := NewTaskMap()
 
 	bExisting, err := ioutil.ReadFile(StagedTasksFile)
 	if err != nil {
-		return Tasks{}, err
+		return existingTasks, err
 	}
 	err = json.Unmarshal(bExisting, &existingTasks)
 	if err != nil {
 		log.Error("Poorly formatted staged JSON")
-		return Tasks{}, err
+		return existingTasks, err
+	}
+	for id, task := range existingTasks.Staged {
+		task.id = id
+		existingTasks.Staged[id] = task
+	}
+	for id, task := range existingTasks.Committed {
+		task.id = id
+		existingTasks.Staged[id] = task
 	}
 
 	return existingTasks, nil
 }
 
-func writeTasksFile(tasks Tasks) error {
-	btask, err := json.MarshalIndent(tasks, "", "\t")
+func NewTaskMap() *Tasks {
+	return &Tasks{
+		Staged:    make(map[string]Task),
+		Committed: make(map[string]Task),
+	}
+}
+
+func writeTasksFile(tasks *Tasks) error {
+	btask, err := json.MarshalIndent(*tasks, "", "\t")
 	if err != nil {
 		log.Error("couldn't marshal tasks")
 		return err
@@ -95,4 +90,16 @@ func writeTasksFile(tasks Tasks) error {
 		return err
 	}
 	return nil
+}
+
+func (ts *Tasks) RemoveStagedTasks(ids []string) {
+	for _, id := range ids {
+		delete(ts.Staged, id)
+	}
+}
+
+func (ts *Tasks) StageNewTasks(newTasks []Task) {
+	for _, task := range newTasks {
+		ts.Staged[task.id] = task
+	}
 }

@@ -75,11 +75,10 @@ func WriteStagedTasks(newTasks []Task, deleted []string) error {
 	}
 
 	if len(tasks.Staged) != 0 {
-		tasks.RemoveTasks(deleted)
-		newTasks = append(tasks.Staged, newTasks...)
+		tasks.RemoveStagedTasks(deleted)
 	}
+	tasks.StageNewTasks(newTasks)
 
-	tasks.Staged = newTasks
 	return writeTasksFile(tasks)
 }
 
@@ -204,7 +203,7 @@ func MarkSourceLines(task Task) error {
 	taskIndex := task.FileLine - 1
 
 	//Short id is used to improve readability, and file line / name helps tie short id to long
-	lines[taskIndex] += " <" + task.ID + ">"
+	lines[taskIndex] += " <" + task.id + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
 		log.WithError(err).Error("Could not mark source code as extracted")
@@ -243,7 +242,7 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 		if err != nil {
 			log.WithError(err).Fatal("couldn't reserve task in plugin")
 		}
-		t.ID = id
+		t.id = id
 		return t, true
 	}
 	return Task{}, false

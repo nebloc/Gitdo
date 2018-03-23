@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -29,9 +30,8 @@ func TestCommit(t *testing.T) {
 	t.Logf("working in dir: %s", cDir)
 
 	config = &Config{
-		Author:     "benjamin.coleman@me.com",
-		PluginName: "test",
-		DiffFrom:   "cmd",
+		Author: "benjamin.coleman@me.com",
+		Plugin: "test",
 	}
 
 	ctx := cli.NewContext(gitdo, nil, nil)
@@ -48,14 +48,13 @@ func TestCommit(t *testing.T) {
 		t.Errorf("Expected: %v, got: %v", ErrNoDiff, err)
 	}
 
-	testMockFileHelper(t)
+	fileName := testMockFileHelper(t)
 
 	err = Commit(ctx)
 	if err != nil {
 		t.Errorf("didn't expect an error: %v", err)
 	}
 
-	/**
 	bMock, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		t.Fatalf("couldn't read in file to against golden: %v", err)
@@ -63,8 +62,6 @@ func TestCommit(t *testing.T) {
 	if bytes.Compare([]byte(goldenFileContent), bMock) != 0 {
 		t.Errorf("expected:\n%s \n\ngot:\n%s", goldenFileContent, bMock)
 	}
-	*/
-
 }
 
 // testMockFileHelper creates a file that has a TODO comment.
@@ -155,7 +152,7 @@ const goldenFileContent string = `package main
 
 import "fmt"
 
-// TODO: Test <3554657>
+// TODO: Test <1234>
 func main(){
 	fmt.Println("Hello Ben")
 }`

@@ -17,28 +17,19 @@ func PostCommit(ctx *cli.Context) error {
 	if err != nil {
 		return errors.New("could not get hash of last commit")
 	}
+
 	hash := stripNewlineChar(resp)
-
-	bFile, err := ioutil.ReadFile(StagedTasksFile)
-	if err != nil {
-		log.WithError(err).Info("No staged tasks file")
-		return nil
-	}
-
-	var tasks Tasks
-	err = json.Unmarshal(bFile, &tasks)
-	if err != nil {
-		log.WithError(err).Error("poor formatted json")
-		return err
-	}
-	for i, task := range tasks.Staged {
+	tasks, err := getTasksFile()
+	for id, task := range tasks.Staged {
 		if task.Hash == "" {
-			tasks.Staged[i].Hash = hash
+			task.Hash = hash
+			tasks.Staged[id] = task
 		}
 	}
+
 	bUpdated, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
-		log.Error("couldn't marcshal tasks with added hash")
+		log.Error("couldn't marshal tasks with added hash")
 		return err
 	}
 	err = ioutil.WriteFile(StagedTasksFile, bUpdated, os.ModePerm)

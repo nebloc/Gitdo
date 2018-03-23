@@ -18,8 +18,8 @@ func Push(ctx *cli.Context) error {
 		return nil
 	}
 
-	for _, task := range tasks.Staged {
-		err := RunActivatePlugin(task)
+	for id, task := range tasks.Staged {
+		err := RunActivatePlugin(id)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to add task: %s", task.String())
 		}
@@ -28,8 +28,8 @@ func Push(ctx *cli.Context) error {
 	return nil
 }
 
-func RunActivatePlugin(task Task) error {
-	cmd := exec.Command(".git/gitdo/plugins/activate_"+config.Plugin, task.ID)
+func RunActivatePlugin(id string) error {
+	cmd := exec.Command(".git/gitdo/plugins/activate_"+config.Plugin, id)
 	res, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
