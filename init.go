@@ -35,6 +35,11 @@ func Init(ctx *cli.Context) error {
 		log.Error(stripNewlineChar(res))
 		return err
 	}
+	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/.git/gitdo/secrets.json", ".git/gitdo/")
+	if res, err := cmd.CombinedOutput(); err != nil {
+		log.Error(stripNewlineChar(res))
+		return err
+	}
 	CheckFolder()
 	SetConfig()
 
