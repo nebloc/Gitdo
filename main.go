@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 
@@ -135,17 +133,7 @@ func List(ctx *cli.Context) {
 		fmt.Println(config.String())
 		return
 	}
-	bJson, err := ioutil.ReadFile(StagedTasksFile)
-	if err != nil {
-		log.WithError(err).Info("No staged tasks")
-		return
-	}
-	var tasks Tasks
-	err = json.Unmarshal(bJson, &tasks)
-	if err != nil {
-		log.WithError(err).Error("poor formatted json")
-		return
-	}
+	tasks, _ := getTasksFile()
 
 	fmt.Println(tasks.String())
 	return

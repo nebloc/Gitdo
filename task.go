@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"text/tabwriter"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -20,8 +22,8 @@ type Task struct {
 
 // String prints the Task in a readable format
 func (t *Task) String() string {
-	return fmt.Sprintf("%s#%d: %s",
-		t.FileName, t.FileLine, t.TaskName)
+	return fmt.Sprintf("%s#%d:\t%s\t%s\t",
+		t.FileName, t.FileLine, t.TaskName, t.id)
 }
 
 type Tasks struct {
@@ -29,22 +31,37 @@ type Tasks struct {
 	Committed map[string]Task `json:"committed_tasks,omitempty"`
 }
 
-func (ts *Tasks) String() (str string) {
-	str = "===Staged Tasks===\n"
+func (ts *Tasks) String() string {
+	buf := bytes.NewBufferString("===Staged Tasks===\n")
+	const padding = 2
+	w := tabwriter.NewWriter(buf, 0, 0, padding, ' ', 0)
+
+	fmt.Printf("staged: %d, committed: %d\n", len(ts.Staged), len(ts.Committed))
+
+	// Print staged
 	for _, task := range ts.Staged {
-		str += fmt.Sprintf("%s\n", task.String())
+		fmt.Fprintln(w, task.String())
 	}
+	w.Flush()
+
+	// If no staged
 	if len(ts.Staged) == 0 {
-		str += "no staged tasks\n"
+		fmt.Fprintln(w, "no staged tasks")
 	}
-	str += "===Commited Tasks===\n"
+
+	// Print committed
+	fmt.Fprintln(w, "===Commited Tasks===")
 	for _, task := range ts.Committed {
-		str += fmt.Sprintf("%s\n", task.String())
+		fmt.Fprintln(w, task.String())
 	}
+	w.Flush()
+
+	// If no committed
 	if len(ts.Committed) == 0 {
-		str += "no committed tasks\n"
+		fmt.Fprintln(w, "no committed tasks")
 	}
-	return
+
+	return buf.String()
 }
 
 func getTasksFile() (*Tasks, error) {
@@ -65,7 +82,7 @@ func getTasksFile() (*Tasks, error) {
 	}
 	for id, task := range existingTasks.Committed {
 		task.id = id
-		existingTasks.Staged[id] = task
+		existingTasks.Committed[id] = task
 	}
 
 	return existingTasks, nil
@@ -102,4 +119,9 @@ func (ts *Tasks) StageNewTasks(newTasks []Task) {
 	for _, task := range newTasks {
 		ts.Staged[task.id] = task
 	}
+}
+
+func (ts *Tasks) MoveTask(id string) {
+	ts.Committed[id] = ts.Staged[id]
+	delete(ts.Staged, id)
 }

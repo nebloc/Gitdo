@@ -18,10 +18,23 @@ func Push(ctx *cli.Context) error {
 		return nil
 	}
 
+	changed := false
+
 	for id, task := range tasks.Staged {
 		err := RunActivatePlugin(id)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to add task: %s", task.String())
+			continue
+		}
+		fmt.Printf("Task %s added to %s\n", id, config.Plugin)
+		changed = true
+		tasks.MoveTask(id)
+	}
+	if changed {
+		err := writeTasksFile(tasks)
+		if err != nil {
+			//TODO: does it need to be fatal?
+			log.Fatal("could not save updated tasks list")
 		}
 	}
 
