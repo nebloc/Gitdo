@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	log "github.com/sirupsen/logrus"
@@ -22,7 +23,7 @@ type Task struct {
 
 // String prints the Task in a readable format
 func (t *Task) String() string {
-	return fmt.Sprintf("%s#%d:\t%s\t%s\t",
+	return fmt.Sprintf("%s#%d:\t%s\tid#%s\t",
 		t.FileName, t.FileLine, t.TaskName, t.id)
 }
 
@@ -35,8 +36,6 @@ func (ts *Tasks) String() string {
 	buf := bytes.NewBufferString("===Staged Tasks===\n")
 	const padding = 2
 	w := tabwriter.NewWriter(buf, 0, 0, padding, ' ', 0)
-
-	fmt.Printf("staged: %d, committed: %d\n", len(ts.Staged), len(ts.Committed))
 
 	// Print staged
 	for _, task := range ts.Staged {
@@ -60,8 +59,7 @@ func (ts *Tasks) String() string {
 	if len(ts.Committed) == 0 {
 		fmt.Fprintln(w, "no committed tasks")
 	}
-
-	return buf.String()
+	return strings.TrimSpace(buf.String())
 }
 
 func getTasksFile() (*Tasks, error) {
