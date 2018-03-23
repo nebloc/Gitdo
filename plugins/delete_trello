@@ -1,0 +1,36 @@
+#!/usr/local/bin/python3
+
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen, URLError, HTTPError
+import json
+import sys
+
+if len(sys.argv) is not 2 or sys.argv[1] is "":
+    print("not enough arguements")
+    exit(1)
+
+base_url = "https://api.trello.com/1/"
+appkey = ""
+token = ""
+
+task_id = sys.argv[1]
+
+
+with open('.git/gitdo/secrets.json') as json_data:
+    d = json.load(json_data)
+    appkey = d["appkey"]
+    token = d["token"]
+
+url = "{}cards/{}?key={}&token={}".format(base_url, task_id, appkey, token)
+
+try:
+    request = Request(url=url, method="delete")
+    resp = urlopen(request).read().decode()
+    json_resp = json.loads(resp)
+    print(json_resp)
+except HTTPError as e:
+    print("error: code={} message={}".format(e.code, e.reason))
+    exit(2)
+except URLError as e:
+    print(e.args)
+    exit(3)
