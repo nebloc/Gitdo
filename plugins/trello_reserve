@@ -50,8 +50,8 @@ try:
     trello_card = json.loads(resp)
     print(trello_card['shortLink'])
 except HTTPError as e:
-    print("error: "+ e.reason)
+    print("error: code={} message={}".format(e.code, e.reason))
     exit(1)
 except URLError as e:
-    print("error: "+ e.reason)
+    print("error: "+ e.args)
     exit(2)

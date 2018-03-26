@@ -44,6 +44,9 @@ func (c *Config) pluginIsSet() bool {
 func (c *Config) authorIsSet() bool {
 	return c.Author != ""
 }
+func (c *Config) interpreterIsSet() bool {
+	return c.PluginInterpreter != ""
+}
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
 func LoadConfig() error {

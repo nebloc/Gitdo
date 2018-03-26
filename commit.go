@@ -73,10 +73,14 @@ func WriteStagedTasks(newTasks []Task, deleted []string) error {
 	if err != nil {
 		log.WithError(err).Warn("could not read existing newTasks")
 	}
-
-	if len(tasks.Staged) != 0 {
-		tasks.RemoveStagedTasks(deleted)
+	for _, id := range deleted {
+		if _, exists := tasks.Staged[id]; exists {
+			tasks.RemoveTask(id)
+		} else {
+			RunDonePlugin(id)
+		}
 	}
+
 	tasks.StageNewTasks(newTasks)
 
 	return writeTasksFile(tasks)
@@ -257,7 +261,15 @@ func RunReservePlugin(task Task) (string, error) {
 	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/reserve_"+config.Plugin, string(bTask))
 	res, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("error running plugin: %v: %v\n", string(res), err.Error())
+		return "", fmt.Errorf("error running reserve plugin: %v: %v\n", string(res), err.Error())
 	}
 	return stripNewlineChar(res), nil
+}
+func RunDonePlugin(id string) error {
+	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/done_"+config.Plugin, id)
+	res, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("error running done plugin: %v: %v\n", string(res), err.Error())
+	}
+	return nil
 }

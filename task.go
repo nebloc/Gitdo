@@ -108,10 +108,8 @@ func writeTasksFile(tasks *Tasks) error {
 	return nil
 }
 
-func (ts *Tasks) RemoveStagedTasks(ids []string) {
-	for _, id := range ids {
-		delete(ts.Staged, id)
-	}
+func (ts *Tasks) RemoveTask(id string) {
+	delete(ts.Staged, id)
 }
 
 func (ts *Tasks) StageNewTasks(newTasks []Task) {

@@ -10,6 +10,7 @@ if len(sys.argv) is not 2:
     exit(1)
 
 base_url = "https://api.trello.com/1/"
+done_list = "5aa005863d2092a5ec731135"
 appkey = ""
 token = ""
 
@@ -18,7 +19,7 @@ with open('.git/gitdo/secrets.json') as json_data:
     appkey = d["appkey"]
     token = d["token"]
 
-url = "{}cards/{}?closed=false&key={}&token={}".format(base_url, sys.argv[1], appkey, token)
+url = "{}cards/{}?idList={}&key={}&token={}".format(base_url, sys.argv[1], done_list, appkey, token)
 
 try:
     request = Request(url=url, method="PUT")
@@ -26,8 +27,8 @@ try:
     json_resp = json.loads(resp)
     print(json_resp)
 except HTTPError as e:
-    print("error: http error")
+    print("error: code={} message={}".format(e.code, e.reason))
     exit(1)
 except URLError as e:
-    print("error: url error")
+    print("error: "+ e.args)
     exit(2)

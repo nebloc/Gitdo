@@ -43,6 +43,7 @@ func Init(ctx *cli.Context) error {
 	CheckFolder()
 	SetConfig()
 
+	fmt.Println("Done - please check plugins are configured, some need secrets and ID's")
 	return nil
 }
 
@@ -67,6 +68,14 @@ func SetConfig() {
 			return
 		}
 		config.Plugin = plugin
+	}
+	if !config.interpreterIsSet() {
+		interp, err := AskInterpreter()
+		if err != nil {
+			//TODO: Handle this
+			return
+		}
+		config.PluginInterpreter = interp
 	}
 	err = WriteConfig()
 	if err != nil {
@@ -97,20 +106,21 @@ func AskPlugin() (string, error) {
 		return "", err
 	}
 
-	fmt.Println("What plugin would you like to use:")
+	fmt.Println("Available plugins:")
 
 	var plugins []string
-	prefix := "reserve_"
+	prefix := "_reserve"
 	i := 0
 	for _, f := range files {
-		if strings.HasPrefix(f.Name(), prefix) {
+		if strings.HasSuffix(f.Name(), prefix) {
 			i++
-			plugin := strings.TrimPrefix(f.Name(), prefix)
+			plugin := strings.TrimSuffix(f.Name(), prefix)
 			plugins = append(plugins, plugin)
 			fmt.Printf("%d: %s\n", i, plugin)
 		}
 	}
 
+	fmt.Printf("What plugin would you like to use (1-%d): ", len(plugins))
 	var choice string
 	_, err = fmt.Scan(&choice)
 	if err != nil {
@@ -121,4 +131,14 @@ func AskPlugin() (string, error) {
 		return "", err
 	}
 	return plugins[pN-1], nil
+}
+
+func AskInterpreter() (string, error) {
+	var interp string
+	fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
+	_, err := fmt.Scan(&interp)
+	if err != nil {
+		return "", err
+	}
+	return interp, nil
 }
