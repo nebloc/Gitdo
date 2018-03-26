@@ -18,8 +18,8 @@ list_id = "5aa0057dae6f639766e9bff4"
 task_arg = sys.argv[1]
 task = json.loads(task_arg)
 
-desc = "{}#{} by {}".format(
-    task["file_name"], task["file_line"], task["author"])
+desc = "{}#{}\ncommit {} on branch {}\n{}".format(
+    task["file_name"], task["file_line"], task["hash"], task["branch"], task["author"])
 
 card = {
     "name": task["task_name"],
@@ -43,7 +43,7 @@ try:
     request = Request(url, urlencode(card).encode())
     resp = urlopen(request).read().decode()
     trello_card = json.loads(resp)
-    print(trello_card['id'])
+    print(trello_card['shortLink'])
 except HTTPError as e:
     print("error: "+ e.reason)
     exit(1)
