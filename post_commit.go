@@ -12,17 +12,20 @@ import (
 )
 
 func PostCommit(ctx *cli.Context) error {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	resp, err := cmd.Output()
+	hash, err := getHash()
 	if err != nil {
-		return errors.New("could not get hash of last commit")
+		return err
+	}
+	branch, err := getBranch()
+	if err != nil {
+		return err
 	}
 
-	hash := stripNewlineChar(resp)
 	tasks, err := getTasksFile()
 	for id, task := range tasks.Staged {
 		if task.Hash == "" {
 			task.Hash = hash
+			task.Branch = branch
 			tasks.Staged[id] = task
 		}
 	}
@@ -38,4 +41,26 @@ func PostCommit(ctx *cli.Context) error {
 		return err
 	}
 	return nil
+}
+
+func getHash() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	resp, err := cmd.Output()
+	if err != nil {
+		return "", errors.New("could not get hash of last commit")
+	}
+
+	hash := stripNewlineChar(resp)
+	return hash, nil
+}
+
+func getBranch() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	resp, err := cmd.Output()
+	if err != nil {
+		return "", errors.New("could not get branch of last commit")
+	}
+
+	branch := stripNewlineChar(resp)
+	return branch, nil
 }

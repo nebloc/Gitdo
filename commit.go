@@ -230,12 +230,13 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{
-			"",
-			line.FileTo,
-			match[1],
-			line.Position,
-			config.Author,
-			"",
+			id:       "",
+			FileName: line.FileTo,
+			TaskName: match[1],
+			FileLine: line.Position,
+			Author:   config.Author,
+			Hash:     "",
+			Branch:   "",
 		}
 
 		id, err := RunReservePlugin(t)

@@ -19,6 +19,7 @@ type Task struct {
 	FileLine int    `json:"file_line"`
 	Author   string `json:"author"`
 	Hash     string `json:"hash"`
+	Branch   string `json:"branch"`
 }
 
 // String prints the Task in a readable format
