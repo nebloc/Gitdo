@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	colorable "github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
@@ -150,7 +151,12 @@ func CheckFolder() error {
 }
 
 func stripNewlineChar(orig []byte) string {
-	new := string(orig)
-	new = new[:len(new)-1]
-	return new
+	var newStr string
+	if strings.HasSuffix(string(orig), "\n") {
+		newStr = string(orig)[:len(orig)-1]
+	}
+	if strings.HasSuffix(newStr, "\r") {
+		newStr = newStr[:len(newStr)-1]
+	}
+	return newStr
 }
