@@ -1,2 +1,3 @@
-#!/bin/sh
-echo "hello"
+import sys
+
+print("Activating: {}".format(sys.argv[1]))

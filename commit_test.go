@@ -30,8 +30,9 @@ func TestCommit(t *testing.T) {
 	t.Logf("working in dir: %s", cDir)
 
 	config = &Config{
-		Author: "benjamin.coleman@me.com",
-		Plugin: "test",
+		Author:            "benjamin.coleman@me.com",
+		Plugin:            "test",
+		PluginInterpreter: "python",
 	}
 
 	ctx := cli.NewContext(gitdo, nil, nil)

@@ -42,7 +42,7 @@ func Push(ctx *cli.Context) error {
 }
 
 func RunActivatePlugin(id string) error {
-	cmd := exec.Command(".git/gitdo/plugins/activate_"+config.Plugin, id)
+	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/activate_"+config.Plugin, id)
 	res, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))

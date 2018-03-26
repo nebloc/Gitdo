@@ -17,6 +17,11 @@ type Config struct {
 	Author string `json:"author"`
 	// Plugin to use at push time
 	Plugin string `json:"plugin_name"`
+	// The command to run for plugin files
+	PluginInterpreter string `plugin_interpreter`
+
+	// Example of plugin: "test" and plugin_interpreter: "python"
+	// Will run 'python .git/gitdo/plugins/reserve_test'
 }
 
 func (c *Config) String() string {
