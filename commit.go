@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -71,7 +70,7 @@ func WriteStagedTasks(newTasks []Task, deleted []string) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		log.WithError(err).Warn("could not read existing newTasks")
+		log.WithError(err).Warn("could not read existing tasks")
 	}
 	for _, id := range deleted {
 		if _, exists := tasks.Staged[id]; exists {
@@ -243,7 +242,7 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 			Branch:   "",
 		}
 
-		id, err := RunReservePlugin(t)
+		id, err := RunGetIDPlugin(t)
 		if err != nil {
 			log.WithError(err).Fatal("couldn't reserve task in plugin")
 		}
@@ -253,23 +252,4 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 	return Task{}, false
 }
 
-func RunReservePlugin(task Task) (string, error) {
-	bTask, err := json.Marshal(task)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling task: %v\n", err)
-	}
-	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/reserve_"+config.Plugin, string(bTask))
-	res, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("error running reserve plugin: %v: %v\n", string(res), err.Error())
-	}
-	return stripNewlineChar(res), nil
-}
-func RunDonePlugin(id string) error {
-	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/done_"+config.Plugin, id)
-	res, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error running done plugin: %v: %v\n", string(res), err.Error())
-	}
-	return nil
-}
+

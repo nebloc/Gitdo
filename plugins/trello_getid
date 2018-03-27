@@ -1,0 +1,47 @@
+#!/usr/local/bin/python3
+# No way of getting ID from trello without a card - so we create one that will be
+# updated later - archived originally to not clutter, but does allow view in archive
+
+from urllib.parse import urlencode # encode card data
+from urllib.request import Request, urlopen, URLError, HTTPError # for making API calls
+import json # encode task and response
+import sys # for getting args - takes task as a json
+
+# exit if not given only Task json
+if len(sys.argv) is not 2:
+    print("not enough arguements")
+    exit(1)
+
+base_url = "https://api.trello.com/1/" # Trello api
+appkey = "" # creds
+token = "" # creds
+list_id = "5aa0057dae6f639766e9bff4" # List that this should be added to when pushed
+
+task_arg = sys.argv[1] # Get json task
+task = json.loads(task_arg) # Get dict to read attributes
+
+card = {
+    "name": task["task_name"],
+    "closed": "true", # Archive task to not get in way until code is pushed
+    "idList": list_id,
+}
+
+# Get credentials
+with open('.git/gitdo/secrets.json') as json_data:
+    d = json.load(json_data)
+    appkey = d["appkey"]
+    token = d["token"]
+
+url = "{}cards?key={}&token={}".format(base_url, appkey, token)
+
+try:
+    request = Request(url, urlencode(card).encode())
+    resp = urlopen(request).read().decode()
+    trello_card = json.loads(resp)
+    print(trello_card['shortLink']) # return cards short ID
+except HTTPError as e:
+    print("error: code={} message={}".format(e.code, e.reason))
+    exit(1)
+except URLError as e:
+    print("error: "+ e.args)
+    exit(2)

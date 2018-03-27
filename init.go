@@ -25,10 +25,7 @@ func Init(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := os.Mkdir(".git/gitdo", os.ModePerm); err != nil {
-		log.WithError(err).Error("could not create gitdo folder")
-		return err
-	}
+	os.Mkdir(".git/gitdo", os.ModePerm)
 
 	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/plugins", ".git/gitdo/")
 	if res, err := cmd.CombinedOutput(); err != nil {
@@ -109,12 +106,11 @@ func AskPlugin() (string, error) {
 	fmt.Println("Available plugins:")
 
 	var plugins []string
-	prefix := "_reserve"
 	i := 0
 	for _, f := range files {
-		if strings.HasSuffix(f.Name(), prefix) {
+		if strings.HasSuffix(f.Name(), getidSuffix) {
 			i++
-			plugin := strings.TrimSuffix(f.Name(), prefix)
+			plugin := strings.TrimSuffix(f.Name(), getidSuffix)
 			plugins = append(plugins, plugin)
 			fmt.Printf("%d: %s\n", i, plugin)
 		}

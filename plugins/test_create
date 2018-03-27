@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 import sys
 
 print("Activating: {}".format(sys.argv[1]))

@@ -22,6 +22,10 @@ func PostCommit(ctx *cli.Context) error {
 	}
 
 	tasks, err := getTasksFile()
+	if err != nil {
+		log.Warn("No tasks file")
+		return nil
+	}
 	for id, task := range tasks.Staged {
 		if task.Hash == "" {
 			task.Hash = hash

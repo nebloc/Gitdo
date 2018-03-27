@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
-
 	log "github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli"
 )
@@ -21,7 +19,7 @@ func Push(ctx *cli.Context) error {
 	changed := false
 
 	for id, task := range tasks.Staged {
-		err := RunActivatePlugin(id)
+		err := RunCreatePlugin(task)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to add task: %s", task.String())
 			continue
@@ -41,11 +39,4 @@ func Push(ctx *cli.Context) error {
 	return nil
 }
 
-func RunActivatePlugin(id string) error {
-	cmd := exec.Command(config.PluginInterpreter, ".git/gitdo/plugins/activate_"+config.Plugin, id)
-	res, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
-	}
-	return nil
-}
+

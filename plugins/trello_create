@@ -1,0 +1,50 @@
+#!/usr/local/bin/python3
+
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen, URLError, HTTPError
+import json
+import sys  # arg[1]: id, arg[2]: task
+
+# Exit if not given ID and task JSON
+if len(sys.argv) is not 3:
+    print("wrong number of arguements")
+    exit(1)
+
+base_url = "https://api.trello.com/1/"
+appkey = ""
+token = ""
+
+# Load creds
+with open('.git/gitdo/secrets.json') as json_data:
+    d = json.load(json_data)
+    appkey = d["appkey"]
+    token = d["token"]
+
+task_arg = sys.argv[2]  # Get json task
+task = json.loads(task_arg)  # Get dict to read attributes
+
+link = "https://github.com/nebbers1111/Example/blob/{}/{}#L{}".format(task["hash"], task["file_name"], task["file_line"])
+
+desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
+    task["file_name"], task["file_line"], task["hash"], task["branch"], link, task["author"])
+
+card = {
+    "closed": "false",
+    "desc": desc,
+    "key": appkey,
+    "token": token,
+}
+
+url = "{}cards/{}".format(base_url, sys.argv[1])
+
+try:
+    request = Request(method="PUT", data=urlencode(card).encode(), url=url)
+    resp = urlopen(request).read().decode()
+    json_resp = json.loads(resp)
+    print(json_resp)
+except HTTPError as e:
+    print("error: code={} message={}".format(e.code, e.reason))
+    exit(1)
+except URLError as e:
+    print("error: " + e.args)
+    exit(2)
