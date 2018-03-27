@@ -6,6 +6,9 @@ import (
 	cli "github.com/urfave/cli"
 )
 
+// Push reads in tasks that are staged to be added, gives them to the create plugin and notifies the user that they were
+// uploaded. Then moves them in to committed tasks and saves the task file. If the plugin fails, then the tasks are left
+// and should be retried next 'git push'
 func Push(ctx *cli.Context) error {
 	tasks, err := getTasksFile()
 	if err != nil {

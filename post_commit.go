@@ -11,6 +11,8 @@ import (
 	cli "github.com/urfave/cli"
 )
 
+// PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
+// been committed
 func PostCommit(ctx *cli.Context) error {
 	hash, err := getHash()
 	if err != nil {
@@ -47,6 +49,7 @@ func PostCommit(ctx *cli.Context) error {
 	return nil
 }
 
+// getHash runs rev-parse on git HEAD to get the latest commit
 func getHash() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	resp, err := cmd.Output()
@@ -58,6 +61,8 @@ func getHash() (string, error) {
 	return hash, nil
 }
 
+
+// getBranch gets the latest branch post-commit
 func getBranch() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	resp, err := cmd.Output()

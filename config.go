@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	log "github.com/sirupsen/logrus"
+	"strings"
 )
 
 const ConfigFilePath = GitdoDir + "config.json"
@@ -24,10 +25,12 @@ type Config struct {
 	// Will run 'python .git/gitdo/plugins/reserve_test'
 }
 
+// String returns a human readable format of the Config struct
 func (c *Config) String() string {
 	return fmt.Sprintf("Author: %s\nPlugin: %s", c.Author, c.Plugin)
 }
 
+// Checks that the configuration has all the information needed
 func (c *Config) IsSet() bool {
 	if !c.pluginIsSet() {
 		return false
@@ -35,17 +38,25 @@ func (c *Config) IsSet() bool {
 	if !c.authorIsSet() {
 		return false
 	}
+	if !c.interpreterIsSet() {
+		return false
+	}
 	return true
 }
 
+// pluginIsSet returns if the plugin in config is not empty
 func (c *Config) pluginIsSet() bool {
-	return c.Plugin != ""
+	return strings.TrimSpace(c.Plugin) != ""
 }
+
+// authorIsSet returns if the author in config is not empty
 func (c *Config) authorIsSet() bool {
-	return c.Author != ""
+	return strings.TrimSpace(c.Author) != ""
 }
+
+// interpreterIsSet returns if the plugin interpreter in config is not empty
 func (c *Config) interpreterIsSet() bool {
-	return c.PluginInterpreter != ""
+	return strings.TrimSpace(c.PluginInterpreter) != ""
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
@@ -68,6 +79,7 @@ func LoadConfig() error {
 	return nil
 }
 
+// getGitEmail runs the 'git config user.email' command to get the default email address of the user for the current dir
 func getGitEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")
 	resp, err := cmd.Output()
@@ -77,6 +89,7 @@ func getGitEmail() (string, error) {
 	return stripNewlineChar(resp), nil
 }
 
+// WriteConfig saves the current config to be loaded in after setting
 func WriteConfig() error {
 	bConf, err := json.MarshalIndent(config, "", "\t")
 	if err != nil {

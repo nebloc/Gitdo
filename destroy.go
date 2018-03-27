@@ -9,6 +9,7 @@ import (
 	cli "github.com/urfave/cli"
 )
 
+// Destroy deletes the staged tasks file if you need it to
 func Destroy(ctx *cli.Context) error {
 	if !ctx.Bool("yes") {
 		return nil
@@ -16,6 +17,7 @@ func Destroy(ctx *cli.Context) error {
 	return os.Remove(StagedTasksFile)
 }
 
+// ConfirmUser asks if the user really wants to delete the file, if yes it sets the yes flag
 func ConfirmUser(ctx *cli.Context) error {
 	if ctx.Bool("yes") {
 		return nil

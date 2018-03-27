@@ -6,9 +6,9 @@ import (
 	"runtime"
 	"strings"
 
-	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -27,6 +27,7 @@ const (
 	StagedTasksFile = GitdoDir + "tasks.json"
 )
 
+// Current app version
 var version string
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 	}
 }
 
+// AppBuilder returns a urfave/cli app for directing commands and running setup
 func AppBuilder() *cli.App {
 	gitdo := cli.NewApp()
 	gitdo.Name = "gitdo"
@@ -69,7 +71,7 @@ func AppBuilder() *cli.App {
 			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
 			Action: Commit,
 			Flags:  []cli.Flag{cli.BoolFlag{Name: "cached, c", Usage: "Diff is executed with --cached flag in commit mode", Destination: &cachedFlag}},
-			After:  After,
+			After:  NotifyFinished,
 		},
 		{
 			Name:   "init",
@@ -81,13 +83,13 @@ func AppBuilder() *cli.App {
 			Name:   "post-commit",
 			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
 			Action: PostCommit,
-			After:  After,
+			After:  NotifyFinished,
 		},
 		{
 			Name:   "push",
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,
-			After:  After,
+			After:  NotifyFinished,
 		},
 		{
 			Name:   "destroy",
@@ -100,12 +102,17 @@ func AppBuilder() *cli.App {
 	return gitdo
 }
 
-func After(ctx *cli.Context) error {
+// NotifyFinished prints that the process has finished and what command was ran
+func NotifyFinished(ctx *cli.Context) error {
 	log.Infof("Gitdo finished %s", ctx.Command.Name)
 	return nil
 }
 
+// Setup sets the log level and makes sure that the config is set
 func Setup(ctx *cli.Context) error {
+	if ok, err := CheckInGit(); !ok {
+		return fmt.Errorf("Could not verify gitdo is being ran from home of repository: %v\n", err)
+	}
 	HandleLog()
 	config = &Config{}
 
@@ -115,6 +122,15 @@ func Setup(ctx *cli.Context) error {
 	}
 	SetConfig()
 	return nil
+}
+
+// CheckInGit returns true if gitdo is being ran from the root of the git repo
+func CheckInGit() (bool, error) {
+	_, err := os.Stat(".git/")
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag
@@ -129,6 +145,7 @@ func HandleLog() {
 	}
 }
 
+// List pretty prints the tasks that are in file
 func List(ctx *cli.Context) {
 	if ctx.Bool("config") {
 		fmt.Println(config.String())
@@ -140,6 +157,7 @@ func List(ctx *cli.Context) {
 	return
 }
 
+// CheckFolder checks that the gitdo folder exists and calls Mkdir if not
 func CheckFolder() error {
 	if _, err := os.Stat(GitdoDir); os.IsNotExist(err) {
 		err = os.Mkdir(GitdoDir, os.ModePerm|os.ModeDir)
@@ -150,6 +168,8 @@ func CheckFolder() error {
 	return nil
 }
 
+// stripNewLineChar takes a byte array (usually from an exec.Command run) and strips the newline characters, returning
+// a string
 func stripNewlineChar(orig []byte) string {
 	var newStr string
 	if strings.HasSuffix(string(orig), "\n") {

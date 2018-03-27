@@ -1,9 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
-	"encoding/json"
 )
 
 var (
@@ -11,9 +11,9 @@ var (
 	pluginDir = ".git/gitdo/plugins/"
 
 	//Plugin suffixs
-	getidSuffix = "_getid"
+	getidSuffix  = "_getid"
 	createSuffix = "_create"
-	doneSuffix = "_done"
+	doneSuffix   = "_done"
 )
 
 // Called as diff is being analysed to get an id for the new task
@@ -25,7 +25,8 @@ func RunGetIDPlugin(task Task) (string, error) {
 	cmd := exec.Command(config.PluginInterpreter, pluginDir+config.Plugin+getidSuffix, string(bTask))
 	res, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("error running reserve plugin: %v: %v\n", string(res), err.Error())
+		return "", fmt.Errorf("error running getid plugin: %v: %v",
+			stripNewlineChar(res), err.Error())
 	}
 	return stripNewlineChar(res), nil
 }

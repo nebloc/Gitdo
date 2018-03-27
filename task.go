@@ -28,6 +28,7 @@ func (t *Task) String() string {
 		t.FileName, t.FileLine, t.TaskName, t.id)
 }
 
+// Not sure why I need two stores now...
 type Tasks struct {
 	Staged    map[string]Task `json:"staged_task,omitempty"`
 	Committed map[string]Task `json:"committed_tasks,omitempty"`
@@ -63,6 +64,8 @@ func (ts *Tasks) String() string {
 	return strings.TrimSpace(buf.String())
 }
 
+// getTasksFile Reads in existing tasks, and returns them as a struct. If no tasks it will create a new one and return it with an
+// error
 func getTasksFile() (*Tasks, error) {
 	existingTasks := NewTaskMap()
 
@@ -87,6 +90,7 @@ func getTasksFile() (*Tasks, error) {
 	return existingTasks, nil
 }
 
+// NewTaskMap returns a new Tasks pointer
 func NewTaskMap() *Tasks {
 	return &Tasks{
 		Staged:    make(map[string]Task),
@@ -94,6 +98,7 @@ func NewTaskMap() *Tasks {
 	}
 }
 
+// WriteTasksFile takes a tasks struct and writes it to the tasks.json file
 func writeTasksFile(tasks *Tasks) error {
 	btask, err := json.MarshalIndent(*tasks, "", "\t")
 	if err != nil {
@@ -108,16 +113,19 @@ func writeTasksFile(tasks *Tasks) error {
 	return nil
 }
 
+// RemoveTask takes an id and removes it from the tasks staged list
 func (ts *Tasks) RemoveTask(id string) {
 	delete(ts.Staged, id)
 }
 
+// StageNewTasks takes a list of tasks and adds them to the tasks staged map
 func (ts *Tasks) StageNewTasks(newTasks []Task) {
 	for _, task := range newTasks {
 		ts.Staged[task.id] = task
 	}
 }
 
+// MoveTask takes an id and moves the task from staged to committed
 func (ts *Tasks) MoveTask(id string) {
 	ts.Committed[id] = ts.Staged[id]
 	delete(ts.Staged, id)

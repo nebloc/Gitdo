@@ -62,8 +62,9 @@ func GetDiffFromCmd() (string, error) {
 	return diff, nil
 }
 
-// WriteStagedTasks writes the given task array to a staged tasks file
-func WriteStagedTasks(newTasks []Task, deleted []string) error {
+// CommitTasks gets existing tasks, removes them from the task file if deleted, adds new tasks, and runs the done plugin
+// where applicable
+func CommitTasks(newTasks []Task, deleted []string) error {
 	if len(newTasks) == 0 && len(deleted) == 0 {
 		return nil
 	}
@@ -109,7 +110,7 @@ func Commit(ctx *cli.Context) error {
 	for _, task := range tasks {
 		log.WithField("task", task.String()).Debug("New task")
 	}
-	err = WriteStagedTasks(tasks, deleted)
+	err = CommitTasks(tasks, deleted)
 	if err != nil {
 		return err
 	}
@@ -147,7 +148,6 @@ var (
 func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []string) {
 	var stagedTasks []Task
 	var deleted []string
-	getID := GetIDFunc()
 	for _, line := range lines {
 		if line.Mode == diffparse.REMOVED {
 			id, found := CheckTagged(line)
@@ -156,7 +156,7 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []
 			}
 			deleted = append(deleted, id)
 		}
-		task, found := CheckTask(line, getID)
+		task, found := CheckTask(line)
 		if found {
 			stagedTasks = append(stagedTasks, task)
 			taskChan <- task
@@ -225,7 +225,7 @@ func GetIDFunc() func() string {
 
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
-func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
+func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	tagged := taggedReg.MatchString(line.Content)
 	if tagged {
 		return Task{}, false
@@ -244,12 +244,10 @@ func CheckTask(line diffparse.SourceLine, getID func() string) (Task, bool) {
 
 		id, err := RunGetIDPlugin(t)
 		if err != nil {
-			log.WithError(err).Fatal("couldn't reserve task in plugin")
+			log.WithError(err).Fatal("couldn't get ID for task in plugin")
 		}
 		t.id = id
 		return t, true
 	}
 	return Task{}, false
 }
-
-

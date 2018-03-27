@@ -12,6 +12,7 @@ import (
 	cli "github.com/urfave/cli"
 )
 
+// Init initialises the gitdo project by scaffolding the gitdo folder
 func Init(ctx *cli.Context) error {
 	if ctx.Bool("with-git") {
 		if err := InitGit(); err != nil {
@@ -44,6 +45,7 @@ func Init(ctx *cli.Context) error {
 	return nil
 }
 
+// SetConfig checks the config is not set and asks the user relevant questions to set it
 func SetConfig() {
 	err := LoadConfig()
 	if err == nil && config.IsSet() {
@@ -80,6 +82,7 @@ func SetConfig() {
 	}
 }
 
+// InitGit initialises a git repo before initialising gitdo
 func InitGit() error {
 	cmd := exec.Command("git", "init")
 	if _, err := cmd.Output(); err != nil {
@@ -88,6 +91,7 @@ func InitGit() error {
 	return nil
 }
 
+// AskAuthor notifies user of email address used
 func AskAuthor() (string, error) {
 	email, err := getGitEmail()
 	if err != nil {
@@ -96,9 +100,9 @@ func AskAuthor() (string, error) {
 	fmt.Printf("Using %s\n", email)
 	return email, nil
 }
-
+// AskPlugin reads in plugins from the directory and gives the user a list of plugins, that have a "<name>_getid"
 func AskPlugin() (string, error) {
-	files, err := ioutil.ReadDir(".git/gitdo/plugins")
+	files, err := ioutil.ReadDir(pluginDir)
 	if err != nil {
 		return "", err
 	}
@@ -129,6 +133,7 @@ func AskPlugin() (string, error) {
 	return plugins[pN-1], nil
 }
 
+// AskInterpreter asks the user what command they want to use to run the plugin
 func AskInterpreter() (string, error) {
 	var interp string
 	fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
