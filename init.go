@@ -206,6 +206,7 @@ func CreateGitdoDir() error {
 // copyFolder copies a folder from src to dst. It looks through the src folder and copies files one by one to the
 // destination folder. It does not copy subdirectories
 func copyFolder(src, dst string) error {
+	fmt.Printf("Copying from: %s to %s\n", src, dst)
 	files, err := ioutil.ReadDir(src)
 	if err != nil {
 		return fmt.Errorf("could not get %s files: %v", src, err)

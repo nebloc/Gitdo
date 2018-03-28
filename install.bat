@@ -1,6 +1,6 @@
-MKDIR %APPDATA%\Gitdo
-MKDIR %APPDATA%\Gitdo\plugins
-XCOPY /s/e/h/k/y %0\..\plugins %APPDATA%\Gitdo\plugins
-MKDIR %APPDATA%\Gitdo\hooks
-XCOPY /s/e/h/k/y %0\..\plugins %APPDATA%\Gitdo\plugins
-COPY %0\..\secrets.json %APPDATA%\Gitdo
+MKDIR %APPDATA%\gitdo
+MKDIR %APPDATA%\gitdo\plugins
+XCOPY /s/e/h/k/y %0\..\plugins %APPDATA%\gitdo\plugins
+MKDIR %APPDATA%\gitdo\hooks
+XCOPY /s/e/h/k/y %0\..\hooks %APPDATA%\gitdo\hooks
+COPY %0\..\secrets.json %APPDATA%\gitdo
