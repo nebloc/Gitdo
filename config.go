@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"github.com/urfave/cli"
 )
 
-const ConfigFilePath = GitdoDir + "config.json"
 
 type Config struct {
 	// Author to attach to task in task manager.
@@ -19,7 +19,7 @@ type Config struct {
 	// Plugin to use at push time
 	Plugin string `json:"plugin_name"`
 	// The command to run for plugin files
-	PluginInterpreter string `plugin_interpreter`
+	PluginInterpreter string `json:"plugin_interpreter"`
 
 	// Example of plugin: "test" and plugin_interpreter: "python"
 	// Will run 'python .git/gitdo/plugins/reserve_test'
@@ -60,7 +60,7 @@ func (c *Config) interpreterIsSet() bool {
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
-func LoadConfig() error {
+func LoadConfig(ctx *cli.Context) error {
 	bConfig, err := ioutil.ReadFile(ConfigFilePath)
 	if err != nil {
 		return err

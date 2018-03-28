@@ -5,11 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
+	"io"
 )
 
 // Init initialises the gitdo project by scaffolding the gitdo folder
@@ -20,35 +22,20 @@ func Init(ctx *cli.Context) error {
 		}
 	}
 
-	cmd := exec.Command("git", "config", "core.hooksPath", "~/Dev/Go/src/github.com/nebbers1111/gitdo/hooks")
-	if _, err := cmd.Output(); err != nil {
-		log.WithError(err).Error("could not set hooks path")
-		return err
+	err := CreateGitdoDir()
+	if err != nil {
+		panic(err)
 	}
 
-	os.Mkdir(".git/gitdo", os.ModePerm)
-
-	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/plugins", ".git/gitdo/")
-	if res, err := cmd.CombinedOutput(); err != nil {
-		log.Error(stripNewlineChar(res))
-		return err
-	}
-	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/.git/gitdo/secrets.json", ".git/gitdo/")
-	if res, err := cmd.CombinedOutput(); err != nil {
-		log.Error(stripNewlineChar(res))
-		return err
-	}
-	CheckFolder()
 	SetConfig()
 
-	fmt.Println("Done - please check plugins are configured, some need secrets and ID's")
+	fmt.Println("Done - please check plugins are configured correctly")
 	return nil
 }
 
 // SetConfig checks the config is not set and asks the user relevant questions to set it
 func SetConfig() {
-	err := LoadConfig()
-	if err == nil && config.IsSet() {
+	if config.IsSet() {
 		return
 	}
 
@@ -76,7 +63,7 @@ func SetConfig() {
 		}
 		config.PluginInterpreter = interp
 	}
-	err = WriteConfig()
+	err := WriteConfig()
 	if err != nil {
 		log.WithError(err).Warn("Couldn't save config")
 	}
@@ -84,10 +71,13 @@ func SetConfig() {
 
 // InitGit initialises a git repo before initialising gitdo
 func InitGit() error {
+	fmt.Println("Initializing git...")
 	cmd := exec.Command("git", "init")
-	if _, err := cmd.Output(); err != nil {
+	_, err := cmd.CombinedOutput()
+	if err != nil {
 		return err
 	}
+	fmt.Println("Git initialized")
 	return nil
 }
 
@@ -100,6 +90,7 @@ func AskAuthor() (string, error) {
 	fmt.Printf("Using %s\n", email)
 	return email, nil
 }
+
 // AskPlugin reads in plugins from the directory and gives the user a list of plugins, that have a "<name>_getid"
 func AskPlugin() (string, error) {
 	files, err := ioutil.ReadDir(pluginDir)
@@ -142,4 +133,133 @@ func AskInterpreter() (string, error) {
 		return "", err
 	}
 	return interp, nil
+}
+
+func CreateGitdoDir() error {
+	// Make sure gitdo home dir is available
+	srcTmpl, err := GetTemplateDir()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Creating gitdo from files in %s\n", srcTmpl)
+
+	if _, err := os.Stat(".git"); err != nil {
+		fmt.Println("Warning: Git not initialised.")
+	}
+
+	// Paths
+	dstGitdo := filepath.Join(".git", "gitdo") // base destination
+
+	srcPlugin := filepath.Join(srcTmpl, "plugins")      // plugins src path
+	srcSecret := filepath.Join(srcTmpl, "secrets.json") // secrets src path
+
+	dstSecret := filepath.Join(dstGitdo, "secrets.json") // where secrets.json will be placed
+	dstPlugins := filepath.Join(dstGitdo, "plugins")     // where plugins will be kept
+
+	srcHooks := filepath.Join(srcTmpl, "hooks")
+	dstHooks := filepath.Join(".git", "hooks")
+
+	err = os.MkdirAll(dstPlugins, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
+	}
+
+	err = os.MkdirAll(dstHooks, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
+	}
+
+	err = copyFile(srcSecret, dstSecret)
+	if err != nil {
+		return err
+	}
+
+	err = copyFolder(srcPlugin, dstPlugins)
+	if err != nil {
+		return err
+	}
+
+	err = copyFolder(srcHooks, dstHooks)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// copyFolder copies a folder from src to dst. It looks through the src folder and copies files one by one to the
+// destination folder. It does not copy subdirectories
+func copyFolder(src, dst string) error {
+	files, err := ioutil.ReadDir(src)
+	if err != nil {
+		return fmt.Errorf("could not get %s files: %v", src, err)
+	}
+	for _, file := range files {
+		sf := filepath.Join(src, file.Name())
+		df := filepath.Join(dst, file.Name())
+		err = copyFile(sf, df)
+		if err != nil {
+			fmt.Printf("could not copy %v - skipping\n", file.Name())
+		}
+	}
+	return nil
+}
+
+// copyFile copies a file from src to dst. If src and dst files exist, and are the same, then return success. Otherise,
+// attempt to create a hard link between the two files. If that fail, copy the file contents from src to dst.
+func copyFile(src, dst string) (err error) {
+	sfi, err := os.Stat(src)
+	if err != nil {
+		return
+	}
+	if !sfi.Mode().IsRegular() {
+		// cannot copy non-regular files (e.g., directories,
+		// symlinks, devices, etc.)
+		return fmt.Errorf("copyFile: non-regular source file %s (%q)", sfi.Name(), sfi.Mode().String())
+	}
+	dfi, err := os.Stat(dst)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return
+		}
+	} else {
+		if !(dfi.Mode().IsRegular()) {
+			return fmt.Errorf("copyFile: non-regular destination file %s (%q)", dfi.Name(), dfi.Mode().String())
+		}
+		if os.SameFile(sfi, dfi) {
+			return
+		}
+	}
+	if err = os.Link(src, dst); err == nil {
+		return
+	}
+	err = copyFileContents(src, dst)
+	return
+}
+
+// copyFileContents copies the contents of the file named src to the file named by dst. The file will be created if it
+// does not already exist. If the destination file exists, all it's contents will be replaced by the contents of the
+// source file.
+func copyFileContents(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return
+	}
+	err = out.Sync()
+	return
 }

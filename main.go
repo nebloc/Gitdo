@@ -3,38 +3,42 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
+	"log"
 
-	"github.com/mattn/go-colorable"
-	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"path/filepath"
 )
 
 var (
-	config *Config
+	// Config needed for commit and push to use plugins and add author metadata
+	// to task
+	config = &Config{
+		Author:            "",
+		Plugin:            "",
+		PluginInterpreter: "",
+	}
 
 	// Flags
 	cachedFlag     bool
 	verboseLogFlag bool
-)
 
-const (
-	GitdoDir = ".git/gitdo/"
+	// Current version
+	version string
 
+	// Gitdo working directory (holds plugins, secrets, tasks, etc.)
+	GitdoDir = filepath.Join(".git", "gitdo")
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
-	StagedTasksFile = GitdoDir + "tasks.json"
+	StagedTasksFile = filepath.Join(GitdoDir, "tasks.json")
+	ConfigFilePath  = filepath.Join(GitdoDir, "config.json")
 )
-
-// Current app version
-var version string
 
 func main() {
 	gitdo := AppBuilder()
 	err := gitdo.Run(os.Args)
 	if err != nil {
-		log.WithError(err).Fatal("Gitdo Failed.")
+		log.Fatalf("Gitdo failed to run: %v", err)
 	}
 }
 
@@ -58,7 +62,6 @@ func AppBuilder() *cli.App {
 			Destination: &verboseLogFlag,
 		},
 	}
-	gitdo.Before = Setup
 	gitdo.Commands = []cli.Command{
 		{
 			Name:   "list",
@@ -70,7 +73,14 @@ func AppBuilder() *cli.App {
 			Name:   "commit",
 			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
 			Action: Commit,
-			Flags:  []cli.Flag{cli.BoolFlag{Name: "cached, c", Usage: "Diff is executed with --cached flag in commit mode", Destination: &cachedFlag}},
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:        "cached, c",
+					Usage:       "Diff is executed with --cached flag in commit mode",
+					Destination: &cachedFlag,
+				},
+			},
+			Before: LoadConfig,
 			After:  NotifyFinished,
 		},
 		{
@@ -89,6 +99,7 @@ func AppBuilder() *cli.App {
 			Name:   "push",
 			Usage:  "starts the plugin to move staged tasks into your task manager - normally ran from pre-push hook",
 			Action: Push,
+			Before: LoadConfig,
 			After:  NotifyFinished,
 		},
 		{
@@ -104,23 +115,7 @@ func AppBuilder() *cli.App {
 
 // NotifyFinished prints that the process has finished and what command was ran
 func NotifyFinished(ctx *cli.Context) error {
-	log.Infof("Gitdo finished %s", ctx.Command.Name)
-	return nil
-}
-
-// Setup sets the log level and makes sure that the config is set
-func Setup(ctx *cli.Context) error {
-	if ok, err := CheckInGit(); !ok {
-		return fmt.Errorf("Could not verify gitdo is being ran from home of repository: %v\n", err)
-	}
-	HandleLog()
-	config = &Config{}
-
-	err := LoadConfig()
-	if err == nil && config.IsSet() {
-		return nil
-	}
-	SetConfig()
+	log.Printf("Gitdo finished %s", ctx.Command.Name)
 	return nil
 }
 
@@ -135,14 +130,7 @@ func CheckInGit() (bool, error) {
 
 // HandleLog sets up the logging level dependent on the -v (verbose) flag
 func HandleLog() {
-	if runtime.GOOS == "windows" {
-		log.SetFormatter(&log.TextFormatter{ForceColors: true})
-		log.SetOutput(colorable.NewColorableStdout())
-	}
-	log.SetLevel(log.InfoLevel)
-	if verboseLogFlag {
-		log.SetLevel(log.DebugLevel)
-	}
+	log.SetOutput(os.Stdout)
 }
 
 // List pretty prints the tasks that are in file
@@ -155,17 +143,6 @@ func List(ctx *cli.Context) {
 
 	fmt.Println(tasks.String())
 	return
-}
-
-// CheckFolder checks that the gitdo folder exists and calls Mkdir if not
-func CheckFolder() error {
-	if _, err := os.Stat(GitdoDir); os.IsNotExist(err) {
-		err = os.Mkdir(GitdoDir, os.ModePerm|os.ModeDir)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // stripNewLineChar takes a byte array (usually from an exec.Command run) and strips the newline characters, returning
