@@ -128,3 +128,4 @@ src/golang.org/
 staged_tasks.json
 .idea/
 out/
+release/

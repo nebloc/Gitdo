@@ -1,19 +1,5 @@
 HASH = $(shell git rev-parse --short HEAD)
 
-init: 
-	mkdir bin
-	mkdir pkg
-clean:
-	rm -rf ./bin
-
-build: clean
-	mkdir bin
-	go build -o ./bin/gitdo ./src/
-	cp ./src/config.json ./bin/
-	
-run: build
-	cd ./bin/ && ./gitdo
-
 cached: build 
 	cd ./bin/ && ./gitdo -c
 
@@ -32,3 +18,11 @@ install:
 test:
 	vgo test github.com/nebbers1111/gitdo
 	vgo test github.com/nebbers1111/gitdo/diffparse
+
+release:
+	mkdir release/
+	vgo build -o release/gitdo .
+	cp -r ./hooks ./release/
+	cp -r ./plugins ./release/
+	cp install.sh ./release/
+	echo "{"trello_key":"","trello_token":""}" > ./release/secrets.json
