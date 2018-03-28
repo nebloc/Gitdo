@@ -17,8 +17,8 @@ token = ""  # creds
 # Read in creds
 with open('.git/gitdo/secrets.json') as json_data:
     d = json.load(json_data)
-    appkey = d["appkey"]
-    token = d["token"]
+    appkey = d["trello_key"]
+    token = d["trello_token"]
 
 # Move the card to the new list
 url = "{}cards/{}?idList={}&key={}&token={}".format(

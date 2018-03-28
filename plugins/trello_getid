@@ -29,8 +29,8 @@ card = {
 # Get credentials
 with open('.git/gitdo/secrets.json') as json_data:
     d = json.load(json_data)
-    appkey = d["appkey"]
-    token = d["token"]
+    appkey = d["trello_key"]
+    token = d["trello_token"]
 
 url = "{}cards?key={}&token={}".format(base_url, appkey, token)
 

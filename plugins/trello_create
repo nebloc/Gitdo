@@ -17,8 +17,8 @@ token = ""
 # Load creds
 with open('.git/gitdo/secrets.json') as json_data:
     d = json.load(json_data)
-    appkey = d["appkey"]
-    token = d["token"]
+    appkey = d["trello_key"]
+    token = d["trello_token"]
 
 task_arg = sys.argv[2]  # Get json task
 task = json.loads(task_arg)  # Get dict to read attributes
