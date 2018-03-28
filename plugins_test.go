@@ -19,7 +19,7 @@ func TestRunGetIDPlugin(t *testing.T) {
 		Plugin:            "trello",
 		PluginInterpreter: "python3",
 	}
-	trelloID, err := RunGetIDPlugin(task)
+	trelloID, err := RunPlugin(GETID,task)
 	if err != nil {
 		t.Errorf("Didn't get ID from trello correctly: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestRunCreatePlugin(t *testing.T) {
 		PluginInterpreter: "python3",
 	}
 	task.id = "0q48OchJ"
-	err := RunCreatePlugin(task)
+	_, err := RunPlugin(CREATE, task)
 	if err != nil {
 		t.Errorf("create task failed: %v", err)
 	}

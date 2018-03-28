@@ -1,0 +1,14 @@
+#!/usr/local/bin/python3
+import sys
+
+print("Activating: {}".format(sys.argv[1]))
+
+# This function is called when a git push is ran
+# It will be passed a task ID and a task in JSON
+# format. Exiting with a non zero exit code will
+# not stop the push just warn the user and leave
+# and will try the task on the next push
+
+# The plugin will be ran from the same directory
+# it is in. Loading config should be in the same
+# directory. See Trello example.

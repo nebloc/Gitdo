@@ -104,7 +104,7 @@ func testStartRepoHelper(t *testing.T) {
 		t.Fatal("could not create gitdo folder")
 	}
 
-	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebbers1111/gitdo/plugins", ".git/gitdo/")
+	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebloc/gitdo/plugins", ".git/gitdo/")
 	if res, err := cmd.CombinedOutput(); err != nil {
 		t.Log(stripNewlineChar(res))
 		t.Fatal("could not copy plugins folder")

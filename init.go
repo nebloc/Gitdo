@@ -100,11 +100,12 @@ func AskPlugin() (string, error) {
 	fmt.Println("Available plugins:")
 
 	var plugins []string
+	suf := "_getid"
 	i := 0
 	for _, f := range files {
-		if strings.HasSuffix(f.Name(), getidSuffix) {
+		if strings.HasSuffix(f.Name(), suf) {
 			i++
-			plugin := strings.TrimSuffix(f.Name(), getidSuffix)
+			plugin := strings.TrimSuffix(f.Name(), suf)
 			plugins = append(plugins, plugin)
 			fmt.Printf("%d: %s\n", i, plugin)
 		}

@@ -6,8 +6,8 @@ import (
 
 func TestParseGitDiff(t *testing.T) {
 	ExpectedLines := []SourceLine{
-		{"test.txt", "test.txt", "", 3, REMOVED},
-		{"test.txt", "test.txt", "//TODO: hello", 5, ADDED},
+		{"config", "config", "", 3, REMOVED},
+		{"config", "config", "//TODO: hello", 5, ADDED},
 		{"config.go", "", "package main", 0, REMOVED},
 		{"config.go", "", "//TODO: load config from file test", 0, REMOVED}, // TODO: Do we need to know the file line of removed? currently the counter is off
 		{"", "diffparser/diffparser.go", "++ b/package diffparser", 1, ADDED},
@@ -35,10 +35,10 @@ func TestParseGitDiff(t *testing.T) {
 	}
 }
 
-var example_diff string = `diff --git a/test.txt b/test.txt
+var example_diff string = `diff --git a/config b/config
 index d90eea3..849126d 100644
---- a/test.txt
-+++ b/test.txt
+--- a/config
++++ b/config
 @@ -1,5 +1,5 @@
  Hello Ben
  How Are you

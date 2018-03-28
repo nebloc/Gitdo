@@ -13,7 +13,6 @@ crosscompile:
 
 install: 
 	vgo install -ldflags "-X main.version=0.0.1-$(HASH)"
-	./install.sh
 
 test:
 	vgo test github.com/nebbers1111/gitdo
@@ -25,4 +24,5 @@ release:
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
 	cp install.sh ./release/
+	cp install.bat ./release/
 	echo "{"trello_key":"","trello_token":""}" > ./release/secrets.json

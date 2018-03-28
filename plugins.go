@@ -4,53 +4,67 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 )
 
 var (
 	// Plugin directory
-	pluginDir = ".git/gitdo/plugins/"
+	pluginDir = filepath.Join(GitdoDir, "plugins")
 
-	//Plugin suffixs
-	getidSuffix  = "_getid"
-	createSuffix = "_create"
-	doneSuffix   = "_done"
+	//Plugin commands
+	GETID  plugcommand = "getid"
+	CREATE plugcommand = "create"
+	DONE   plugcommand = "done"
+	SETUP  plugcommand = "setup"
 )
 
-// Called as diff is being analysed to get an id for the new task
-func RunGetIDPlugin(task Task) (string, error) {
-	bTask, err := json.Marshal(task)
-	if err != nil {
-		return "", fmt.Errorf("error marshalling task: %v\n", err)
+type plugcommand string
+
+func RunPlugin(command plugcommand, elem interface{}) (string, error) {
+	cmd := exec.Command(config.PluginInterpreter)     // i.e. 'python'
+	cmd.Dir = filepath.Join(pluginDir, config.Plugin) // move to plugin working dir
+	cmd.Args = append(cmd.Args, string(command))      // command to run
+	switch {
+	case command == GETID:
+		if task, ok := elem.(Task); ok {
+			bT, err := MarshalTask(task)
+			if err != nil {
+				return "", err
+			}
+			cmd.Args = append(cmd.Args, string(bT))
+		} else {
+			return "", fmt.Errorf("Passed interface not a task")
+		}
+	case command == CREATE:
+		if task, ok := elem.(Task); ok {
+			bT, err := MarshalTask(task)
+			if err != nil {
+				return "", err
+			}
+			cmd.Args = append(cmd.Args, task.id)
+			cmd.Args = append(cmd.Args, string(bT))
+		} else {
+			return "", fmt.Errorf("Passed interface not a task")
+		}
+	case command == DONE:
+		if id, ok := elem.(string); ok {
+			cmd.Args = append(cmd.Args, id)
+		} else {
+			return "", fmt.Errorf("Passed interface not a string")
+		}
+
 	}
-	cmd := exec.Command(config.PluginInterpreter, pluginDir+config.Plugin+getidSuffix, string(bTask))
-	res, err := cmd.CombinedOutput()
+	resp, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("error running getid plugin: %v: %v",
-			stripNewlineChar(res), err.Error())
+		return "", err
 	}
-	return stripNewlineChar(res), nil
+	return stripNewlineChar(resp), nil
 }
 
-// Called after diff has been analysed to delete any tasks that have been removed
-func RunDonePlugin(id string) error {
-	cmd := exec.Command(config.PluginInterpreter, pluginDir+config.Plugin+doneSuffix, id)
-	res, err := cmd.CombinedOutput()
+func MarshalTask(task Task) ([]byte, error) {
+	bT, err := json.MarshalIndent(task, "", "\t")
 	if err != nil {
-		return fmt.Errorf("error running done plugin: %v: %v\n", string(res), err.Error())
+		return nil, err
 	}
-	return nil
-}
-
-// Called post-commit to create the task once hash and branch are known
-func RunCreatePlugin(task Task) error {
-	bTask, err := json.Marshal(task)
-	if err != nil {
-		return fmt.Errorf("error marshalling task: %v\n", err)
-	}
-	cmd := exec.Command(config.PluginInterpreter, pluginDir+config.Plugin+createSuffix, task.id, string(bTask))
-	res, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error running plugin: %v\n", stripNewlineChar(res))
-	}
-	return nil
+	return bT, nil
 }

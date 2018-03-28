@@ -21,7 +21,7 @@ func Push(_ *cli.Context) error {
 	changed := false
 
 	for id, task := range tasks.Staged {
-		err := RunCreatePlugin(task)
+		_, err := RunPlugin(CREATE, task)
 		if err != nil {
 			Warnf("Failed to add task '%s': %v", task.String(), err)
 			continue

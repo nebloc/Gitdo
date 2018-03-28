@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nebbers1111/gitdo/diffparse"
+	"github.com/nebloc/gitdo/diffparse"
 	"github.com/urfave/cli"
 )
 
@@ -67,7 +67,7 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 		if _, exists := tasks.Staged[id]; exists {
 			tasks.RemoveTask(id)
 		} else {
-			RunDonePlugin(id)
+			RunPlugin(DONE, id)
 		}
 	}
 
@@ -224,7 +224,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 			Branch:   "",
 		}
 
-		id, err := RunGetIDPlugin(t)
+		id, err := RunPlugin(GETID, t)
 		if err != nil {
 			Dangerf("couldn't get ID for task in plugin: %v", err)
 			panic("Not continuing")
