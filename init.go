@@ -113,8 +113,10 @@ func AskPlugin() (string, error) {
 		Warn("No plugins found")
 		return "", fmt.Errorf("no plugins")
 	}
+
 	chosen := false
-	pN := 1
+	pN := 0
+
 	for !chosen {
 		fmt.Printf("What plugin would you like to use (1-%d): ", len(plugins))
 		var choice string
@@ -122,13 +124,12 @@ func AskPlugin() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		pN, err := strconv.Atoi(strings.TrimSpace(choice))
+		pN, err = strconv.Atoi(strings.TrimSpace(choice))
 		if err != nil || pN > len(plugins) || pN < 1 {
 			continue
 		}
 		chosen = true
 	}
-
 	plugin := plugins[pN-1]
 
 	Highlightf("Using %s", plugin)
