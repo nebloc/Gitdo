@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type Task struct {
@@ -75,7 +73,7 @@ func getTasksFile() (*Tasks, error) {
 	}
 	err = json.Unmarshal(bExisting, &existingTasks)
 	if err != nil {
-		log.Error("Poorly formatted staged JSON")
+		Danger("Poorly formatted staged JSON")
 		return existingTasks, err
 	}
 	for id, task := range existingTasks.Staged {
@@ -102,12 +100,12 @@ func NewTaskMap() *Tasks {
 func writeTasksFile(tasks *Tasks) error {
 	btask, err := json.MarshalIndent(*tasks, "", "\t")
 	if err != nil {
-		log.Error("couldn't marshal tasks")
+		Danger("couldn't marshal tasks")
 		return err
 	}
 	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
 	if err != nil {
-		log.Error("couldn't write new staged tasks")
+		Danger("couldn't write new staged tasks")
 		return err
 	}
 	return nil

@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli"
 )
 
 // Push reads in tasks that are staged to be added, gives them to the create plugin and notifies the user that they were
 // uploaded. Then moves them in to committed tasks and saves the task file. If the plugin fails, then the tasks are left
 // and should be retried next 'git push'
-func Push(ctx *cli.Context) error {
+func Push(_ *cli.Context) error {
 	tasks, err := getTasksFile()
 	if err != nil {
 		return err
@@ -24,7 +23,7 @@ func Push(ctx *cli.Context) error {
 	for id, task := range tasks.Staged {
 		err := RunCreatePlugin(task)
 		if err != nil {
-			log.WithError(err).Errorf("Failed to add task: %s", task.String())
+			Warnf("Failed to add task '%s': %v", task.String(), err)
 			continue
 		}
 		fmt.Printf("Task %s added to %s\n", id, config.Plugin)
@@ -34,12 +33,10 @@ func Push(ctx *cli.Context) error {
 	if changed {
 		err := writeTasksFile(tasks)
 		if err != nil {
-			//TODO: does it need to be fatal?
-			log.Fatal("could not save updated tasks list")
+			Danger("could not save updated tasks list")
+			return err
 		}
 	}
 
 	return nil
 }
-
-

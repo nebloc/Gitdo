@@ -7,11 +7,9 @@ import (
 	"os"
 	"os/exec"
 
-	log "github.com/sirupsen/logrus"
-	"strings"
 	"github.com/urfave/cli"
+	"strings"
 )
-
 
 type Config struct {
 	// Author to attach to task in task manager.
@@ -60,22 +58,15 @@ func (c *Config) interpreterIsSet() bool {
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
-func LoadConfig(ctx *cli.Context) error {
+func LoadConfig(_ *cli.Context) error {
 	bConfig, err := ioutil.ReadFile(ConfigFilePath)
 	if err != nil {
 		return err
 	}
 	err = json.Unmarshal(bConfig, config)
 	if err != nil {
-		if _, ok := err.(*os.PathError); ok {
-			log.Warn("No config.json file, using defaults")
-		}
 		return err
 	}
-	log.WithFields(log.Fields{
-		"author": config.Author,
-		"plugin": config.Plugin,
-	}).Debug("Config")
 	return nil
 }
 

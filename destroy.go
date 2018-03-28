@@ -5,8 +5,7 @@ import (
 	"os"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 // Destroy deletes the staged tasks file if you need it to
@@ -23,10 +22,10 @@ func ConfirmUser(ctx *cli.Context) error {
 		return nil
 	}
 	var ans string
-	fmt.Print("Are you sure you want to purge the task file? (y/n)")
+	Warn("Are you sure you want to purge the task file? (y/n)")
 	_, err := fmt.Scan(&ans)
 	if err != nil {
-		log.WithError(err).Error("not purging")
+		Warnf("Not purging: %v", err)
 		return nil
 	}
 	ans = strings.TrimSpace(ans)
@@ -37,6 +36,6 @@ func ConfirmUser(ctx *cli.Context) error {
 		return nil
 	}
 
-	log.Info("Not Purging")
+	Warn("Not Purging")
 	return nil
 }

@@ -2,15 +2,12 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/nebbers1111/gitdo/diffparse"
-	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
@@ -24,10 +21,6 @@ var (
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
 func GetDiffFromCmd() (string, error) {
-	log.WithFields(log.Fields{
-		"cached": cachedFlag,
-	}).Debug("Running Git diff")
-
 	// Run a git diff to look for changes --cached to be added for
 	// precommit hook
 	var cmd *exec.Cmd
@@ -44,13 +37,10 @@ func GetDiffFromCmd() (string, error) {
 			return "", ErrNotGitDir
 		}
 		if err, ok := err.(*exec.ExitError); ok {
-			log.WithFields(log.Fields{
-				"exit code": err,
-				"stderr":    fmt.Sprintf("%s", resp),
-			}).Error("error exiting git")
+			Dangerf("failed to exit git diff: %v, %v", err, stripNewlineChar(resp))
 			return "", err
 		} else {
-			log.WithError(err).Fatal("Git diff couldn't be ran")
+			Danger("git diff couldn't be ran")
 			return "", err
 		}
 	}
@@ -71,7 +61,7 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		log.WithError(err).Warn("could not read existing tasks")
+		Warnf("Could not read existing tasks: %v", err)
 	}
 	for _, id := range deleted {
 		if _, exists := tasks.Staged[id]; exists {
@@ -88,7 +78,7 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
-func Commit(ctx *cli.Context) error {
+func Commit(_ *cli.Context) error {
 	rawDiff, err := GetDiffFromCmd()
 	if err != nil {
 		return err
@@ -97,7 +87,7 @@ func Commit(ctx *cli.Context) error {
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		log.Errorf("Error processing diff: %v", err)
+		Dangerf("Error processing diff: %v", err)
 		return err
 	}
 
@@ -108,7 +98,7 @@ func Commit(ctx *cli.Context) error {
 
 	tasks, deleted := ProcessDiff(lines, taskChan)
 	for _, task := range tasks {
-		log.WithField("task", task.String()).Debug("New task")
+		Highlightf("new task: %v", task.String())
 	}
 	err = CommitTasks(tasks, deleted)
 	if err != nil {
@@ -118,11 +108,11 @@ func Commit(ctx *cli.Context) error {
 	for _, task := range tasks {
 		err := RestageTasks(task)
 		if err != nil {
-			log.WithError(err).Error("could not restage task after tagging")
+			Warnf("could not restage after tagging: %v", err)
 		}
 	}
 
-	log.WithField("No. of tasks", len(tasks)).Info("Staged new tasks")
+	Highlightf("No. of tasks added: %d", len(tasks))
 	return nil
 }
 
@@ -183,7 +173,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 		if open {
 			err := MarkSourceLines(task)
 			if err != nil {
-				log.Errorf("error tagging source: %v", err)
+				Warnf("Error tagging source: %v", err)
 				continue
 			}
 		} else {
@@ -198,7 +188,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 func MarkSourceLines(task Task) error {
 	fileCont, err := ioutil.ReadFile(task.FileName)
 	if err != nil {
-		log.WithError(err).Error("Could not mark source code as extracted")
+		Dangerf("Could not mark source code as extracted: %v", err)
 		return err
 	}
 	lines := strings.Split(string(fileCont), "\n")
@@ -209,18 +199,10 @@ func MarkSourceLines(task Task) error {
 	lines[taskIndex] += " <" + task.id + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
-		log.WithError(err).Error("Could not mark source code as extracted")
+		Dangerf("could not mark source code as extracted: %v", err)
 		return err
 	}
 	return nil
-}
-
-func GetIDFunc() func() string {
-	i := 0
-	return func() string {
-		i++
-		return fmt.Sprintf("%s:%s%d", config.Author, time.Now().Format("020106150405"), i)
-	}
 }
 
 // CheckTask takes the given source line and checks for a match against the TODO regex.
@@ -244,7 +226,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 
 		id, err := RunGetIDPlugin(t)
 		if err != nil {
-			log.WithError(err).Fatal("couldn't get ID for task in plugin")
+			Dangerf("couldn't get ID for task in plugin", err)
 		}
 		t.id = id
 		return t, true

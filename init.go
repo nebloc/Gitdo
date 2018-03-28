@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"io"
 )
@@ -65,7 +64,7 @@ func SetConfig() {
 	}
 	err := WriteConfig()
 	if err != nil {
-		log.WithError(err).Warn("Couldn't save config")
+		Dangerf("Couldn't save config: %v", err)
 	}
 }
 
@@ -87,7 +86,7 @@ func AskAuthor() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Using %s\n", email)
+	Highlightf("Using %s", email)
 	return email, nil
 }
 
@@ -110,28 +109,43 @@ func AskPlugin() (string, error) {
 			fmt.Printf("%d: %s\n", i, plugin)
 		}
 	}
+	if len(plugins) < 1 {
+		Warn("No plugins found")
+		return "", fmt.Errorf("no plugins")
+	}
+	chosen := false
+	pN := 1
+	for !chosen {
+		fmt.Printf("What plugin would you like to use (1-%d): ", len(plugins))
+		var choice string
+		_, err = fmt.Scan(&choice)
+		if err != nil {
+			return "", err
+		}
+		pN, err := strconv.Atoi(strings.TrimSpace(choice))
+		if err != nil || pN > len(plugins) || pN < 1 {
+			continue
+		}
+		chosen = true
+	}
 
-	fmt.Printf("What plugin would you like to use (1-%d): ", len(plugins))
-	var choice string
-	_, err = fmt.Scan(&choice)
-	if err != nil {
-		return "", err
-	}
-	pN, err := strconv.Atoi(strings.TrimSpace(choice))
-	if err != nil || pN > len(plugins) {
-		return "", err
-	}
-	return plugins[pN-1], nil
+	plugin := plugins[pN-1]
+
+	Highlightf("Using %s", plugin)
+	return plugin, nil
 }
 
 // AskInterpreter asks the user what command they want to use to run the plugin
 func AskInterpreter() (string, error) {
 	var interp string
-	fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
-	_, err := fmt.Scan(&interp)
-	if err != nil {
-		return "", err
+	for interp == "" {
+		fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
+		_, err := fmt.Scan(&interp)
+		if err != nil {
+			return "", err
+		}
 	}
+	Highlightf("Using %s", interp)
 	return interp, nil
 }
 
@@ -145,7 +159,7 @@ func CreateGitdoDir() error {
 	fmt.Printf("Creating gitdo from files in %s\n", srcTmpl)
 
 	if _, err := os.Stat(".git"); err != nil {
-		fmt.Println("Warning: Git not initialised.")
+		Warn("Warning: Git not initialised.")
 	}
 
 	// Paths

@@ -7,13 +7,12 @@ import (
 	"os"
 	"os/exec"
 
-	log "github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli"
 )
 
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
 // been committed
-func PostCommit(ctx *cli.Context) error {
+func PostCommit(_ *cli.Context) error {
 	hash, err := getHash()
 	if err != nil {
 		return err
@@ -25,7 +24,7 @@ func PostCommit(ctx *cli.Context) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		log.Warn("No tasks file")
+		Warn("No tasks file")
 		return nil
 	}
 	for id, task := range tasks.Staged {
@@ -38,12 +37,12 @@ func PostCommit(ctx *cli.Context) error {
 
 	bUpdated, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
-		log.Error("couldn't marshal tasks with added hash")
+		Danger("couldn't marshal tasks with added hash")
 		return err
 	}
 	err = ioutil.WriteFile(StagedTasksFile, bUpdated, os.ModePerm)
 	if err != nil {
-		log.Error("couldn't write tasks with hash back to tasks.json")
+		Danger("couldn't write tasks with hash back to tasks.json")
 		return err
 	}
 	return nil
@@ -60,7 +59,6 @@ func getHash() (string, error) {
 	hash := stripNewlineChar(resp)
 	return hash, nil
 }
-
 
 // getBranch gets the latest branch post-commit
 func getBranch() (string, error) {
