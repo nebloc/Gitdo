@@ -37,6 +37,11 @@ func Init(ctx *cli.Context) error {
 		return err
 	}
 
+	if _, err := RunPlugin(SETUP, ""); err != nil{
+		return err
+	}
+
+
 	fmt.Println("Done")
 	return nil
 }

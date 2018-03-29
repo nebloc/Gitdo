@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+import helper
+import json
+
+print("Setup of Trello Gitdo Plugin")
+conf = {}
+
+print("Key and token can be found at https://trello.com/app-key whilst logged in")
+print("List ID's can be found by opening a card on the list, 'share and more' > export JSON.")
+
+for k, v in helper.conf.items():
+    conf[k] = input("What is the "+k+": ")
+
+with open("config.json", 'w') as file:
+    out = json.dumps(conf)
+    print(out)
+    file.write(out)
+    
