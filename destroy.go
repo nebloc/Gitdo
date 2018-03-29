@@ -13,7 +13,7 @@ func Destroy(ctx *cli.Context) error {
 	if !ctx.Bool("yes") {
 		return nil
 	}
-	return os.Remove(StagedTasksFile)
+	return os.Remove(stagedTasksFile)
 }
 
 // ConfirmUser asks if the user really wants to delete the file, if yes it sets the yes flag

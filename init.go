@@ -21,51 +21,67 @@ func Init(ctx *cli.Context) error {
 		}
 	}
 
-	err := CreateGitdoDir()
-	if err != nil {
-		panic(err)
+	if err := os.Mkdir(gitdoDir, os.ModePerm); err != nil {
+		return err
 	}
 
-	SetConfig()
+	if err := CreateHooks(); err != nil {
+		return err
+	}
 
-	fmt.Println("Done - please check plugins are configured correctly")
+	if err := SetConfig(); err != nil {
+		return err
+	}
+
+	if err := CreatePlugins(); err != nil {
+		return err
+	}
+
+	fmt.Println("Done")
 	return nil
 }
 
+func CreatePlugins() error {
+	err := os.MkdirAll(filepath.Join(pluginDirPath, config.Plugin), os.ModePerm)
+	return err
+}
+
 // SetConfig checks the config is not set and asks the user relevant questions to set it
-func SetConfig() {
+func SetConfig() error {
 	if config.IsSet() {
-		return
+		return nil
 	}
 
 	if !config.authorIsSet() {
 		author, err := AskAuthor()
 		if err != nil {
-			//TODO: Handle this
-			return
+			return err
 		}
 		config.Author = author
 	}
+
 	if !config.pluginIsSet() {
 		plugin, err := AskPlugin()
 		if err != nil {
-			//TODO: Handle this
-			return
+			return err
 		}
 		config.Plugin = plugin
 	}
+
 	if !config.interpreterIsSet() {
 		interp, err := AskInterpreter()
 		if err != nil {
-			//TODO: Handle this
-			return
+			return err
 		}
 		config.PluginInterpreter = interp
 	}
+
 	err := WriteConfig()
 	if err != nil {
 		Dangerf("Couldn't save config: %v", err)
+		return err
 	}
+	return nil
 }
 
 // InitGit initialises a git repo before initialising gitdo
@@ -142,41 +158,19 @@ func AskInterpreter() (string, error) {
 	return interp, nil
 }
 
-func CreateGitdoDir() error {
-	// Make sure gitdo home dir is available
-	srcTmpl, err := GetTemplateDir()
+func CreateHooks() error {
+	homeDir, err := GetHomeDir()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Creating gitdo from files in %s\n", srcTmpl)
-
-	if _, err := os.Stat(".git"); err != nil {
-		Warn("Warning: Git not initialised.")
-	}
-
 	// Paths
-	dstGitdo := filepath.Join(".git", "gitdo") // base destination
-
-	srcPlugin := filepath.Join(srcTmpl, "plugins")   // plugins src path
-	dstPlugins := filepath.Join(dstGitdo, "plugins") // where plugins will be kept
-
-	srcHooks := filepath.Join(srcTmpl, "hooks")
+	srcHooks := filepath.Join(homeDir, "hooks")
 	dstHooks := filepath.Join(".git", "hooks")
-
-	err = os.MkdirAll(dstPlugins, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
-	}
 
 	err = os.MkdirAll(dstHooks, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
-	}
-
-	err = copyFolder(srcPlugin, dstPlugins)
-	if err != nil {
-		return err
 	}
 
 	err = copyFolder(srcHooks, dstHooks)
@@ -196,20 +190,14 @@ func copyFolder(src, dst string) error {
 		return fmt.Errorf("could not get %s files: %v", src, err)
 	}
 	for _, file := range files {
-		if file.IsDir() {
-			if err := os.Mkdir(filepath.Join(dst, file.Name()), os.ModePerm); err != nil {
-				Warnf("could not create folder: %v", err)
-			}
-			copyFolder(filepath.Join(src, file.Name()), filepath.Join(dst, file.Name()))
-		} else {
-			sf := filepath.Join(src, file.Name())
-			df := filepath.Join(dst, file.Name())
-			err = copyFile(sf, df)
-			if err != nil {
-				fmt.Printf("could not copy %v - skipping: %v\n", file.Name(), err)
-			}
+		sf := filepath.Join(src, file.Name())
+		df := filepath.Join(dst, file.Name())
+		err = copyFile(sf, df)
+		if err != nil {
+			fmt.Printf("could not copy %v - skipping: %v\n", file.Name(), err)
 		}
 	}
+
 	return nil
 }
 

@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"fmt"
+)
 
 var task = Task{
 	id:       "",
@@ -12,14 +15,32 @@ var task = Task{
 	Branch:   "master",
 }
 
+func TestRunPlugin(t *testing.T) {
+	extGitDir, err := GetHomeDir()
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(extGitDir)
+	config = &Config{
+		Author:            "benjamin.coleman@me.com",
+		Plugin:            "test",
+		PluginInterpreter: "python3",
+	}
+	resp, err := RunPlugin(GETID, task)
+	if err != nil {
+		t.Errorf("%s: %v", resp, err)
+	}
+	t.Log(resp)
+}
+
 func TestRunGetIDPlugin(t *testing.T) {
-	pluginDir = "./plugins/"
+	internPluginDir = "./plugins/"
 	config = &Config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "trello",
 		PluginInterpreter: "python3",
 	}
-	trelloID, err := RunPlugin(GETID,task)
+	trelloID, err := RunPlugin(GETID, task)
 	if err != nil {
 		t.Errorf("Didn't get ID from trello correctly: %v", err)
 	}
@@ -27,7 +48,7 @@ func TestRunGetIDPlugin(t *testing.T) {
 }
 
 func TestRunCreatePlugin(t *testing.T) {
-	pluginDir = "./plugins/"
+	internPluginDir = "./plugins/"
 	config = &Config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "trello",

@@ -59,14 +59,16 @@ func (c *Config) interpreterIsSet() bool {
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
 func LoadConfig(_ *cli.Context) error {
-	bConfig, err := ioutil.ReadFile(ConfigFilePath)
+	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal(bConfig, config)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -86,6 +88,6 @@ func WriteConfig() error {
 	if err != nil {
 		return err
 	}
-	ioutil.WriteFile(ConfigFilePath, bConf, os.ModePerm)
-	return nil
+	err = ioutil.WriteFile(configFilePath, bConf, os.ModePerm)
+	return err
 }

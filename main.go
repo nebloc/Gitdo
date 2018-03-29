@@ -27,11 +27,13 @@ var (
 	version string
 
 	// Gitdo working directory (holds plugins, secrets, tasks, etc.)
-	GitdoDir = filepath.Join(".git", "gitdo")
+	gitdoDir = filepath.Join(".git", "gitdo")
+
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
-	StagedTasksFile = filepath.Join(GitdoDir, "tasks.json")
-	ConfigFilePath  = filepath.Join(GitdoDir, "config.json")
+	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
+	configFilePath  = filepath.Join(gitdoDir, "config.json")
+	pluginDirPath   = filepath.Join(gitdoDir, "plugins")
 )
 
 func main() {
@@ -117,20 +119,6 @@ func AppBuilder() *cli.App {
 func NotifyFinished(ctx *cli.Context) error {
 	log.Printf("Gitdo finished %s", ctx.Command.Name)
 	return nil
-}
-
-// CheckInGit returns true if gitdo is being ran from the root of the git repo
-func CheckInGit() (bool, error) {
-	_, err := os.Stat(".git/")
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-// HandleLog sets up the logging level dependent on the -v (verbose) flag
-func HandleLog() {
-	log.SetOutput(os.Stdout)
 }
 
 // List pretty prints the tasks that are in file

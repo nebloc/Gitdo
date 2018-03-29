@@ -10,7 +10,7 @@ import (
 
 var (
 	// Plugin directory
-	pluginDir = filepath.Join(GitdoDir, "plugins")
+	internPluginDir = filepath.Join(gitdoDir, "plugins")
 
 	//Plugin commands
 	GETID  plugcommand = "getid"
@@ -22,9 +22,18 @@ var (
 type plugcommand string
 
 func RunPlugin(command plugcommand, elem interface{}) (string, error) {
-	cmd := exec.Command(config.PluginInterpreter)     // i.e. 'python'
-	cmd.Dir = filepath.Join(pluginDir, config.Plugin) // move to plugin working dir
-	cmd.Args = append(cmd.Args, string(command))      // command to run
+	homeDir, err := GetHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command(config.PluginInterpreter)           // i.e. 'python'
+	cmd.Dir = filepath.Join(internPluginDir, config.Plugin) // move to plugin working dir
+
+	// TODO: Remove DEBUG
+	plugin := filepath.Join(homeDir, "plugins", config.Plugin, string(command))
+
+	cmd.Args = append(cmd.Args, plugin) // command to run
 	switch {
 	case command == GETID:
 		if task, ok := elem.(Task); ok {
@@ -71,7 +80,12 @@ func MarshalTask(task Task) ([]byte, error) {
 }
 
 func GetPlugins() ([]string, error) {
-	dirs, err := ioutil.ReadDir(pluginDir)
+	homeDir, err := GetHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	dirs, err := ioutil.ReadDir(filepath.Join(homeDir, "plugins"))
 	if err != nil {
 		return nil, err
 	}

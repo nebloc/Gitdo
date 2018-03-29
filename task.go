@@ -67,7 +67,7 @@ func (ts *Tasks) String() string {
 func getTasksFile() (*Tasks, error) {
 	existingTasks := NewTaskMap()
 
-	bExisting, err := ioutil.ReadFile(StagedTasksFile)
+	bExisting, err := ioutil.ReadFile(stagedTasksFile)
 	if err != nil {
 		return existingTasks, err
 	}
@@ -103,7 +103,7 @@ func writeTasksFile(tasks *Tasks) error {
 		Danger("couldn't marshal tasks")
 		return err
 	}
-	err = ioutil.WriteFile(StagedTasksFile, btask, os.ModePerm)
+	err = ioutil.WriteFile(stagedTasksFile, btask, os.ModePerm)
 	if err != nil {
 		Danger("couldn't write new staged tasks")
 		return err

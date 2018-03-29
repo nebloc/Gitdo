@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func GetTemplateDir() (string, error) {
+func GetHomeDir() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return "", errors.New("Could not determine user and therefore gitdo install directory")

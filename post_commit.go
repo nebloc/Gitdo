@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/exec"
 
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
@@ -40,7 +40,7 @@ func PostCommit(_ *cli.Context) error {
 		Danger("couldn't marshal tasks with added hash")
 		return err
 	}
-	err = ioutil.WriteFile(StagedTasksFile, bUpdated, os.ModePerm)
+	err = ioutil.WriteFile(stagedTasksFile, bUpdated, os.ModePerm)
 	if err != nil {
 		Danger("couldn't write tasks with hash back to tasks.json")
 		return err
