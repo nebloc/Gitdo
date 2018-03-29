@@ -1,6 +1,7 @@
 
 # Created by https://www.gitignore.io/api/go,vim,macos
 **/secrets.json
+**/config.json
 
 ### Go ###
 # Binaries for programs and plugins

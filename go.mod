@@ -1,4 +1,4 @@
-module "github.com/nebbers1111/gitdo"
+module "github.com/nebloc/gitdo"
 
 require (
 	"github.com/fatih/color" v1.6.0

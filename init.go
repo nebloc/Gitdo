@@ -92,27 +92,18 @@ func AskAuthor() (string, error) {
 
 // AskPlugin reads in plugins from the directory and gives the user a list of plugins, that have a "<name>_getid"
 func AskPlugin() (string, error) {
-	files, err := ioutil.ReadDir(pluginDir)
-	if err != nil {
-		return "", err
-	}
-
 	fmt.Println("Available plugins:")
 
-	var plugins []string
-	suf := "_getid"
-	i := 0
-	for _, f := range files {
-		if strings.HasSuffix(f.Name(), suf) {
-			i++
-			plugin := strings.TrimSuffix(f.Name(), suf)
-			plugins = append(plugins, plugin)
-			fmt.Printf("%d: %s\n", i, plugin)
-		}
+	plugins, err := GetPlugins()
+	if err != nil {
+		return "", err
 	}
 	if len(plugins) < 1 {
 		Warn("No plugins found")
 		return "", fmt.Errorf("no plugins")
+	}
+	for i, name := range plugins {
+		fmt.Printf("%d: %s\n", i, name)
 	}
 
 	chosen := false
@@ -167,11 +158,8 @@ func CreateGitdoDir() error {
 	// Paths
 	dstGitdo := filepath.Join(".git", "gitdo") // base destination
 
-	srcPlugin := filepath.Join(srcTmpl, "plugins")      // plugins src path
-	srcSecret := filepath.Join(srcTmpl, "secrets.json") // secrets src path
-
-	dstSecret := filepath.Join(dstGitdo, "secrets.json") // where secrets.json will be placed
-	dstPlugins := filepath.Join(dstGitdo, "plugins")     // where plugins will be kept
+	srcPlugin := filepath.Join(srcTmpl, "plugins")   // plugins src path
+	dstPlugins := filepath.Join(dstGitdo, "plugins") // where plugins will be kept
 
 	srcHooks := filepath.Join(srcTmpl, "hooks")
 	dstHooks := filepath.Join(".git", "hooks")
@@ -184,11 +172,6 @@ func CreateGitdoDir() error {
 	err = os.MkdirAll(dstHooks, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
-	}
-
-	err = copyFile(srcSecret, dstSecret)
-	if err != nil {
-		return err
 	}
 
 	err = copyFolder(srcPlugin, dstPlugins)
@@ -213,11 +196,18 @@ func copyFolder(src, dst string) error {
 		return fmt.Errorf("could not get %s files: %v", src, err)
 	}
 	for _, file := range files {
-		sf := filepath.Join(src, file.Name())
-		df := filepath.Join(dst, file.Name())
-		err = copyFile(sf, df)
-		if err != nil {
-			fmt.Printf("could not copy %v - skipping\n", file.Name())
+		if file.IsDir() {
+			if err := os.Mkdir(filepath.Join(dst, file.Name()), os.ModePerm); err != nil {
+				Warnf("could not create folder: %v", err)
+			}
+			copyFolder(filepath.Join(src, file.Name()), filepath.Join(dst, file.Name()))
+		} else {
+			sf := filepath.Join(src, file.Name())
+			df := filepath.Join(dst, file.Name())
+			err = copyFile(sf, df)
+			if err != nil {
+				fmt.Printf("could not copy %v - skipping: %v\n", file.Name(), err)
+			}
 		}
 	}
 	return nil

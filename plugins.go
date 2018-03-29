@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 )
@@ -56,7 +57,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	}
 	resp, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return stripNewlineChar(resp), err
 	}
 	return stripNewlineChar(resp), nil
 }
@@ -67,4 +68,19 @@ func MarshalTask(task Task) ([]byte, error) {
 		return nil, err
 	}
 	return bT, nil
+}
+
+func GetPlugins() ([]string, error) {
+	dirs, err := ioutil.ReadDir(pluginDir)
+	if err != nil {
+		return nil, err
+	}
+	var plugins []string
+
+	for _, dir := range dirs {
+		if dir.IsDir() {
+			plugins = append(plugins, dir.Name())
+		}
+	}
+	return plugins, nil
 }

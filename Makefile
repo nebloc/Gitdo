@@ -15,8 +15,8 @@ install:
 	vgo install -ldflags "-X main.version=0.0.1-$(HASH)"
 
 test:
-	vgo test github.com/nebbers1111/gitdo
-	vgo test github.com/nebbers1111/gitdo/diffparse
+	vgo test github.com/nebloc/gitdo
+	vgo test github.com/nebloc/gitdo/diffparse
 
 release:
 	mkdir release/

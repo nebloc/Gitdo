@@ -11,19 +11,22 @@ if len(sys.argv) is not 3:
     exit(1)
 
 base_url = "https://api.trello.com/1/"
-appkey = ""
+key = ""
 token = ""
+remote_link = ""
 
 # Load creds
-with open('.git/gitdo/secrets.json') as json_data:
+with open('config.json') as json_data:
     d = json.load(json_data)
-    appkey = d["trello_key"]
-    token = d["trello_token"]
+    key = d["key"]
+    token = d["token"]
+    remote_link = d["remote_link"]
+
 
 task_arg = sys.argv[2]  # Get json task
 task = json.loads(task_arg)  # Get dict to read attributes
 
-link = "https://github.com/nebbers1111/Example/blob/{}/{}#L{}".format(task["hash"], task["file_name"], task["file_line"])
+link = remote_link.format(task["hash"], task["file_name"], task["file_line"])
 
 desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
     task["file_name"], task["file_line"], task["hash"], task["branch"], link, task["author"])
@@ -31,7 +34,7 @@ desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
 card = {
     "closed": "false",
     "desc": desc,
-    "key": appkey,
+    "key": key,
     "token": token,
 }
 
