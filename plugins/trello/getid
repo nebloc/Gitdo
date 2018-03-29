@@ -6,23 +6,14 @@ from urllib.parse import urlencode # encode card data
 from urllib.request import Request, urlopen, URLError, HTTPError # for making API calls
 import json # encode task and response
 import sys # for getting args - takes task as a json
+import helper
 
 # exit if not given only Task json
 if len(sys.argv) is not 2:
     print("not enough arguements")
     exit(1)
 
-base_url = "https://api.trello.com/1/" # Trello api
-appkey = "" # creds
-token = "" # creds
-list_id = "" # List that this should be added to when pushed
-
-# Get config
-with open('config.json') as json_data:
-    d = json.load(json_data)
-    appkey = d["trello_key"]
-    token = d["trello_token"]
-    list_id = d["backlog_id"]
+conf = helper.get_config()
 
 task_arg = sys.argv[1] # Get json task
 task = json.loads(task_arg) # Get dict to read attributes
@@ -30,11 +21,11 @@ task = json.loads(task_arg) # Get dict to read attributes
 card = {
     "name": task["task_name"],
     "closed": "true", # Archive task to not get in way until code is pushed
-    "idList": list_id,
+    "idList": conf["backlog_id"],
 }
 
 
-url = "{}cards?key={}&token={}".format(base_url, appkey, token)
+url = "{}cards?key={}&token={}".format(helper.base_url, conf["key"], conf["token"])
 
 try:
     request = Request(url, urlencode(card).encode())

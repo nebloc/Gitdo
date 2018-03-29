@@ -16,8 +16,6 @@ var (
 	ErrNoDiff    = errors.New("diff is empty")
 )
 
-// TODO: Change diff method to be io.reader and pass file reader or exec reader instead
-
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
 func GetDiffFromCmd() (string, error) {
@@ -67,7 +65,12 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 		if _, exists := tasks.Staged[id]; exists {
 			tasks.RemoveTask(id)
 		} else {
-			RunPlugin(DONE, id)
+			Highlightf("Marking %s as done", id)
+			resp, err := RunPlugin(DONE, id)
+			if err != nil {
+				Dangerf("Could not mark task %s as done: %v, %v", id, err, resp)
+				return err
+			}
 		}
 	}
 

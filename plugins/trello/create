@@ -1,8 +1,8 @@
 #!/usr/local/bin/python3
-
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen, URLError, HTTPError
 import json
+import helper
 import sys  # arg[1]: id, arg[2]: task
 
 # Exit if not given ID and task JSON
@@ -10,23 +10,13 @@ if len(sys.argv) is not 3:
     print("wrong number of arguements")
     exit(1)
 
-base_url = "https://api.trello.com/1/"
-key = ""
-token = ""
-remote_link = ""
-
-# Load creds
-with open('config.json') as json_data:
-    d = json.load(json_data)
-    key = d["key"]
-    token = d["token"]
-    remote_link = d["remote_link"]
+conf = helper.get_config()
 
 
 task_arg = sys.argv[2]  # Get json task
 task = json.loads(task_arg)  # Get dict to read attributes
 
-link = remote_link.format(task["hash"], task["file_name"], task["file_line"])
+link = conf["remote_link"].format(task["hash"], task["file_name"], task["file_line"])
 
 desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
     task["file_name"], task["file_line"], task["hash"], task["branch"], link, task["author"])
@@ -34,11 +24,11 @@ desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
 card = {
     "closed": "false",
     "desc": desc,
-    "key": key,
-    "token": token,
+    "key": conf["key"],
+    "token": conf["token"],
 }
 
-url = "{}cards/{}".format(base_url, sys.argv[1])
+url = "{}cards/{}".format(helper.base_url, sys.argv[1])
 
 try:
     request = Request(method="PUT", data=urlencode(card).encode(), url=url)

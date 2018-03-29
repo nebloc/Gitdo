@@ -103,7 +103,7 @@ func AskPlugin() (string, error) {
 		return "", fmt.Errorf("no plugins")
 	}
 	for i, name := range plugins {
-		fmt.Printf("%d: %s\n", i, name)
+		fmt.Printf("%d: %s\n", i+1, name)
 	}
 
 	chosen := false
