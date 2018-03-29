@@ -18,11 +18,14 @@ test:
 	vgo test github.com/nebloc/gitdo
 	vgo test github.com/nebloc/gitdo/diffparse
 
-release:
+release_dir:
+	rm -rf release/
 	mkdir release/
-	vgo build -o release/gitdo .
+	env GOOS=windows GOARCH=386 vgo build -o ./release/gitdo_win_386.exe .
+	env GOOS=windows GOARCH=amd64 vgo build -o ./release/gitdo_win_amd64.exe .
+	env GOOS=darwin GOARCH=amd64 vgo build -o ./release/gitdo_mac_amd64 .
+	env GOOS=darwin GOARCH=386 vgo build -o ./release/gitdo_mac_386 .
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
 	cp install.sh ./release/
 	cp install.bat ./release/
-	echo "{"trello_key":"","trello_token":""}" > ./release/secrets.json
