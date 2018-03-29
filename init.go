@@ -21,7 +21,7 @@ func Init(ctx *cli.Context) error {
 		}
 	}
 
-	if err := os.Mkdir(gitdoDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
 		return err
 	}
 

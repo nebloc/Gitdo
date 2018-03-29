@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"os"
+	"bytes"
 )
 
 var (
@@ -30,12 +32,18 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	cmd := exec.Command(config.PluginInterpreter)           // i.e. 'python'
 	cmd.Dir = filepath.Join(internPluginDir, config.Plugin) // move to plugin working dir
 
-	// TODO: Remove DEBUG
+	out := bytes.Buffer{}
+
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+
+	var resp []byte
+
 	plugin := filepath.Join(homeDir, "plugins", config.Plugin, string(command))
 
 	cmd.Args = append(cmd.Args, plugin) // command to run
-	switch {
-	case command == GETID:
+	switch command {
+	case GETID:
 		if task, ok := elem.(Task); ok {
 			bT, err := MarshalTask(task)
 			if err != nil {
@@ -45,7 +53,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		} else {
 			return "", fmt.Errorf("Passed interface not a task")
 		}
-	case command == CREATE:
+	case CREATE:
 		if task, ok := elem.(Task); ok {
 			bT, err := MarshalTask(task)
 			if err != nil {
@@ -56,15 +64,20 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		} else {
 			return "", fmt.Errorf("Passed interface not a task")
 		}
-	case command == DONE:
+	case DONE:
 		if id, ok := elem.(string); ok {
 			cmd.Args = append(cmd.Args, id)
 		} else {
 			return "", fmt.Errorf("Passed interface not a string")
 		}
-
+	case SETUP:
+		// Allow cmd to have console
+		cmd.Stdin = os.Stderr
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 	}
-	resp, err := cmd.CombinedOutput()
+	err = cmd.Run()
+	resp = out.Bytes()
 	if err != nil {
 		return stripNewlineChar(resp), err
 	}
