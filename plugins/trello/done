@@ -10,19 +10,20 @@ if len(sys.argv) is not 2:
     exit(1)
 
 base_url = "https://api.trello.com/1/"  # Trello API
-done_list = "5aa005863d2092a5ec731135"  # List to move the card to
-appkey = ""  # creds
+done_list = ""  # List to move the card to
+key = ""  # creds
 token = ""  # creds
 
 # Read in creds
 with open('.git/gitdo/secrets.json') as json_data:
     d = json.load(json_data)
-    appkey = d["trello_key"]
+    key = d["trello_key"]
     token = d["trello_token"]
+    done_list = d["done_id"]
 
 # Move the card to the new list
 url = "{}cards/{}?idList={}&key={}&token={}".format(
-    base_url, sys.argv[1], done_list, appkey, token)
+    base_url, sys.argv[1], done_list, key, token)
 
 # Alternatively you could replace idList={} with closed=true to archive cards when done
 

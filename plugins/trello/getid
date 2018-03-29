@@ -15,7 +15,14 @@ if len(sys.argv) is not 2:
 base_url = "https://api.trello.com/1/" # Trello api
 appkey = "" # creds
 token = "" # creds
-list_id = "5aa0057dae6f639766e9bff4" # List that this should be added to when pushed
+list_id = "" # List that this should be added to when pushed
+
+# Get config
+with open('config.json') as json_data:
+    d = json.load(json_data)
+    appkey = d["trello_key"]
+    token = d["trello_token"]
+    list_id = d["backlog_id"]
 
 task_arg = sys.argv[1] # Get json task
 task = json.loads(task_arg) # Get dict to read attributes
@@ -26,11 +33,6 @@ card = {
     "idList": list_id,
 }
 
-# Get credentials
-with open('config.json') as json_data:
-    d = json.load(json_data)
-    appkey = d["trello_key"]
-    token = d["trello_token"]
 
 url = "{}cards?key={}&token={}".format(base_url, appkey, token)
 
