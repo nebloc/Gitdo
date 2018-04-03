@@ -27,11 +27,11 @@ func PostCommit(_ *cli.Context) error {
 		Warn("No tasks file")
 		return nil
 	}
-	for id, task := range tasks.Staged {
+	for id, task := range tasks.NewTasks {
 		if task.Hash == "" {
 			task.Hash = hash
 			task.Branch = branch
-			tasks.Staged[id] = task
+			tasks.NewTasks[id] = task
 		}
 	}
 

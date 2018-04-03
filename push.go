@@ -14,28 +14,37 @@ func Push(_ *cli.Context) error {
 		return err
 	}
 
-	if len(tasks.Staged) == 0 {
+	if len(tasks.NewTasks) == 0 && len(tasks.DoneTasks) == 0 {
+		Warn("No new tasks or done tasks")
 		return nil
 	}
 
-	changed := false
-
-	for id, task := range tasks.Staged {
+	for id, task := range tasks.NewTasks {
 		_, err := RunPlugin(CREATE, task)
 		if err != nil {
 			Warnf("Failed to add task '%s': %v", task.String(), err)
 			continue
 		}
 		fmt.Printf("Task %s added to %s\n", id, config.Plugin)
-		changed = true
-		tasks.MoveTask(id)
+		tasks.RemoveTask(id)
 	}
-	if changed {
-		err := writeTasksFile(tasks)
+
+	failedIds := []string{}
+	for _, id := range tasks.DoneTasks {
+		_, err := RunPlugin(DONE, id)
 		if err != nil {
-			Danger("could not save updated tasks list")
-			return err
+			Warnf("Failed to mark %s as done", id)
+			failedIds = append(failedIds, id)
+			continue
 		}
+		Highlightf("Task %s marked as done", id)
+	}
+	tasks.DoneTasks = failedIds
+
+	err = writeTasksFile(tasks)
+	if err != nil {
+		Danger("could not save updated tasks list")
+		return err
 	}
 
 	return nil

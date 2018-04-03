@@ -62,15 +62,11 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 		Warnf("Could not read existing tasks: %v", err)
 	}
 	for id, _ := range deleted {
-		if _, exists := tasks.Staged[id]; exists {
+		if _, exists := tasks.NewTasks[id]; exists {
 			tasks.RemoveTask(id)
 		} else {
-			Highlightf("Marking %s as done", id)
-			resp, err := RunPlugin(DONE, id)
-			if err != nil {
-				Dangerf("Could not mark task %s as done: %v, %v", id, err, resp)
-				return err
-			}
+			// Add tasks to be marked as done next push
+			tasks.DoneTasks = append(tasks.DoneTasks, id)
 		}
 	}
 
