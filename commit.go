@@ -52,7 +52,7 @@ func GetDiffFromCmd() (string, error) {
 
 // CommitTasks gets existing tasks, removes them from the task file if deleted, adds new tasks, and runs the done plugin
 // where applicable
-func CommitTasks(newTasks []Task, deleted []string) error {
+func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 	if len(newTasks) == 0 && len(deleted) == 0 {
 		return nil
 	}
@@ -61,7 +61,7 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 	if err != nil {
 		Warnf("Could not read existing tasks: %v", err)
 	}
-	for _, id := range deleted {
+	for id, _ := range deleted {
 		if _, exists := tasks.Staged[id]; exists {
 			tasks.RemoveTask(id)
 		} else {
@@ -83,6 +83,9 @@ func CommitTasks(newTasks []Task, deleted []string) error {
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(_ *cli.Context) error {
 	rawDiff, err := GetDiffFromCmd()
+	if err == ErrNoDiff {
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -99,23 +102,25 @@ func Commit(_ *cli.Context) error {
 
 	go SourceChanger(taskChan, done)
 
-	tasks, deleted := ProcessDiff(lines, taskChan)
-	for _, task := range tasks {
+	changes := ProcessDiff(lines, taskChan)
+	for _, task := range changes.New {
 		Highlightf("new task: %v", task.String())
 	}
-	err = CommitTasks(tasks, deleted)
+	err = CommitTasks(changes.New, changes.Deleted)
 	if err != nil {
 		return err
 	}
 	<-done
-	for _, task := range tasks {
+	for _, task := range changes.New {
 		err := RestageTasks(task)
 		if err != nil {
 			Warnf("could not restage after tagging: %v", err)
 		}
 	}
 
-	Highlightf("No. of tasks added: %d", len(tasks))
+	Highlightf("No. of tasks added: %d", len(changes.New))
+	Highlightf("No. of tasks moved: %d", len(changes.Moved))
+	Highlightf("No. of tasks deleted: %d", len(changes.Deleted))
 	return nil
 }
 
@@ -138,25 +143,33 @@ var (
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
 // TODO: Handle multi line todo messages
-func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) ([]Task, []string) {
-	var stagedTasks []Task
-	var deleted []string
+func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) Changes {
+	changes := Changes{
+		New:     make(map[string]Task),
+		Moved:   make([]string, 0),
+		Deleted: make(map[string]bool, 0),
+	}
 	for _, line := range lines {
-		if line.Mode == diffparse.REMOVED {
-			id, found := CheckTagged(line)
-			if !found {
-				continue
+		id, tagged := CheckTagged(line)
+		switch {
+		case line.Mode == diffparse.REMOVED && tagged:
+			changes.Deleted[id] = true
+		case line.Mode == diffparse.ADDED && tagged:
+			changes.Moved = append(changes.Moved, id)
+		case line.Mode == diffparse.ADDED && !tagged:
+			task, found := CheckTask(line)
+			if found {
+				changes.New[task.id] = task
+				taskChan <- task
 			}
-			deleted = append(deleted, id)
-		}
-		task, found := CheckTask(line)
-		if found {
-			stagedTasks = append(stagedTasks, task)
-			taskChan <- task
 		}
 	}
 	close(taskChan)
-	return stagedTasks, deleted
+	// Remove tasks from the deleted list that were just moved
+	for _, id := range changes.Moved {
+		delete(changes.Deleted, id)
+	}
+	return changes
 }
 
 func CheckTagged(line diffparse.SourceLine) (string, bool) {
@@ -211,10 +224,6 @@ func MarkSourceLines(task Task) error {
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	tagged := taggedReg.MatchString(line.Content)
-	if tagged {
-		return Task{}, false
-	}
 	match := todoReg.FindStringSubmatch(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{
@@ -236,4 +245,10 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 		return t, true
 	}
 	return Task{}, false
+}
+
+type Changes struct {
+	New     map[string]Task
+	Deleted map[string]bool
+	Moved   []string
 }

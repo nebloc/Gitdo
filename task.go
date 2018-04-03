@@ -117,9 +117,9 @@ func (ts *Tasks) RemoveTask(id string) {
 }
 
 // StageNewTasks takes a list of tasks and adds them to the tasks staged map
-func (ts *Tasks) StageNewTasks(newTasks []Task) {
-	for _, task := range newTasks {
-		ts.Staged[task.id] = task
+func (ts *Tasks) StageNewTasks(newTasks map[string]Task) {
+	for id, task := range newTasks {
+		ts.Staged[id] = task
 	}
 }
 
