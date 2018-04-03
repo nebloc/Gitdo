@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"log"
+	"os"
+	"runtime"
+	"strings"
 
 	"github.com/urfave/cli"
 	"path/filepath"
@@ -51,7 +52,7 @@ func AppBuilder() *cli.App {
 	gitdo.Usage = "track source code TODO comments"
 	gitdo.Version = "0.0.0-a1"
 	if version != "" {
-		gitdo.Version = version
+		gitdo.Version = fmt.Sprintf("App: %s, %s_%s", version, runtime.GOOS, runtime.GOARCH)
 	}
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
