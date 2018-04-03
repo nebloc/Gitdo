@@ -50,9 +50,9 @@ func AppBuilder() *cli.App {
 	gitdo := cli.NewApp()
 	gitdo.Name = "gitdo"
 	gitdo.Usage = "track source code TODO comments"
-	gitdo.Version = "0.0.0-a1"
+	gitdo.Version = "0.0.0-a2"
 	if version != "" {
-		gitdo.Version = fmt.Sprintf("App: %s, %s_%s", version, runtime.GOOS, runtime.GOARCH)
+		gitdo.Version = fmt.Sprintf("App: %s, Build: %s_%s", version, runtime.GOOS, runtime.GOARCH)
 	}
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
