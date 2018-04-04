@@ -25,7 +25,7 @@ type Config struct {
 
 // String returns a human readable format of the Config struct
 func (c *Config) String() string {
-	return fmt.Sprintf("Author: %s\nPlugin: %s", c.Author, c.Plugin)
+	return fmt.Sprintf("Author: %s\nPlugin: %s\nInterpreter: %s", c.Author, c.Plugin, c.PluginInterpreter)
 }
 
 // Checks that the configuration has all the information needed

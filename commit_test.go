@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/diffparse"
 )
 
 func TestRegexs(t *testing.T) {
@@ -39,8 +40,10 @@ func setupForTest(t *testing.T) (*cli.Context, func()) {
 }
 
 func TestCommit(t *testing.T) {
-	ctx, close := setupForTest(t)
-	defer close()
+	ctx, closeDir := setupForTest(t)
+	defer closeDir()
+
+	t.Log(config.String())
 
 	err := Commit(ctx)
 	if err != ErrNotGitDir {
@@ -70,9 +73,35 @@ func TestCommit(t *testing.T) {
 	}
 }
 
+func TestCheckTagged(t *testing.T) {
+	t.Log(config.String())
+	line := diffparse.SourceLine{"main.go", "main.go", "", 32, diffparse.ADDED}
+	testData := []struct {
+		LineContent string
+		ExpFound    bool
+		ExpID       string
+	}{
+		{"//TODO: Hello <08238>", true, "08238"},
+		{"//TODO: Hello", false, ""}, <B6UbQF7D>
+		{"+// TODO: Test <fhsiufh>", false, ""},
+	}
+
+	for _, data := range testData {
+		line.Content = data.LineContent
+		id, found := CheckTagged(line)
+		if found != data.ExpFound {
+			t.Errorf("Line: %s\nExpected: %v, Got: %v", data.LineContent, data.ExpFound, found)
+		}
+		if id != data.ExpID {
+			t.Errorf("Line: %s\nExpected: %v, Got: %v", data.LineContent, data.ExpID, id)
+		}
+	}
+}
+
 func TestGetDiffFromCmd(t *testing.T) {
-	_, close := setupForTest(t)
-	defer close()
+	_, closeDir := setupForTest(t)
+	defer closeDir()
+	t.Log(config.String())
 
 	_, err := GetDiffFromCmd()
 	if err != ErrNotGitDir {
@@ -191,7 +220,7 @@ index 0000000..a30278c
 +
 +import "fmt"
 +
-+// TODO: Test <mTssn2ZP>
++// TODO: Test <9ypvkCD1>
 +func main(){
 +	fmt.Println("Hello Ben")
 +}
