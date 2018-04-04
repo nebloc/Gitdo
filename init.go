@@ -37,10 +37,9 @@ func Init(ctx *cli.Context) error {
 		return err
 	}
 
-	if _, err := RunPlugin(SETUP, ""); err != nil{
+	if _, err := RunPlugin(SETUP, ""); err != nil {
 		return err
 	}
-
 
 	fmt.Println("Done")
 	return nil
@@ -151,6 +150,7 @@ func AskPlugin() (string, error) {
 
 // AskInterpreter asks the user what command they want to use to run the plugin
 func AskInterpreter() (string, error) {
+	Warn("Currently all plugins made as an example need python 3 set up in path. Redesign of plugin language choice and use coming soon.")
 	var interp string
 	for interp == "" {
 		fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
