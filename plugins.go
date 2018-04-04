@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"os"
 	"bytes"
+	"errors"
 )
 
 var (
@@ -15,13 +15,18 @@ var (
 	internPluginDir = filepath.Join(gitdoDir, "plugins")
 
 	//Plugin commands
-	GETID  plugcommand = "getid"
-	CREATE plugcommand = "create"
-	DONE   plugcommand = "done"
-	SETUP  plugcommand = "setup"
+	GETID  plugcommand = "getid"  // Needs task
+	CREATE plugcommand = "create" // Needs task with ID
+	DONE   plugcommand = "done"   // Needs ID
+	SETUP  plugcommand = "setup"  // Needs nothing
 )
 
 type plugcommand string
+
+var (
+	ErrNotTask   = errors.New("could not cast interface to task")
+	ErrNotString = errors.New("could not cast interface to task")
+)
 
 func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	homeDir, err := GetHomeDir()
@@ -51,7 +56,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 			}
 			cmd.Args = append(cmd.Args, string(bT))
 		} else {
-			return "", fmt.Errorf("Passed interface not a task")
+			return "", ErrNotTask
 		}
 	case CREATE:
 		if task, ok := elem.(Task); ok {
@@ -62,13 +67,13 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 			cmd.Args = append(cmd.Args, task.id)
 			cmd.Args = append(cmd.Args, string(bT))
 		} else {
-			return "", fmt.Errorf("Passed interface not a task")
+			return "", ErrNotTask
 		}
 	case DONE:
 		if id, ok := elem.(string); ok {
 			cmd.Args = append(cmd.Args, id)
 		} else {
-			return "", fmt.Errorf("Passed interface not a string")
+			return "", ErrNotString
 		}
 	case SETUP:
 		// Allow cmd to have console

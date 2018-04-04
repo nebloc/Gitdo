@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 import sys
 
-print("Activating: {}".format(sys.argv[1]))
+print("Creating: {}".format(sys.argv[1]))
 
 # This function is called when a git push is ran
 # It will be passed a task ID and a task in JSON

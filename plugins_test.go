@@ -5,7 +5,7 @@ import (
 )
 
 var task = Task{
-	id:       "",
+	id:       "1234",
 	TaskName: "Test plugins",
 	FileName: "main.go",
 	FileLine: 7,
@@ -14,15 +14,43 @@ var task = Task{
 	Branch:   "master",
 }
 
+type ID string
+
 func TestRunPlugin(t *testing.T) {
+
+	testData := []struct {
+		Command   plugcommand
+		Arg       interface{}
+		ExpResult string
+	}{
+		{
+			GETID,
+			task,
+			"1234",
+		},
+		{
+			CREATE,
+			task,
+			"Creating: 1234",
+		},
+		{
+			DONE,
+			"1234",
+			"Marking 1234 as done",
+		},
+	}
 	config = &Config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "test",
 		PluginInterpreter: "python3",
 	}
-	resp, err := RunPlugin(SETUP, "")
-	if err != nil {
-		t.Errorf("%s: %v", resp, err)
+	for _, data := range testData {
+		resp, err := RunPlugin(data.Command, data.Arg)
+		if err != nil {
+			t.Errorf("Failed %v passed to %s: %v", data.Arg, data.Command, err)
+		}
+		if resp != data.ExpResult {
+			t.Errorf("%s: Expected: %s Got: %s", data.Command, data.ExpResult, resp)
+		}
 	}
-	t.Log(resp)
 }

@@ -120,6 +120,7 @@ func Commit(_ *cli.Context) error {
 	return nil
 }
 
+// RestageTasks runs git add on the file that has had a tag added
 func RestageTasks(task Task) error {
 	cmd := exec.Command("git", "add", task.FileName)
 	if _, err := cmd.Output(); err != nil {

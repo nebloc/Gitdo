@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 
@@ -41,7 +42,7 @@ func main() {
 	gitdo := AppBuilder()
 	err := gitdo.Run(os.Args)
 	if err != nil {
-		log.Fatalf("Gitdo failed to run: %v", err)
+		Warnf("Gitdo failed to run: %v", err)
 	}
 }
 
@@ -54,6 +55,7 @@ func AppBuilder() *cli.App {
 	if version != "" {
 		gitdo.Version = fmt.Sprintf("App: %s, Build: %s_%s", version, runtime.GOOS, runtime.GOARCH)
 	}
+	gitdo.Before = ChangeToGitRoot
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",
@@ -145,4 +147,15 @@ func stripNewlineChar(orig []byte) string {
 		newStr = newStr[:len(newStr)-1]
 	}
 	return newStr
+}
+
+func ChangeToGitRoot(_ *cli.Context) error {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	result, err := cmd.Output()
+	if err != nil {
+		// Not a git dir
+		return ErrNotGitDir
+	}
+	err = os.Chdir(stripNewlineChar(result))
+	return err
 }

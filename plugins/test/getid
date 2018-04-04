@@ -1,3 +1,8 @@
 #!/usr/local/bin/python3
 
+# DO NOT DO THIS. For testing this returns a small non-unique id.
 print("1234")
+
+# Get ID should return a unique ID, normally decided by the task manager. For example in Trello, the id is the short
+# card link, to a temp card in the archive. This keeps it hidden until push, as well as return a unique ID that can be
+# used on other plugins
