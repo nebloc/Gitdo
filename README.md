@@ -41,7 +41,7 @@ This is where plugins are found, so to create and use your own, you should creat
 ![Architecture design](./docs/images/Architecture.png)
 
 ## Sequence Diagram
-![Sequence Diagram](./docs/images/SequenceDiagram.png)
+[Sequence Diagram](./docs/images/SequenceDiagram.png)
 
 # Known Issues
 1. If a commit message is empty, gitdo will run, even though git will fail.
