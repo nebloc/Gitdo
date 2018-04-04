@@ -10,7 +10,7 @@ func TestParseGitDiff(t *testing.T) {
 		{"config", "config", "//TODO: hello", 5, ADDED},
 		{"config.go", "", "package main", 0, REMOVED},
 		{"config.go", "", "//TODO: load config from file test", 0, REMOVED},
-		// TODO: Find out if the removed line number ever needs to be accurate
+		// TODO: Find out if the removed line number ever needs to be accurate. <N9GLeQ5K>
 		{"", "diffparser/diffparser.go", "++ b/package diffparser", 1, ADDED},
 		{"commit_test.go", "commit_test.go", "+// TODO: Test <9ypvkCD1>", 242, REMOVED},
 		{"commit_test.go", "commit_test.go", "+// TODO: Test", 242, ADDED},

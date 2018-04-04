@@ -131,7 +131,7 @@ func RestageTasks(task Task) error {
 }
 
 var (
-	// TODO: Create a library of regex's for use with other languages
+	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
 	// todoReg is a compiled regex to match the TODO comments
 	todoReg *regexp.Regexp = regexp.MustCompile(
 		`^[[:space:]]*//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
