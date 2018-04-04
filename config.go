@@ -77,7 +77,7 @@ func getGitEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")
 	resp, err := cmd.Output()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Could not get user.email from git: %v", err)
 	}
 	return stripNewlineChar(resp), nil
 }

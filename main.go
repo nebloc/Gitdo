@@ -125,15 +125,19 @@ func NotifyFinished(ctx *cli.Context) error {
 }
 
 // List pretty prints the tasks that are in file
-func List(ctx *cli.Context) {
+func List(ctx *cli.Context) error {
 	if ctx.Bool("config") {
+		err := LoadConfig(ctx)
+		if err != nil {
+			return err
+		}
 		fmt.Println(config.String())
-		return
+		return nil
 	}
 	tasks, _ := getTasksFile()
 
 	fmt.Println(tasks.String())
-	return
+	return nil
 }
 
 // stripNewLineChar takes a byte array (usually from an exec.Command run) and strips the newline characters, returning
@@ -149,6 +153,8 @@ func stripNewlineChar(orig []byte) string {
 	return newStr
 }
 
+// ChangeToGitRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
+// to git
 func ChangeToGitRoot(_ *cli.Context) error {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	result, err := cmd.Output()

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// GetHomeDir gets the home directory of the current user, and gets the hidden .gitdo folder - *nix OSs
 func GetHomeDir() (string, error) {
 	usr, err := user.Current()
 	if err != nil {

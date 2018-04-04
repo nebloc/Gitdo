@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// GetHomeDir gets the home directory of the current user, and gets the Gitdo folder in the AppData directory - windows.
 func GetHomeDir() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
