@@ -47,3 +47,5 @@ This is where plugins are found, so to create and use your own, you should creat
 1. If a commit message is empty, gitdo will run, even though git will fail.
 1. If a task has a new line character it will not look at the second line, and treat only the first line.
 1. If a plugin fails, it is not clear whether gitdo will fail to, and stop the commit.
+1. Cannot get it to run when committing from Eclipse. Running Git from CLI is best
+1. Intellij runs hook if selected, but will not give information unless it fails. Running Git from CLI is best.
