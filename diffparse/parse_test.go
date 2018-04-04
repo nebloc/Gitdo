@@ -11,6 +11,8 @@ func TestParseGitDiff(t *testing.T) {
 		{"config.go", "", "package main", 0, REMOVED},
 		{"config.go", "", "//TODO: load config from file test", 0, REMOVED}, // TODO: Do we need to know the file line of removed? currently the counter is off
 		{"", "diffparser/diffparser.go", "++ b/package diffparser", 1, ADDED},
+		{"commit_test.go", "commit_test.go", "+// TODO: Test <9ypvkCD1>", 242,REMOVED},
+		{"commit_test.go", "commit_test.go", "+// TODO: Test", 242,ADDED},
 	}
 	lines, err := ParseGitDiff(example_diff)
 	if err != nil {
@@ -46,6 +48,7 @@ index d90eea3..849126d 100644
  Testing git pos
  To see if it works
 +//TODO: hello
+
 diff --git a/config.go b/config.go
 deleted file mode 100644
 index aa891e2..0000000
@@ -54,13 +57,29 @@ index aa891e2..0000000
 @@ -1,3 +0,0 @@
 -package main
 -//TODO: load config from file test
+
 diff --git a/diffparser/diffparser.go b/diffparser/diffparser.go
 new file mode 100644
 index 0000000..afed857
 --- /dev/null
 +++ b/diffparser/diffparser.go
 @@ -0,0 +1,43 @@
-+++ b/package diffparser`
++++ b/package diffparser
+
+diff --git a/commit_test.go b/commit_test.go
+index 0c208c7..8b81f2b 100644
+--- a/commit_test.go
++++ b/commit_test.go
+@@ -220,7 +239,7 @@ index 0000000..a30278c
+ +
+ +import "fmt"
+ +
+-+// TODO: Test <9ypvkCD1>
+++// TODO: Test
+ +func main(){
+ +	fmt.Println("Hello Ben")
+ +}
+`
 
 const fileLineExample string = `diff --git a/lorem.txt b/lorem.txt
 index a3653c4..6f9f76d 100644

@@ -220,10 +220,14 @@ func MarkSourceLines(task Task) error {
 	return nil
 }
 
+func CheckTaskRegex(line string) []string {
+	return todoReg.FindStringSubmatch(line)
+}
+
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	match := todoReg.FindStringSubmatch(line.Content)
+	match := CheckTaskRegex(line.Content)
 	if len(match) > 0 { // if match was found
 		t := Task{
 			id:       "",
