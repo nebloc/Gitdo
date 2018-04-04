@@ -42,7 +42,7 @@ func GetDiffFromCmd() (string, error) {
 			return "", err
 		}
 	}
-	diff := string(resp)
+	diff := stripNewlineChar(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -52,6 +52,7 @@ func GetDiffFromCmd() (string, error) {
 
 // CommitTasks gets existing tasks, removes them from the task file if deleted, adds new tasks, and runs the done plugin
 // where applicable
+// TODO: CommitTasks should be tested <G8F6PYby>
 func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 	if len(newTasks) == 0 && len(deleted) == 0 {
 		return nil
@@ -169,6 +170,7 @@ func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) Changes {
 	return changes
 }
 
+// CheckTagged runs the tagged regex and returns the ID and whether it was a match or not
 func CheckTagged(line diffparse.SourceLine) (string, bool) {
 	match := taggedReg.FindStringSubmatch(line.Content)
 	if len(match) != 2 {

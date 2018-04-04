@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"testing"
 
-	cli "github.com/urfave/cli"
+	"github.com/urfave/cli"
 )
 
 func TestRegexs(t *testing.T) {
@@ -24,18 +24,23 @@ func TestRegexs(t *testing.T) {
 	}
 }
 
-func TestCommit(t *testing.T) {
-	cDir, closeDir := testDirHelper(t)
-	defer closeDir()
-	t.Logf("working in dir: %s", cDir)
-
+func setupForTest(t *testing.T) (*cli.Context, func()) {
 	config = &Config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "test",
 		PluginInterpreter: "python",
 	}
 
+	cDir, closeDir := testDirHelper(t)
+	t.Logf("working in dir: %s", cDir)
 	ctx := cli.NewContext(gitdo, nil, nil)
+
+	return ctx, closeDir
+}
+
+func TestCommit(t *testing.T) {
+	ctx, close := setupForTest(t)
+	defer close()
 
 	err := Commit(ctx)
 	if err != ErrNotGitDir {
@@ -45,8 +50,8 @@ func TestCommit(t *testing.T) {
 	testStartRepoHelper(t)
 
 	err = Commit(ctx)
-	if err != ErrNoDiff {
-		t.Errorf("Expected: %v, got: %v", ErrNoDiff, err)
+	if err != nil {
+		t.Errorf("Expected commit to return with no error, got: %v", err)
 	}
 
 	fileName := testMockFileHelper(t)
@@ -62,6 +67,30 @@ func TestCommit(t *testing.T) {
 	}
 	if bytes.Compare([]byte(goldenFileContent), bMock) != 0 {
 		t.Errorf("expected:\n%s \n\ngot:\n%s", goldenFileContent, bMock)
+	}
+}
+
+func TestGetDiffFromCmd(t *testing.T) {
+	_, close := setupForTest(t)
+	defer close()
+
+	_, err := GetDiffFromCmd()
+	if err != ErrNotGitDir {
+		t.Errorf("Expected not a git repo, got: %v", err)
+	}
+	testStartRepoHelper(t)
+	diff, err := GetDiffFromCmd()
+	if err != ErrNoDiff {
+		t.Errorf("expected diff to be empty: %v: %v", err, diff)
+	}
+	file := testMockFileHelper(t)
+	testAddToGitHelper(t, file)
+	diff, err = GetDiffFromCmd()
+	if err != nil {
+		t.Errorf("Unexpected error getting diff: %v", err)
+	}
+	if diff != mockDiffExample {
+		t.Errorf("Expected diff to be \n%v\nGot: \n%v", mockDiffExample, diff)
 	}
 }
 
@@ -100,14 +129,8 @@ func testStartRepoHelper(t *testing.T) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal("could not create repo")
 	}
-	if err := os.Mkdir(".git/gitdo", os.ModePerm); err != nil {
+	if err := os.MkdirAll(".git/gitdo/plugins/test", os.ModePerm); err != nil {
 		t.Fatal("could not create gitdo folder")
-	}
-
-	cmd = exec.Command("cp", "-r", "/Users/bencoleman/Dev/Go/src/github.com/nebloc/gitdo/plugins", ".git/gitdo/")
-	if res, err := cmd.CombinedOutput(); err != nil {
-		t.Log(stripNewlineChar(res))
-		t.Fatal("could not copy plugins folder")
 	}
 }
 
@@ -157,3 +180,19 @@ import "fmt"
 func main(){
 	fmt.Println("Hello Ben")
 }`
+
+const mockDiffExample string = `diff --git a/main.go b/main.go
+new file mode 100755
+index 0000000..a30278c
+--- /dev/null
++++ b/main.go
+@@ -0,0 +1,8 @@
++package main
++
++import "fmt"
++
++// TODO: Test <mTssn2ZP>
++func main(){
++	fmt.Println("Hello Ben")
++}
+\ No newline at end of file`
