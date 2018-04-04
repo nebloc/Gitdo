@@ -140,7 +140,7 @@ var (
 )
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
-// TODO: Be able to support multi line todo messages
+// TODO: Be able to support multi line todo messages. <zyWHSPaM>
 func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) Changes {
 	changes := Changes{
 		New:     make(map[string]Task),
