@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/urfave/cli"
-	"github.com/nebloc/gitdo/diffparse"
 	"fmt"
+	"github.com/nebloc/gitdo/diffparse"
+	"github.com/urfave/cli"
 )
 
 func TestRegexs(t *testing.T) {
@@ -83,7 +83,7 @@ func TestCheckTagged(t *testing.T) {
 		ExpID       string
 	}{
 		{"//TODO: Hello <08238>", true, "08238"},
-		{"//TODO: Hello", false, ""}, <4OHslu2e>
+		{"//TODO: Hello", false, ""},
 		{"+// TODO: Test <fhsiufh>", false, ""},
 	}
 
@@ -106,9 +106,9 @@ func TestCheckTaskRegex(t *testing.T) {
 		ExpFound    bool
 		ExpID       string
 	}{
-		{"//TODO: Hello", true, "08238"}, <W2raYJQl>
+		{"//TODO: Hello", true, "08238"},
 		{"# TODO: Hello", false, ""},
-		{"+// TODO: Test", false, ""}, <WW5lVFxh>
+		{"+// TODO: Test", false, ""},
 	}
 
 	for _, data := range testData {
@@ -239,7 +239,7 @@ index 0000000..a30278c
 +
 +import "fmt"
 +
-+// TODO: Test <8h9k1Mud>
++// TODO: Test
 +func main(){
 +	fmt.Println("Hello Ben")
 +}

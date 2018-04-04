@@ -9,10 +9,11 @@ func TestParseGitDiff(t *testing.T) {
 		{"config", "config", "", 3, REMOVED},
 		{"config", "config", "//TODO: hello", 5, ADDED},
 		{"config.go", "", "package main", 0, REMOVED},
-		{"config.go", "", "//TODO: load config from file test", 0, REMOVED}, // TODO: Do we need to know the file line of removed? currently the counter is off
+		{"config.go", "", "//TODO: load config from file test", 0, REMOVED},
+		// TODO: Find out if the removed line number ever needs to be accurate
 		{"", "diffparser/diffparser.go", "++ b/package diffparser", 1, ADDED},
-		{"commit_test.go", "commit_test.go", "+// TODO: Test <9ypvkCD1>", 242,REMOVED},
-		{"commit_test.go", "commit_test.go", "+// TODO: Test", 242,ADDED},
+		{"commit_test.go", "commit_test.go", "+// TODO: Test <9ypvkCD1>", 242, REMOVED},
+		{"commit_test.go", "commit_test.go", "+// TODO: Test", 242, ADDED},
 	}
 	lines, err := ParseGitDiff(example_diff)
 	if err != nil {

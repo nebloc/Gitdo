@@ -62,7 +62,7 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 	if err != nil {
 		Warnf("Could not read existing tasks: %v", err)
 	}
-	for id, _ := range deleted {
+	for id := range deleted {
 		if _, exists := tasks.NewTasks[id]; exists {
 			tasks.RemoveTask(id)
 		} else {
@@ -131,7 +131,7 @@ func RestageTasks(task Task) error {
 }
 
 var (
-	// TODO: Should todoReg be a global variable?
+	// TODO: Create a library of regex's for use with other languages
 	// todoReg is a compiled regex to match the TODO comments
 	todoReg *regexp.Regexp = regexp.MustCompile(
 		`^[[:space:]]*//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
@@ -140,7 +140,7 @@ var (
 )
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
-// TODO: Handle multi line todo messages
+// TODO: Be able to support multi line todo messages
 func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) Changes {
 	changes := Changes{
 		New:     make(map[string]Task),
