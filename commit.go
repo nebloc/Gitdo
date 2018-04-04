@@ -134,9 +134,9 @@ var (
 	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
 	// todoReg is a compiled regex to match the TODO comments
 	todoReg *regexp.Regexp = regexp.MustCompile(
-		`^[[:space:]]*//(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
+		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 	taggedReg *regexp.Regexp = regexp.MustCompile(
-		`^[[:space:]]*//(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
+		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
 )
 
 // ProcessFileDiff Takes a diff section for a file and extracts TODO comments
