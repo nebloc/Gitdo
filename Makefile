@@ -21,5 +21,5 @@ release_dir:
 	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_i386 .
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
-	cp install.sh ./release/
-	cp install.bat ./release/
+	cp mac_linux_install.sh ./release/
+	cp windows_install.bat ./release/
