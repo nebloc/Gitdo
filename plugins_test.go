@@ -42,7 +42,7 @@ func TestRunPlugin(t *testing.T) {
 	config = &Config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "test",
-		PluginInterpreter: "python3",
+		PluginInterpreter: "python",
 	}
 	for _, data := range testData {
 		resp, err := RunPlugin(data.Command, data.Arg)

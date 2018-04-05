@@ -34,8 +34,9 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		return "", err
 	}
 
-	cmd := exec.Command(config.PluginInterpreter)           // i.e. 'python'
-	cmd.Dir = filepath.Join(internPluginDir, config.Plugin) // move to plugin working dir
+	cmd := exec.Command(config.PluginInterpreter)                           // i.e. 'python'
+	os.MkdirAll(filepath.Join(internPluginDir, config.Plugin), os.ModePerm) // Create plugin working dir if not exist
+	cmd.Dir = filepath.Join(internPluginDir, config.Plugin)                 // move to plugin working dir
 
 	out := bytes.Buffer{}
 
@@ -77,7 +78,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		}
 	case SETUP:
 		// Allow cmd to have console
-		cmd.Stdin = os.Stderr
+		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
