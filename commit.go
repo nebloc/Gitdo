@@ -206,18 +206,36 @@ func MarkSourceLines(task Task) error {
 		Dangerf("Could not mark source code as extracted: %v", err)
 		return err
 	}
-	lines := strings.Split(string(fileCont), "\n")
+
+	sep := "\n"
+	lines := strings.Split(string(fileCont), sep)
+
+	if isCRLF(lines[0]) {
+		for i, line := range lines {
+			lines[i] = strings.TrimSuffix(line, "\r")
+			sep = "\r\n"
+		}
+	}
 
 	taskIndex := task.FileLine - 1
 
 	//Short id is used to improve readability, and file line / name helps tie short id to long
 	lines[taskIndex] += " <" + task.id + ">"
-	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, "\n")), 0644)
+	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, sep)), 0644)
 	if err != nil {
 		Dangerf("could not mark source code as extracted: %v", err)
 		return err
 	}
 	return nil
+}
+
+// isCRLF returns true if the string contains a CR at the end (LF already stripped)
+func isCRLF(line string) bool {
+	if strings.HasSuffix(line, "\r") {
+		return true
+	} else {
+		return false
+	}
 }
 
 func CheckTaskRegex(line string) []string {
