@@ -23,3 +23,4 @@ release_dir:
 	cp -r ./plugins ./release/
 	cp mac_linux_install.sh ./release/
 	cp windows_install.bat ./release/
+	cp docs/INSTALL.md ./release/
