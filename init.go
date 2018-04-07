@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -153,11 +154,14 @@ func AskInterpreter() (string, error) {
 	Warn("Currently all plugins made as an example need python 3 set up in path. Redesign of plugin language choice and use coming soon.")
 	var interp string
 	for interp == "" {
+		reader := bufio.NewReader(os.Stdin)
 		fmt.Printf("What interpreter for this plugin (i.e. python3/node/python): ")
-		_, err := fmt.Scan(&interp)
+		var err error
+		interp, err = reader.ReadString('\n')
 		if err != nil {
 			return "", err
 		}
+		interp = strings.TrimSpace(interp)
 	}
 	Highlightf("Using %s", interp)
 	return interp, nil

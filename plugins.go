@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
-	"os"
-	"bytes"
-	"errors"
+	"strings"
 )
 
 var (
@@ -34,7 +35,13 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		return "", err
 	}
 
-	cmd := exec.Command(config.PluginInterpreter)                           // i.e. 'python'
+	interp := strings.Split(config.PluginInterpreter, " ")
+	var cmd *exec.Cmd
+	if len(interp) == 1 {
+		cmd = exec.Command(interp[0]) // i.e. 'python'
+	} else {
+		cmd = exec.Command(interp[0], interp[1:]...) // i.e. 'osascript -l JavaScript'
+	}
 	os.MkdirAll(filepath.Join(internPluginDir, config.Plugin), os.ModePerm) // Create plugin working dir if not exist
 	cmd.Dir = filepath.Join(internPluginDir, config.Plugin)                 // move to plugin working dir
 
