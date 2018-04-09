@@ -6,7 +6,8 @@ echo "Copying hooks..."
 cp -r ./plugins $DIR
 cp -r ./hooks $DIR
 
-GOARCH=`uname -p`
+PROCESSOR=`uname -p`
+if [[ $PROCESSOR = "amd64" ]]
 GOOS=`uname`
 VERSIONTOCP="gitdo_${GOOS}_${GOARCH}"
 echo "Copying $VERSIONTOCP to your /usr/local/bin/ ..."

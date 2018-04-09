@@ -92,6 +92,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	err = cmd.Run()
 	resp = out.Bytes()
 	if err != nil {
+		Warn(stripNewlineChar(resp))
 		return stripNewlineChar(resp), err
 	}
 	return stripNewlineChar(resp), nil

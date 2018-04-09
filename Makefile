@@ -19,6 +19,8 @@ release_dir:
 	env GOOS=windows GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_win_amd64.exe .
 	env GOOS=darwin GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_darwin_amd64 .
 	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_i386 .
+	env GOOS=linux GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_linux_amd64 .
+	env GOOS=linux GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_linux_i386 .
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
 	cp mac_linux_install.sh ./release/

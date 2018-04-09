@@ -65,10 +65,8 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 	for id := range deleted {
 		if _, exists := tasks.NewTasks[id]; exists {
 			tasks.RemoveTask(id)
-		} else {
-			// Add tasks to be marked as done next push
-			tasks.DoneTasks = append(tasks.DoneTasks, id)
 		}
+		tasks.DoneTasks = append(tasks.DoneTasks, id)
 	}
 
 	tasks.StageNewTasks(newTasks)
