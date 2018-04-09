@@ -15,12 +15,12 @@ test:
 release_dir:
 	rm -rf release/
 	mkdir release/
-	env GOOS=windows GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_win_i386.exe .
-	env GOOS=windows GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_win_amd64.exe .
-	env GOOS=darwin GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_darwin_amd64 .
-	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_i386 .
-	env GOOS=linux GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_linux_amd64 .
-	env GOOS=linux GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_linux_i386 .
+	env GOOS=windows GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_win_32.exe .
+	env GOOS=windows GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_win_64.exe .
+	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_32 .
+	env GOOS=darwin GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_darwin_64 .
+	env GOOS=linux GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_linux_32 .
+	env GOOS=linux GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_linux_64 .
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
 	cp mac_linux_install.sh ./release/
