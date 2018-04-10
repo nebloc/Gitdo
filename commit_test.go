@@ -75,7 +75,13 @@ func TestCommit(t *testing.T) {
 
 func TestCheckTagged(t *testing.T) {
 	t.Log(config.String())
-	line := diffparse.SourceLine{"main.go", "main.go", "", 32, diffparse.ADDED}
+	line := diffparse.SourceLine{
+		FileFrom: "main.go",
+		FileTo:   "main.go",
+		Content:  "",
+		Position: 32,
+		Mode:     diffparse.ADDED,
+	}
 	testData := []struct {
 		LineContent string
 		ExpFound    bool

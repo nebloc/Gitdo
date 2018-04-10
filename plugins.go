@@ -15,20 +15,26 @@ var (
 	// Plugin directory
 	internPluginDir = filepath.Join(gitdoDir, "plugins")
 
-	//Plugin commands
-	GETID  plugcommand = "getid"  // Needs task
+	//GETID is the mode that runs the getid file in the plugin dir
+	GETID plugcommand = "getid" // Needs task
+	//CREATE is the mode that runs the create file in the plugin dir
 	CREATE plugcommand = "create" // Needs task with ID
-	DONE   plugcommand = "done"   // Needs ID
-	SETUP  plugcommand = "setup"  // Needs nothing
+	//DONE is the mode that runs the done file in the plugin dir
+	DONE plugcommand = "done" // Needs ID
+	//SETUP is the mode that runs the setup file in the plugin dir
+	SETUP plugcommand = "setup" // Needs nothing
 )
 
 type plugcommand string
 
 var (
-	ErrNotTask   = errors.New("could not cast interface to task")
-	ErrNotString = errors.New("could not cast interface to task")
+	errNotTask   = errors.New("could not cast interface to task")
+	errNotString = errors.New("could not cast interface to string")
 )
 
+// RunPlugin will run the plugins functions depending on the mode given. It
+// moves the working dir to a sub folder in .git and calls the plugin in the
+// users home directory
 func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	homeDir, err := GetHomeDir()
 	if err != nil {
@@ -64,7 +70,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 			}
 			cmd.Args = append(cmd.Args, string(bT))
 		} else {
-			return "", ErrNotTask
+			return "", errNotTask
 		}
 	case CREATE:
 		if task, ok := elem.(Task); ok {
@@ -75,13 +81,13 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 			cmd.Args = append(cmd.Args, task.id)
 			cmd.Args = append(cmd.Args, string(bT))
 		} else {
-			return "", ErrNotTask
+			return "", errNotTask
 		}
 	case DONE:
 		if id, ok := elem.(string); ok {
 			cmd.Args = append(cmd.Args, id)
 		} else {
-			return "", ErrNotString
+			return "", errNotString
 		}
 	case SETUP:
 		// Allow cmd to have console

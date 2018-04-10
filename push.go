@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	cli "github.com/urfave/cli"
 )
 
@@ -20,7 +21,7 @@ func Push(_ *cli.Context) error {
 	}
 
 	for id, task := range tasks.NewTasks {
-		_, err := RunPlugin(CREATE, task)
+		_, err = RunPlugin(CREATE, task)
 		if err != nil {
 			Warnf("Failed to add task '%s': %v", task.String(), err)
 			continue
@@ -31,7 +32,7 @@ func Push(_ *cli.Context) error {
 
 	failedIds := []string{}
 	for _, id := range tasks.DoneTasks {
-		_, err := RunPlugin(DONE, id)
+		_, err = RunPlugin(DONE, id)
 		if err != nil {
 			Warnf("Failed to mark %s as done", id)
 			failedIds = append(failedIds, id)
