@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/nebloc/gitdo/diffparse"
@@ -71,6 +72,44 @@ func TestCommit(t *testing.T) {
 	if bytes.Compare([]byte(goldenFileContent), bMock) != 0 {
 		t.Errorf("expected:\n%s \n\ngot:\n%s", goldenFileContent, bMock)
 	}
+	tasks := testTaskFileCorrect(t)
+	if len(tasks.NewTasks) != 1 {
+		t.Errorf("Should have 1 task in the new task area. Have: %d", len(tasks.NewTasks))
+	}
+
+	testCommitHelper(t)
+	testDeleteTaskCommentHelper(t, fileName)
+
+	err = Commit(ctx)
+	if err != nil {
+		t.Fatalf("unexpected: %v", err)
+	}
+	tasks = testTaskFileCorrect(t)
+	if len(tasks.DoneTasks) != 1 {
+		t.Errorf("Should have 1 task in the done task area. Have: %d", len(tasks.DoneTasks))
+	}
+}
+
+func testTaskFileCorrect(t *testing.T) *Tasks {
+	tasks, err := getTasksFile()
+	if err != nil {
+		t.Errorf("Could not load tasks file to check: %v", err)
+	}
+	return tasks
+}
+
+func testDeleteTaskCommentHelper(t *testing.T, fileName string) {
+	fileCont, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Errorf("Could not get mock file: %v", err)
+	}
+	newCont := strings.Replace(string(fileCont), "// TODO: Test <1234>\n", "", 1)
+
+	err = ioutil.WriteFile(fileName, []byte(newCont), os.ModePerm)
+	if err != nil {
+		t.Errorf("Could not write new file with todo removed: %v", err)
+	}
+	testAddToGitHelper(t, fileName)
 }
 
 func TestCheckTagged(t *testing.T) {
@@ -178,22 +217,27 @@ func testAddToGitHelper(t *testing.T, fileName string) {
 	if err != nil {
 		t.Fatalf("could not 'git add %s'", fileName)
 	}
-	cmd = exec.Command("git", "status")
-	resp, err := cmd.Output()
+	t.Logf("Added file: %s", fileName)
+}
+
+func testCommitHelper(t *testing.T) {
+	cmd := exec.Command("git", "commit", "-am", "new file")
+	err := cmd.Run()
 	if err != nil {
-		t.Fatal("could not 'git status'")
+		t.Fatalf("error commiting file: %v", err)
 	}
-	t.Logf("status:\n%s", resp)
+	t.Log("Committed staged files")
 }
 
 // testStartRepoHelper runs git init and adds the gitdo folder, which is otherwise done in the Setup() func
 func testStartRepoHelper(t *testing.T) {
 	t.Helper()
+	t.Log("Started repo")
 	cmd := exec.Command("git", "init")
 	if err := cmd.Run(); err != nil {
 		t.Fatal("could not create repo")
 	}
-	if err := os.MkdirAll(".git/gitdo/plugins/test", os.ModePerm); err != nil {
+	if err := os.MkdirAll(".git/gitdo/plugins/Test", os.ModePerm); err != nil {
 		t.Fatal("could not create gitdo folder")
 	}
 }
