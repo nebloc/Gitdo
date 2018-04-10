@@ -6,15 +6,15 @@ print("Setup of Trello Gitdo Plugin")
 conf = {}
 
 print("Key and token can be found at https://trello.com/app-key whilst logged in")
-var key = input("Trello Key: ")
-var token = input("Trello Token: ")
+key = input("Trello Key: ")
+token = input("Trello Token: ")
 
 print("List ID's can be found by opening a card on the list, 'share and more' > export JSON.")
-var start_list = input("List ID for new TODOs to go to: ")
-var end_list = input("List ID for done TODOs to be moved to: ")
+start_list = input("List ID for new TODOs to go to: ")
+end_list = input("List ID for done TODOs to be moved to: ")
 print("Remote repository URL scheme is a url format for permalinking. Can be left blank")
 print("i.e. for github use https://github.com/your-name/your-repo/blob/{hash}/{file_name}#L{file_line}")
-var remote_link = input("Remote repository scheme: ")
+remote_link = input("Remote repository scheme: ")
 
 conf["key"] = key
 conf["token"] = token

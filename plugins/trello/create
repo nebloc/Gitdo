@@ -16,7 +16,12 @@ conf = helper.get_config()
 task_arg = sys.argv[2]  # Get json task
 task = json.loads(task_arg)  # Get dict to read attributes
 
-link = conf["remote_link"].format(task["hash"], task["file_name"], task["file_line"])
+link = conf["remote_link"]
+link = link.replace("{hash}", task["hash"])
+link = link.replace("{file_name}", task["file_name"])
+link = link.replace("{file_line}", str(task["file_line"]))
+link = link.replace("{branch}", task["branch"])
+
 
 desc = "{}#{}\nHash: '{}' on {}\nLink: {}\n{}".format(
     task["file_name"], task["file_line"], task["hash"], task["branch"], link, task["author"])

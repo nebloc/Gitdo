@@ -1,5 +1,4 @@
 #!/usr/local/bin/python3
-
 from urllib.request import Request, urlopen, URLError, HTTPError # to make API call
 import json # decode task and encode response
 import sys # for args -> given task string (to be loaded as json)
