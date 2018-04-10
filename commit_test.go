@@ -46,8 +46,8 @@ func TestCommit(t *testing.T) {
 	t.Log(config.String())
 
 	err := Commit(ctx)
-	if err != ErrNotGitDir {
-		t.Errorf("Expected: %v, got: %v", ErrNotGitDir, err)
+	if err != errNotGitDir {
+		t.Errorf("Expected: %v, got: %v", errNotGitDir, err)
 	}
 
 	testStartRepoHelper(t)
@@ -133,12 +133,12 @@ func TestGetDiffFromCmd(t *testing.T) {
 	t.Log(config.String())
 
 	_, err := GetDiffFromCmd()
-	if err != ErrNotGitDir {
+	if err != errNotGitDir {
 		t.Errorf("Expected not a git repo, got: %v", err)
 	}
 	testStartRepoHelper(t)
 	diff, err := GetDiffFromCmd()
-	if err != ErrNoDiff {
+	if err != errNoDiff {
 		t.Errorf("expected diff to be empty: %v: %v", err, diff)
 	}
 	file := testMockFileHelper(t)

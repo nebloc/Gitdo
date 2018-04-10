@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ErrNotGitDir = errors.New("directory is not a git repo")
-	ErrNoDiff    = errors.New("diff is empty")
+	errNotGitDir = errors.New("directory is not a git repo")
+	errNoDiff    = errors.New("diff is empty")
 )
 
 // GetDiffFromCmd runs the git diff command on the OS and returns a string of
@@ -32,19 +32,18 @@ func GetDiffFromCmd() (string, error) {
 	// If error running git diff abort all
 	if err != nil {
 		if err.Error() == "exit status 129" {
-			return "", ErrNotGitDir
+			return "", errNotGitDir
 		}
 		if err, ok := err.(*exec.ExitError); ok {
 			Dangerf("failed to exit git diff: %v, %v", err, stripNewlineChar(resp))
 			return "", err
-		} else {
-			Danger("git diff couldn't be ran")
-			return "", err
 		}
+		Danger("git diff couldn't be ran")
+		return "", err
 	}
 	diff := stripNewlineChar(resp)
 	if diff == "" {
-		return "", ErrNoDiff
+		return "", errNoDiff
 	}
 
 	return diff, nil
@@ -78,7 +77,7 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(_ *cli.Context) error {
 	rawDiff, err := GetDiffFromCmd()
-	if err == ErrNoDiff {
+	if err == errNoDiff {
 		return nil
 	}
 	if err != nil {
@@ -97,7 +96,7 @@ func Commit(_ *cli.Context) error {
 
 	go SourceChanger(taskChan, done)
 
-	changes := ProcessDiff(lines, taskChan)
+	changes := processDiff(lines, taskChan)
 	for _, task := range changes.New {
 		Highlightf("new task: %v", task.String())
 	}
@@ -131,16 +130,16 @@ func RestageTasks(task Task) error {
 var (
 	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
 	// todoReg is a compiled regex to match the TODO comments
-	todoReg *regexp.Regexp = regexp.MustCompile(
+	todoReg = regexp.MustCompile(
 		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
-	taggedReg *regexp.Regexp = regexp.MustCompile(
+	taggedReg = regexp.MustCompile(
 		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
 )
 
-// ProcessFileDiff Takes a diff section for a file and extracts TODO comments
+// processDiff Takes a diff section for a file and extracts TODO comments
 // TODO: Be able to support multi line todo messages. <zyWHSPaM>
-func ProcessDiff(lines []diffparse.SourceLine, taskChan chan<- Task) Changes {
-	changes := Changes{
+func processDiff(lines []diffparse.SourceLine, taskChan chan<- Task) taskChanges {
+	changes := taskChanges{
 		New:     make(map[string]Task),
 		Moved:   make([]string, 0),
 		Deleted: make(map[string]bool, 0),
@@ -231,11 +230,12 @@ func MarkSourceLines(task Task) error {
 func isCRLF(line string) bool {
 	if strings.HasSuffix(line, "\r") {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
+// CheckTaskRegex checks the line given against the todoReg and returns an array
+// of the submatches
 func CheckTaskRegex(line string) []string {
 	return todoReg.FindStringSubmatch(line)
 }
@@ -266,7 +266,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	return Task{}, false
 }
 
-type Changes struct {
+type taskChanges struct {
 	New     map[string]Task
 	Deleted map[string]bool
 	Moved   []string

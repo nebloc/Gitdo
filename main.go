@@ -160,7 +160,7 @@ func ChangeToGitRoot(_ *cli.Context) error {
 	result, err := cmd.Output()
 	if err != nil {
 		// Not a git dir
-		return ErrNotGitDir
+		return errNotGitDir
 	}
 	err = os.Chdir(stripNewlineChar(result))
 	return err
