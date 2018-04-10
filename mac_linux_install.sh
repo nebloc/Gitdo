@@ -6,11 +6,12 @@ echo "Copying hooks..."
 cp -r ./plugins $DIR
 cp -r ./hooks $DIR
 
-GOOS=`uname`
-
+GOOS=`uname | awk '{print tolower($0)}'`
 MACHINE_TYPE=`uname -m`
+echo ${GOOS}
+
 GOARCH=``
-if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+if [[ ${MACHINE_TYPE} == 'x86_64' ]]; then
 	GOARCH="64"
 else
 	GOARCH="32"
