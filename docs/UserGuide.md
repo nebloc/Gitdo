@@ -32,8 +32,9 @@ cd ~/.gitdo
 
 git clone https://github.com/nebloc/Trello-GitdoPlugin.git Trello
 ```
+*Gitdo currently does not verify that a plugin is working, or even that it has all of the functions. It will run the setup function when you have ran `gitdo init` giving some indication that the interpreter is correct, but plugin maintenance is not in scope.* 
 
 #### Interpreter
 This is what scripting language and command you need for the plugin. The example Trello plugin bundled with Gitdo needs Python 3 (you can check the version with `python -V`) so you would type `python` or `python3` as the interpreter.
 
-This isn't always Python 3, an example of one that uses something else is the (macOS only) [Omnifocus plugin](https://github.com/nebloc/Omnifocus-GitdoPlugin) that uses a javascript variant of AppleScript, and would need `osascript -l JavaScript` 
+This isn't always Python 3, an example of one that uses something else is the (macOS only) [Omnifocus plugin](https://github.com/nebloc/Omnifocus-GitdoPlugin) that uses a javascript variant of AppleScript, and would need `osascript -l JavaScript`
