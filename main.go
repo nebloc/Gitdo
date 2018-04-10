@@ -8,8 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/urfave/cli"
 	"path/filepath"
+
+	"github.com/urfave/cli"
 )
 
 var (
@@ -50,7 +51,7 @@ func main() {
 func AppBuilder() *cli.App {
 	gitdo := cli.NewApp()
 	gitdo.Name = "gitdo"
-	gitdo.Usage = "track source code TODO comments"
+	gitdo.Usage = "track source code TODO comments - https://github.com/nebloc/Gitdo"
 	gitdo.Version = "0.0.0-a2"
 	if version != "" {
 		gitdo.Version = fmt.Sprintf("App: %s, Build: %s_%s", version, runtime.GOOS, runtime.GOARCH)
