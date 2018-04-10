@@ -61,6 +61,7 @@ func (c *Config) interpreterIsSet() bool {
 func LoadConfig(_ *cli.Context) error {
 	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
+		Warn("Could not find configuration file for gitdo. Have you ran \"gitdo init\"?")
 		return err
 	}
 
