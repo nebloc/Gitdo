@@ -1,0 +1,3 @@
+[submodule "plugins/Trello"]
+	path = plugins/Trello
+	url = git://github.com/nebloc/Trello-GitdoPlugin.git
