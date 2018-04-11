@@ -1,7 +1,7 @@
 Gitdo - Track TODO comments in your task manager.
 =================
 
-![App Icon](wiki/images/GitdoLogo.png)
+![AppLogo](https://github.com/nebloc/gitdo/wiki/images/GitdoLogo.png)
 
 1. [Introduction](#introduction)
 1. [Install](#install)
@@ -38,10 +38,11 @@ This is where plugins are found, so to create and use your own, you should creat
 1. IDs of tasks that have been removed (as shown in git diff) that were tagged, will be parsed to the plugin to be marked as done in the task manager.
 
 # Architecture
-![Architecture design](wiki/images/Architecture.png)
+![Architecture design](https://github.com/nebloc/gitdo/wiki/images/Architecture.png)
 
 ## Sequence Diagram
-[Sequence Diagram](/wiki/images/SequenceDiagram.png)
+[Git Commit Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_commit.png)
+[Git Push Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_push.png)
 
 # Known Issues
 1. If a commit message is empty, gitdo will run, even though git will fail.
