@@ -5,7 +5,7 @@ Gitdo - Track TODO comments in your task manager.
 
 1. [Introduction](#introduction)
 1. [Install](#install)
-1. [Usage](#usage)
+1. [How to use](#how-to-use)
 1. [Architecture](#architecture)
 1. [Issues](#known-issues)
 
@@ -23,10 +23,11 @@ This project will aim to aid development in this problem domain by providing an 
 
 The hope is that a dedicated tool will push teams to formalise their use of TODO annotations and allow them to be tracked more efficiently.
 
+---
 ### [Install](https://github.com/nebloc/Gitdo/wiki/Install)
-
-### [Usage](https://github.com/nebloc/Gitdo/wiki/Usage)
-
+---
+### [How to Use](https://github.com/nebloc/Gitdo/wiki/Usage)
+---
 ### [Building](https://github.com/nebloc/Gitdo/wiki/Building)
 
 # Architecture
