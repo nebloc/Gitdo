@@ -1,7 +1,7 @@
 Gitdo - Track TODO comments in your task manager.
 =================
 
-![App Icon](./docs/images/Logo.png)
+![App Icon](./Wiki/images/GitdoLogo.png)
 
 1. [Introduction](#introduction)
 1. [Install](#install)
@@ -31,17 +31,17 @@ This is where plugins are found, so to create and use your own, you should creat
 
 # Usage
 1. At the moment, only todo comments that are in the form `// TODO: Something`, so if you are working on a TODO that you do not want added, use another keyword like `//HACK:` or `//!TODO:`. Work is being done on adding other comment styles such as pythons `#`
-1. When you commit your work, a git hook (pre-commit) should call the Gitdo tool `gitdo commit -c`. Gitdo will analyse a `git diff` for task changes and mark the source code with a tag: 
+1. When you commit your work, a git hook (pre-commit) should call the Gitdo tool `gitdo commit -c`. Gitdo will analyse a `git diff` for task changes and mark the source code with a tag:
 `//TODO: Make something cool <uhvc302n>`
-. The `<id>` Will be added to the end of a task comment in the source code, before being restaged for commit. 
+. The `<id>` Will be added to the end of a task comment in the source code, before being restaged for commit.
 1. When `git push` is ran, a pre-push script will activate Gitdo and it will parse all tasks that have been committed since last push to the configured plugin. Example plugin uses Trello API to add tasks to a specified list.
 1. IDs of tasks that have been removed (as shown in git diff) that were tagged, will be parsed to the plugin to be marked as done in the task manager.
 
 # Architecture
-![Architecture design](./docs/images/Architecture.png)
+![Architecture design](./Wiki/images/Architecture.png)
 
 ## Sequence Diagram
-[Sequence Diagram](./docs/images/SequenceDiagram.png)
+[Sequence Diagram](./Wiki/images/SequenceDiagram.png)
 
 # Known Issues
 1. If a commit message is empty, gitdo will run, even though git will fail.

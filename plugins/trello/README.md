@@ -40,5 +40,8 @@ An example of this being used is the link https://github.com/nebloc/gitdo/blob/4
 [trello]: https://trello.com/app-key)
 
 ## [Get ID](getid)
+WIP
 ## [Create](create)
+WIP
 ## [Done](done)
+WIP
