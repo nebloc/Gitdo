@@ -1,0 +1,6 @@
+[submodule "docs"]
+	path = docs
+	url = https://github.com/nebloc/gitdo.wiki.git
+[submodule "plugins/Trello"]
+	path = plugins/Trello
+	url = https://github.com/nebloc/Trello-GitdoPlugin.git
