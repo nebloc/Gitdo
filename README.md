@@ -23,25 +23,18 @@ This project will aim to aid development in this problem domain by providing an 
 
 The hope is that a dedicated tool will push teams to formalise their use of TODO annotations and allow them to be tracked more efficiently.
 
-# Install
-1. [Download](https://github.com/nebloc/Gitdo/releases) and unzip the latest release
-1. Navigate to the folder in your console and run install.sh (*nix) or install.bat (Windows).
-1. This will place the Gitdo executable in your usr/local/bin or system32. As well as add the hooks and plugins to a home directory: `%AppData%\roaming\Gitdo` on windows and `~/.gitdo` on *nix
-This is where plugins are found, so to create and use your own, you should create them inside here. More information will be in the Wiki soon or you can look at the example Trello plugin.
+### [Install](https://github.com/nebloc/Gitdo/wiki/Installation)
 
-# Usage
-1. At the moment, only todo comments that are in the form `// TODO: Something`, so if you are working on a TODO that you do not want added, use another keyword like `//HACK:` or `//!TODO:`. Work is being done on adding other comment styles such as pythons `#`
-1. When you commit your work, a git hook (pre-commit) should call the Gitdo tool `gitdo commit -c`. Gitdo will analyse a `git diff` for task changes and mark the source code with a tag:
-`//TODO: Make something cool <uhvc302n>`
-. The `<id>` Will be added to the end of a task comment in the source code, before being restaged for commit.
-1. When `git push` is ran, a pre-push script will activate Gitdo and it will parse all tasks that have been committed since last push to the configured plugin. Example plugin uses Trello API to add tasks to a specified list.
-1. IDs of tasks that have been removed (as shown in git diff) that were tagged, will be parsed to the plugin to be marked as done in the task manager.
+### [Usage](https://github.com/nebloc/Gitdo/wiki/Usage)
+
+### [Building](https://github.com/nebloc/Gitdo/wiki/Building)
 
 # Architecture
 ![Architecture design](https://github.com/nebloc/gitdo/wiki/images/Architecture.png)
 
-## Sequence Diagram
+## Sequence Diagrams
 [Git Commit Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_commit.png)
+
 [Git Push Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_push.png)
 
 # Known Issues
