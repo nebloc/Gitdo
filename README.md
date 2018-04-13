@@ -3,13 +3,9 @@ Gitdo - Track TODO comments in your task manager.
 
 ![AppLogo](https://github.com/nebloc/gitdo/wiki/images/GitdoLogo.png)
 
-1. [Introduction](#introduction)
-1. [Install](#install)
-1. [How to use](#how-to-use)
-1. [Architecture](#architecture)
-1. [Issues](#known-issues)
-
 # Introduction
+### [See Wiki for documentation](https://github.com/nebloc/gitdo/wiki)
+
 #### Using experimental vgo tool for dependencies.
 install: `go get -u golang.org/x/vgo`
 [See research by Russ Cox here](https://research.swtch.com/vgo)
@@ -22,21 +18,6 @@ When pushed for time or pressured from other priorities, developers may annotate
 This project will aim to aid development in this problem domain by providing an open source, extendable tool, that uses common practices and technologies to track unclean code. This will include analyzing code for comments with keywords, at different times in the version control cycle, to garner as much information as possible, and provide a bridge between the offending code and a task management system, mainly focusing on Kanban board services, such as Trello. This process will be automated using Git hooks to start analysis and extraction of annotations. The extendable and open source nature will allow further development of other services, such as personal Todo apps, and corporate ticket systems, i.e. Jira.
 
 The hope is that a dedicated tool will push teams to formalise their use of TODO annotations and allow them to be tracked more efficiently.
-
----
-### [Install](https://github.com/nebloc/Gitdo/wiki/Install)
----
-### [How to Use](https://github.com/nebloc/Gitdo/wiki/Usage)
----
-### [Building](https://github.com/nebloc/Gitdo/wiki/Building)
-
-# Architecture
-![Architecture design](https://github.com/nebloc/gitdo/wiki/images/Architecture.png)
-
-## Sequence Diagrams
-[Git Commit Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_commit.png)
-
-[Git Push Sequence Diagram](https://github.com/nebloc/gitdo/wiki/images/sequence_diagram_push.png)
 
 # Known Issues
 1. If a commit message is empty, gitdo will run, even though git will fail.
