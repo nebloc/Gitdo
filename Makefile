@@ -1,5 +1,5 @@
 HASH = $(shell git rev-parse --short HEAD)
-VERNUM=0.0.0-A2
+VERNUM=0.0.0-A5
 VERSION=-ldflags "-X main.version=$(VERNUM)-$(HASH)"
 
 cached: build 
@@ -25,4 +25,5 @@ release_dir:
 	cp -r ./plugins ./release/
 	cp mac_linux_install.sh ./release/
 	cp windows_install.bat ./release/
-	cp -r ./docs ./release/
+	cp ./docs/Install.md ./release/
+	cp ./docs/Usage.md ./release/
