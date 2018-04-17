@@ -12,9 +12,6 @@ import (
 )
 
 var (
-	// Plugin directory
-	internPluginDir = filepath.Join(gitdoDir, "plugins")
-
 	//GETID is the mode that runs the getid file in the plugin dir
 	GETID plugcommand = "getid" // Needs task
 	//CREATE is the mode that runs the create file in the plugin dir
@@ -48,8 +45,8 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	} else {
 		cmd = exec.Command(interp[0], interp[1:]...) // i.e. 'osascript -l JavaScript'
 	}
-	os.MkdirAll(filepath.Join(internPluginDir, config.Plugin), os.ModePerm) // Create plugin working dir if not exist
-	cmd.Dir = filepath.Join(internPluginDir, config.Plugin)                 // move to plugin working dir
+	os.MkdirAll(filepath.Join(pluginDirPath, config.Plugin), os.ModePerm) // Create plugin working dir if not exist
+	cmd.Dir = filepath.Join(pluginDirPath, config.Plugin)                 // move to plugin working dir
 
 	out := bytes.Buffer{}
 
