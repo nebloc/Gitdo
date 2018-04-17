@@ -30,13 +30,13 @@ var (
 	version string
 
 	// Gitdo working directory (holds plugins, secrets, tasks, etc.)
-	gitdoDir = filepath.Join(".git", "gitdo")
+	gitdoDir string
 
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
-	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
-	configFilePath  = filepath.Join(gitdoDir, "config.json")
-	pluginDirPath   = filepath.Join(gitdoDir, "plugins")
+	stagedTasksFile string
+	configFilePath  string
+	pluginDirPath   string
 )
 
 func main() {
@@ -56,7 +56,7 @@ func AppBuilder() *cli.App {
 	if version != "" {
 		gitdo.Version = fmt.Sprintf("App: %s, Build: %s_%s", version, runtime.GOOS, runtime.GOARCH)
 	}
-	gitdo.Before = ChangeToGitRoot
+	gitdo.Before = ChangeToVCRoot
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",
@@ -79,13 +79,6 @@ func AppBuilder() *cli.App {
 			Name:   "commit",
 			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
 			Action: Commit,
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:        "cached, c",
-					Usage:       "Diff is executed with --cached flag in commit mode",
-					Destination: &cachedFlag,
-				},
-			},
 			Before: LoadConfig,
 			After:  NotifyFinished,
 		},
@@ -154,10 +147,19 @@ func stripNewlineChar(orig []byte) string {
 	return newStr
 }
 
-// ChangeToGitRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
-// to git
-func ChangeToGitRoot(_ *cli.Context) error {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+// ChangeToVCRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
+// to git or mercurial
+func ChangeToVCRoot(_ *cli.Context) error {
+	SetVCType()
+	var cmd *exec.Cmd
+	switch config.VC {
+	case GIT:
+		cmd = exec.Command("git", "rev-parse", "--show-toplevel")
+	case HG:
+		cmd = exec.Command("hg", "root")
+	default:
+		return fmt.Errorf("not a git or mercurial directory")
+	}
 	result, err := cmd.Output()
 	if err != nil {
 		// Not a git dir
@@ -165,4 +167,39 @@ func ChangeToGitRoot(_ *cli.Context) error {
 	}
 	err = os.Chdir(stripNewlineChar(result))
 	return err
+}
+
+type VersionControl string
+
+const (
+	GIT VersionControl = "Git"
+	HG  VersionControl = "HG"
+)
+
+// TODO: Find a convenient way to find if HG or Git
+func SetVCType() {
+	found := false
+	if _, err := os.Stat(".git"); os.IsNotExist(err) {
+		config.VC = HG
+		gitdoDir = filepath.Join(".hg", "gitdo")
+	} else {
+		found = true
+	}
+	if _, err := os.Stat(".hg"); os.IsNotExist(err) {
+		config.VC = GIT
+		gitdoDir = filepath.Join(".git"+string(config.VC), "gitdo")
+	} else {
+		found = true
+	}
+
+
+	// File name for writing and reading staged tasks from (between commit
+	// and push)
+	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
+	configFilePath = filepath.Join(gitdoDir, "config.json")
+	pluginDirPath = filepath.Join(gitdoDir, "plugins")
+
+	if !found {
+		config.VC = VersionControl("")
+	}
 }

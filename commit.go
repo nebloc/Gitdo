@@ -16,17 +16,12 @@ var (
 	errNoDiff    = errors.New("diff is empty")
 )
 
-// GetDiffFromCmd runs the git diff command on the OS and returns a string of
+// GetDiffFromGit runs the git diff command on the OS and returns a string of
 // the result or the error that the cmd produced.
-func GetDiffFromCmd() (string, error) {
+func GetDiffFromGit() (string, error) {
 	// Run a git diff to look for changes --cached to be added for
-	// precommit hook
-	var cmd *exec.Cmd
-	if cachedFlag {
-		cmd = exec.Command("git", "diff", "--cached")
-	} else {
-		cmd = exec.Command("git", "diff")
-	}
+	// pre-commit hook
+	cmd := exec.Command("git", "diff", "--cached")
 	resp, err := cmd.CombinedOutput()
 
 	// If error running git diff abort all
@@ -46,6 +41,20 @@ func GetDiffFromCmd() (string, error) {
 		return "", errNoDiff
 	}
 
+	return diff, nil
+}
+
+func GetDiffFromHG() (string, error) {
+	cmd := exec.Command("hg", "diff")
+	resp, err := cmd.CombinedOutput()
+	if err != nil {
+		panic("HG failed to diff")
+	}
+	diff := stripNewlineChar(resp)
+	if diff == "" {
+		return "", errNoDiff
+	}
+	Warn(diff)
 	return diff, nil
 }
 
@@ -76,7 +85,17 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(_ *cli.Context) error {
-	rawDiff, err := GetDiffFromCmd()
+
+	var err error
+	var rawDiff string
+
+	switch config.VC {
+	case GIT:
+		rawDiff, err = GetDiffFromGit()
+	case HG:
+		rawDiff, err = GetDiffFromHG()
+	}
+
 	if err == errNoDiff {
 		return nil
 	}

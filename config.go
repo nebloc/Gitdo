@@ -12,6 +12,7 @@ import (
 )
 
 type Config struct {
+	VC VersionControl `json:"vc"`
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
 	// Plugin to use at push time
@@ -25,7 +26,7 @@ type Config struct {
 
 // String returns a human readable format of the Config struct
 func (c *Config) String() string {
-	return fmt.Sprintf("Author: %s\nPlugin: %s\nInterpreter: %s", c.Author, c.Plugin, c.PluginInterpreter)
+	return fmt.Sprintf("VC: %s\nAuthor: %s\nPlugin: %s\nInterpreter: %s", c.Author, c.Plugin, c.PluginInterpreter)
 }
 
 // Checks that the configuration has all the information needed
@@ -73,6 +74,7 @@ func LoadConfig(_ *cli.Context) error {
 	return nil
 }
 
+//TODO: Find if there is an equivelent way of getting email from mercurial
 // getGitEmail runs the 'git config user.email' command to get the default email address of the user for the current dir
 func getGitEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")

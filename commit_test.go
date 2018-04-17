@@ -177,18 +177,18 @@ func TestGetDiffFromCmd(t *testing.T) {
 	defer closeDir()
 	t.Log(config.String())
 
-	_, err := GetDiffFromCmd()
+	_, err := GetDiffFromGit()
 	if err != errNotGitDir {
 		t.Errorf("Expected not a git repo, got: %v", err)
 	}
 	testStartRepoHelper(t)
-	diff, err := GetDiffFromCmd()
+	diff, err := GetDiffFromGit()
 	if err != errNoDiff {
 		t.Errorf("expected diff to be empty: %v: %v", err, diff)
 	}
 	file := testMockFileHelper(t)
 	testAddToGitHelper(t, file)
-	diff, err = GetDiffFromCmd()
+	diff, err = GetDiffFromGit()
 	if err != nil {
 		t.Errorf("Unexpected error getting diff: %v", err)
 	}
