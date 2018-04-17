@@ -258,6 +258,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 		resp, err := RunPlugin(GETID, t)
 		if err != nil {
 			Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
+			panic("Couldn't get id for task in plugin - " + err.Error() + resp)
 		}
 		t.id = resp
 		return t, true
