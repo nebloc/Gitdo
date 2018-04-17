@@ -23,5 +23,5 @@ The hope is that a dedicated tool will push teams to formalise their use of TODO
 1. If a commit message is empty, gitdo will run, even though git will fail.
 1. If a task has a new line character it will not look at the second line, and treat only the first line.
 1. If a plugin fails, it is not clear whether gitdo will fail to, and stop the commit.
-1. Cannot get it to run when committing from Eclipse. Running Git from CLI is best
+1. ~~Cannot get it to run when committing from Eclipse. Running Git from CLI is best~~  [How to fix](https://github.com/nebloc/Gitdo/wiki/Usage#eclipse).
 1. Intellij runs hook if selected, but will not give information unless it fails. Running Git from CLI is best.
