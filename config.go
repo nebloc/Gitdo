@@ -74,7 +74,7 @@ func LoadConfig(_ *cli.Context) error {
 	return nil
 }
 
-//TODO: Find if there is an equivelent way of getting email from mercurial
+//TODO: Find if there is an equivalent way of getting email from mercurial
 // getGitEmail runs the 'git config user.email' command to get the default email address of the user for the current dir
 func getGitEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")

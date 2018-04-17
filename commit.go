@@ -139,6 +139,9 @@ func Commit(_ *cli.Context) error {
 
 // RestageTasks runs git add on the file that has had a tag added
 func RestageTasks(task Task) error {
+	if config.VC != GIT {
+		return nil
+	}
 	cmd := exec.Command("git", "add", task.FileName)
 	if _, err := cmd.Output(); err != nil {
 		return err
@@ -266,7 +269,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	if len(match) > 0 { // if match was found
 		t := Task{
 			id:       "",
-			FileName: line.FileTo,
+			FileName: strings.TrimSpace(line.FileTo),
 			TaskName: match[1],
 			FileLine: line.Position,
 			Author:   config.Author,

@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/urfave/cli"
+	"fmt"
 )
 
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
@@ -50,24 +51,52 @@ func PostCommit(_ *cli.Context) error {
 
 // getHash runs rev-parse on git HEAD to get the latest commit
 func getHash() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	resp, err := cmd.Output()
-	if err != nil {
-		return "", errors.New("could not get hash of last commit")
+	switch config.VC {
+	case GIT:
+		cmd := exec.Command("git", "rev-parse", "HEAD")
+		resp, err := cmd.Output()
+		if err != nil {
+			return "", errors.New("could not get hash of last commit")
+		}
+		hash := stripNewlineChar(resp)
+		return hash, nil
+	case HG:
+		cmd := exec.Command("hg", "id", "-i")
+		resp, err := cmd.Output()
+		if err != nil {
+			return "", errors.New("could not get hash of last commit")
+		}
+		hash := stripNewlineChar(resp)
+		return hash, nil
+
+	default:
+		return "", fmt.Errorf("no hash")
 	}
 
-	hash := stripNewlineChar(resp)
-	return hash, nil
 }
 
 // getBranch gets the latest branch post-commit
 func getBranch() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	resp, err := cmd.Output()
-	if err != nil {
-		return "", errors.New("could not get branch of last commit")
-	}
+	switch config.VC {
+	case GIT:
+		cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+		resp, err := cmd.Output()
+		if err != nil {
+			return "", errors.New("could not get branch of last commit")
+		}
 
-	branch := stripNewlineChar(resp)
-	return branch, nil
+		branch := stripNewlineChar(resp)
+		return branch, nil
+	case HG:
+		cmd := exec.Command("hg", "branch")
+		resp, err := cmd.Output()
+		if err != nil {
+			return "", errors.New("could not get branch of last commit")
+		}
+
+		branch := stripNewlineChar(resp)
+		return branch, nil
+	default:
+		return "", fmt.Errorf("could not get branch of last commit")
+	}
 }

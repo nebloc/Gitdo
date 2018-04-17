@@ -187,7 +187,7 @@ func SetVCType() {
 	}
 	if _, err := os.Stat(".hg"); os.IsNotExist(err) {
 		config.VC = GIT
-		gitdoDir = filepath.Join(".git"+string(config.VC), "gitdo")
+		gitdoDir = filepath.Join(".git", "gitdo")
 	} else {
 		found = true
 	}

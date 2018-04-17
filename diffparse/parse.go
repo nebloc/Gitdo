@@ -42,6 +42,7 @@ func ParseGitDiff(rawDiff string) ([]SourceLine, error) {
 
 		case strings.HasPrefix(line, toFilePrefix) && inHeader:
 			toFileName = strings.TrimPrefix(line, toFilePrefix)
+			toFileName = strings.Fields(toFileName)[0]
 
 		case strings.HasPrefix(line, delFilePrefix) && inHeader:
 			toFileName = ""
@@ -99,6 +100,6 @@ type SourceLine struct {
 type LineMode int
 
 const (
-	ADDED LineMode = iota
+	ADDED   LineMode = iota
 	REMOVED
 )
