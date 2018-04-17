@@ -47,7 +47,9 @@ func Init(ctx *cli.Context) error {
 }
 
 func CreatePlugins() error {
-	err := os.MkdirAll(filepath.Join(pluginDirPath, config.Plugin), os.ModePerm)
+	path := filepath.Join(pluginDirPath, config.Plugin)
+	Warn(path)
+	err := os.MkdirAll(path, os.ModePerm)
 	return err
 }
 
@@ -173,18 +175,27 @@ func CreateHooks() error {
 		return err
 	}
 
-	// Paths
-	srcHooks := filepath.Join(homeDir, "hooks")
-	dstHooks := filepath.Join(".git", "hooks")
+	switch config.VC {
+	case GIT:
+		srcHooks := filepath.Join(homeDir, "hooks")
+		dstHooks := filepath.Join(".git", "hooks")
 
-	err = os.MkdirAll(dstHooks, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("could not create plugin dir inside .git/gitdo: %v", err)
-	}
+		err = os.MkdirAll(dstHooks, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("could not create hook dir inside .git/gitdo: %v", err)
+		}
 
-	err = copyFolder(srcHooks, dstHooks)
-	if err != nil {
-		return err
+		err = copyFolder(srcHooks, dstHooks)
+		if err != nil {
+			return err
+		}
+	case HG:
+		srcHook := filepath.Join(homeDir, "hgrc")
+		dstHook := filepath.Join(".hg", "hgrc")
+		err = copyFile(srcHook, dstHook)
+		if err != nil {
+			return fmt.Errorf("could not move .hgrc to inside .hgrc: %v", err)
+		}
 	}
 
 	return nil

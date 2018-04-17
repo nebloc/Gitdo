@@ -54,7 +54,6 @@ func GetDiffFromHG() (string, error) {
 	if diff == "" {
 		return "", errNoDiff
 	}
-	Warn(diff)
 	return diff, nil
 }
 

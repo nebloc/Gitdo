@@ -192,7 +192,6 @@ func SetVCType() {
 		found = true
 	}
 
-
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
 	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
