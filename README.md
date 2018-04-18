@@ -4,6 +4,12 @@ Gitdo - Track TODO comments in your task manager.
 ![AppLogo](https://github.com/nebloc/gitdo/wiki/images/GitdoLogo.png)
 
 # Introduction
+Gitdo is a tool for formalising the tracking of task annotations in source code. The idea is that when a new git (working on mercurial support as well) commit contains a new task such as;
+```
+// TODO: Make sure the README makes sense in explaining this.
+```
+Gitdo will capture it at pre-commit time, use the chosen plugin ([see here](https://github.com/nebloc/gitdo/wiki/plugins)) to get an ID for which will be added to the source code. Then when a git push is ran it will add the new tasks to the chosen task manager.
+
 ### [See Wiki for documentation](https://github.com/nebloc/gitdo/wiki)
 
 ### Task Annotations
@@ -22,15 +28,6 @@ Example|Captured
 #### Using experimental vgo tool for dependencies.
 install: `go get -u golang.org/x/vgo`
 [See research by Russ Cox here](https://research.swtch.com/vgo)
-
-## Mission
-Suboptimal code is not correctly tracked and corrected in modern software methodologies, often leading to quality or performance issues later in the application lifecycle.
-
-When pushed for time or pressured from other priorities, developers may annotate unfinished code, with certain terms, in order to show that the following code is not complete. However, these annotations are often not visible enough and go long periods without being fixed.
-
-This project will aim to aid development in this problem domain by providing an open source, extendable tool, that uses common practices and technologies to track unclean code. This will include analyzing code for comments with keywords, at different times in the version control cycle, to garner as much information as possible, and provide a bridge between the offending code and a task management system, mainly focusing on Kanban board services, such as Trello. This process will be automated using Git hooks to start analysis and extraction of annotations. The extendable and open source nature will allow further development of other services, such as personal Todo apps, and corporate ticket systems, i.e. Jira.
-
-The hope is that a dedicated tool will push teams to formalise their use of TODO annotations and allow them to be tracked more efficiently.
 
 # Known Issues
 1. If a commit message is empty, gitdo will run, even though git will fail.
