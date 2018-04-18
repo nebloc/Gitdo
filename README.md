@@ -10,6 +10,9 @@ Gitdo is a tool for formalising the tracking of task annotations in source code.
 ```
 Gitdo will capture it at pre-commit time, use the chosen plugin ([see here](https://github.com/nebloc/gitdo/wiki/plugins)) to get an ID for which will be added to the source code. Then when a git push is ran it will add the new tasks to the chosen task manager.
 
+### Example video
+[![See example](https://img.youtube.com/vi/czmJEh818Qo/0.jpg)](https://youtu.be/czmJEh818Qo)
+
 ### [See Wiki for documentation](https://github.com/nebloc/gitdo/wiki)
 
 ### Task Annotations
