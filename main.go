@@ -150,26 +150,40 @@ func stripNewlineChar(orig []byte) string {
 // ChangeToVCRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
 // to git or mercurial
 func ChangeToVCRoot(_ *cli.Context) error {
-	SetVCType()
-	var cmd *exec.Cmd
-	switch config.VC {
-	case GIT:
-		cmd = exec.Command("git", "rev-parse", "--show-toplevel")
-	case HG:
-		cmd = exec.Command("hg", "root")
-	default:
-		return fmt.Errorf("not a git or mercurial directory")
+	dir, isGit := TryGitTopLevel()
+	if !isGit {
+		var isHg bool
+		dir, isHg = TryHgTopLevel()
+		if !isHg {
+			return errNotGitDir
+		}
 	}
-	result, err := cmd.Output()
-	if err != nil {
-		// Not a git dir
-		return errNotGitDir
-	}
-	err = os.Chdir(stripNewlineChar(result))
+	SetVCPaths()
+	err := os.Chdir(dir)
 	return err
 }
 
 type VersionControl string
+
+func TryGitTopLevel() (string, bool) {
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	result, err := cmd.Output()
+	if err != nil {
+		return "", false
+	}
+	config.VC = GIT
+	return stripNewlineChar(result), true
+}
+
+func TryHgTopLevel() (string, bool) {
+	cmd := exec.Command("hg", "root")
+	result, err := cmd.Output()
+	if err != nil {
+		return "", false
+	}
+	config.VC = HG
+	return stripNewlineChar(result), true
+}
 
 const (
 	GIT VersionControl = "Git"
@@ -177,19 +191,12 @@ const (
 )
 
 // TODO: Find a convenient way to find if HG or Git
-func SetVCType() {
-	found := false
-	if _, err := os.Stat(".git"); os.IsNotExist(err) {
-		config.VC = HG
-		gitdoDir = filepath.Join(".hg", "gitdo")
-	} else {
-		found = true
-	}
-	if _, err := os.Stat(".hg"); os.IsNotExist(err) {
-		config.VC = GIT
+func SetVCPaths() {
+	switch config.VC {
+	case GIT:
 		gitdoDir = filepath.Join(".git", "gitdo")
-	} else {
-		found = true
+	case HG:
+		gitdoDir = filepath.Join(".hg", "gitdo")
 	}
 
 	// File name for writing and reading staged tasks from (between commit
@@ -198,7 +205,4 @@ func SetVCType() {
 	configFilePath = filepath.Join(gitdoDir, "config.json")
 	pluginDirPath = filepath.Join(gitdoDir, "plugins")
 
-	if !found {
-		config.VC = VersionControl("")
-	}
 }

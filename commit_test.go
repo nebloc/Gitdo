@@ -33,7 +33,7 @@ func setupForTest(t *testing.T) (*cli.Context, func()) {
 		Plugin:            "Test",
 		PluginInterpreter: "python3",
 	}
-	SetVCType()
+	SetVCPaths()
 
 	cDir, closeDir := testDirHelper(t)
 	t.Logf("working in dir: %s", cDir)
