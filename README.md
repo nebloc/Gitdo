@@ -6,6 +6,19 @@ Gitdo - Track TODO comments in your task manager.
 # Introduction
 ### [See Wiki for documentation](https://github.com/nebloc/gitdo/wiki)
 
+### Task Annotations
+Example|Captured
+-------|--------
+`//TODO: Is this captured?`| Y
+`// TODO: Is this captured?`| Y
+`// TODO Is this captured?` | N
+`# TODO: Is this captured?` | Y
+`#TODO: Is this captured?` | Y
+`# TODO Is this captured?` | N
+`//TODO(): Is this captured`|Y
+
+ [Test your own string](https://play.golang.org/p/PVfowMCOkyJ)
+
 #### Using experimental vgo tool for dependencies.
 install: `go get -u golang.org/x/vgo`
 [See research by Russ Cox here](https://research.swtch.com/vgo)
