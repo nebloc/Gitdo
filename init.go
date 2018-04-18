@@ -192,12 +192,29 @@ func CreateHooks() error {
 	case HG:
 		srcHook := filepath.Join(homeDir, "hgrc")
 		dstHook := filepath.Join(".hg", "hgrc")
-		err = copyFile(srcHook, dstHook)
+		err = appendFile(srcHook, dstHook)
 		if err != nil {
 			return fmt.Errorf("could not move .hgrc to inside .hgrc: %v", err)
 		}
 	}
 
+	return nil
+}
+
+func appendFile(src, dst string) error {
+	from, err := ioutil.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	to, err := os.OpenFile(dst, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer to.Close()
+
+	if _, err = to.Write(from); err != nil {
+		return err
+	}
 	return nil
 }
 

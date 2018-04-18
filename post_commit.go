@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/urfave/cli"
 	"fmt"
+	"github.com/urfave/cli"
 )
 
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
