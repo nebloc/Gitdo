@@ -28,10 +28,12 @@ func TestRegexs(t *testing.T) {
 
 func setupForTest(t *testing.T) (*cli.Context, func()) {
 	config = &Config{
+		VC:                GIT,
 		Author:            "benjamin.coleman@me.com",
-		Plugin:            "test",
-		PluginInterpreter: "python",
+		Plugin:            "Test",
+		PluginInterpreter: "python3",
 	}
+	SetVCType()
 
 	cDir, closeDir := testDirHelper(t)
 	t.Logf("working in dir: %s", cDir)
@@ -128,10 +130,12 @@ func TestCheckTagged(t *testing.T) {
 	}{
 		{"//TODO: Hello <08238>", true, "08238"},
 		{"// TODO: Hello <08238>", true, "08238"},
+		{"// TODO:Hello <08238>", true, "08238"},
 		{"//TODO: Hello", false, ""},
 		{"+// TODO: Test <fhsiufh>", false, ""},
 		{"#TODO: Hello <08238>", true, "08238"},
 		{"# TODO: Hello <08238>", true, "08238"},
+		{"# TODO:Hello <08238>", true, "08238"},
 		{"#TODO: Hello", false, ""},
 		{"+# TODO: Test <fhsiufh>", false, ""},
 	}
@@ -141,9 +145,11 @@ func TestCheckTagged(t *testing.T) {
 		id, found := CheckTagged(line)
 		if found != data.ExpFound {
 			t.Errorf("Line: %s\nExpected: %v, Got: %v", data.LineContent, data.ExpFound, found)
+			continue
 		}
 		if id != data.ExpID {
 			t.Errorf("Line: %s\nExpected: %v, Got: %v", data.LineContent, data.ExpID, id)
+			continue
 		}
 	}
 }
@@ -156,8 +162,10 @@ func TestCheckTaskRegex(t *testing.T) {
 	}{
 		{"//TODO: Hello", "Hello"},
 		{"// TODO: Hello", "Hello"},
+		{"// TODO:Hello", "Hello"},
 		{"+// TODO: Hello", ""},
 		{"#TODO: Hello", "Hello"},
+		{"#TODO:Hello", "Hello"},
 		{"# TODO: Hello", "Hello"},
 		{"+# TODO: Hello", ""},
 	}

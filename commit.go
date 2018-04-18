@@ -96,6 +96,7 @@ func Commit(_ *cli.Context) error {
 	}
 
 	if err == errNoDiff {
+		Warn("Empty diff")
 		return nil
 	}
 	if err != nil {
@@ -152,9 +153,9 @@ var (
 	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
 	// todoReg is a compiled regex to match the TODO comments
 	todoReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
+		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(.*)`)
 	taggedReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
+		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(?:.*)<(.*)>`)
 )
 
 // processDiff Takes a diff section for a file and extracts TODO comments
