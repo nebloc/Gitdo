@@ -133,7 +133,7 @@ var (
 	todoReg = regexp.MustCompile(
 		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](.*)`)
 	taggedReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]](?:.*)<(.*)>`)
+		`^[[:space:]]*(?://|#)(?:[[:space:]]|)TODO(?:.*):[[:space:]]*(?:.*)<(.*)>`)
 )
 
 // processDiff Takes a diff section for a file and extracts TODO comments
