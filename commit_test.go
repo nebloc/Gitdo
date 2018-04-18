@@ -129,11 +129,13 @@ func TestCheckTagged(t *testing.T) {
 		ExpID       string
 	}{
 		{"//TODO: Hello <08238>", true, "08238"},
+		{"//TODO:Hello <08238>", true, "08238"},
 		{"// TODO: Hello <08238>", true, "08238"},
 		{"// TODO:Hello <08238>", true, "08238"},
 		{"//TODO: Hello", false, ""},
 		{"+// TODO: Test <fhsiufh>", false, ""},
 		{"#TODO: Hello <08238>", true, "08238"},
+		{"#TODO:Hello <08238>", true, "08238"},
 		{"# TODO: Hello <08238>", true, "08238"},
 		{"# TODO:Hello <08238>", true, "08238"},
 		{"#TODO: Hello", false, ""},
@@ -161,6 +163,7 @@ func TestCheckTaskRegex(t *testing.T) {
 		ExpTask     string
 	}{
 		{"//TODO: Hello", "Hello"},
+		{"//TODO:Hello", "Hello"},
 		{"// TODO: Hello", "Hello"},
 		{"// TODO:Hello", "Hello"},
 		{"+// TODO: Hello", ""},
