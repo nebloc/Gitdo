@@ -1,17 +1,18 @@
-package main
+package versioncontrol
 
 import (
 	"os/exec"
 	"fmt"
 	"errors"
 	"path/filepath"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 // Git is an implementation of the VersionControl interface for the Git version control system.
 type Git struct {
 	name     string
 	dir      string
-	topLevel string
+	TopLevel string
 }
 
 // NewGit returns a pointer to a new Git implementation of the VersionControl interface.
@@ -27,7 +28,7 @@ func (g *Git) SetHooks(homeDir string) error {
 	srcHooks := filepath.Join(homeDir, "hooks")
 	dstHooks := filepath.Join(g.dir, "hooks")
 
-	err := copyFolder(srcHooks, dstHooks)
+	err := utils.CopyFolder(srcHooks, dstHooks)
 	return err
 }
 
@@ -43,7 +44,7 @@ func (g *Git) NameOfVC() string {
 
 // PathOfTopLevel returns the value of topLevel where the path to the root of the project is kept (e.g. dir with ".git")
 func (g *Git) PathOfTopLevel() string {
-	return g.topLevel
+	return g.TopLevel
 }
 
 // GetDiff executes a "git diff --cached" command to return the difference between files that are staged for a commit.
@@ -57,17 +58,13 @@ func (*Git) GetDiff() (string, error) {
 
 	// If error running git diff abort all
 	if err != nil {
+		// Not a Git directory
 		if err.Error() == "exit status 129" {
-			return "", errNotVCDir
+			return "", ErrNotVCDir
 		}
-		if err, ok := err.(*exec.ExitError); ok {
-			Dangerf("failed to exit git diff: %v, %v", err, stripNewlineChar(resp))
-			return "", err
-		}
-		Danger("git diff couldn't be ran")
 		return "", err
 	}
-	diff := stripNewlineChar(resp)
+	diff := utils.StripNewlineChar(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -76,8 +73,8 @@ func (*Git) GetDiff() (string, error) {
 }
 
 // RestageTasks runs a "git add" on a new task's file name to re-stage it so that the ID is in the immediate commit.
-func (*Git) RestageTasks(task Task) error {
-	cmd := exec.Command("git", "add", task.FileName)
+func (*Git) RestageTasks(fileName string) error {
+	cmd := exec.Command("git", "add", fileName)
 	if _, err := cmd.Output(); err != nil {
 		return err
 	}
@@ -89,10 +86,10 @@ func (*Git) GetEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")
 	resp, err := cmd.Output()
 	if err != nil {
-		Warn("Please set your git email address for this repo. git config user.email example@email.com")
+		utils.Warn("Please set your git email address for this repo. git config user.email example@email.com")
 		return "", fmt.Errorf("Could not get user.email from git: %v", err)
 	}
-	return stripNewlineChar(resp), nil
+	return utils.StripNewlineChar(resp), nil
 }
 
 // Init Initialises a Git repository in the current directory.
@@ -115,7 +112,7 @@ func (*Git) GetBranch() (string, error) {
 		return "", errors.New("could not get branch of last commit")
 	}
 
-	branch := stripNewlineChar(resp)
+	branch := utils.StripNewlineChar(resp)
 	return branch, nil
 }
 
@@ -126,6 +123,6 @@ func (*Git) GetHash() (string, error) {
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
 	}
-	hash := stripNewlineChar(resp)
+	hash := utils.StripNewlineChar(resp)
 	return hash, nil
 }

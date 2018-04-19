@@ -1,4 +1,6 @@
-package main
+package versioncontrol
+
+import "errors"
 
 type VersionControl interface {
 	// Initialise the VC system on init
@@ -16,8 +18,13 @@ type VersionControl interface {
 	PathOfTopLevel() string
 
 	// Add changed tasks back to staging
-	RestageTasks(task Task) error
+	RestageTasks(fileName string) error
 
 	// Set the hooks that are needed for the VC during init
 	SetHooks(homeDir string) error
 }
+
+var (
+	ErrNotVCDir = errors.New("directory is not a git or mercurial repo")
+	ErrNoDiff   = errors.New("diff is empty")
+)

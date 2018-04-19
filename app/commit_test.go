@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/nebloc/gitdo/app/diffparse"
+	"github.com/nebloc/gitdo/app/versioncontrol"
 )
 
 func TestRegexs(t *testing.T) {
@@ -30,8 +31,8 @@ func TestCommit(t *testing.T) {
 	defer closeDir()
 
 	err := Commit(ctx)
-	if err != errNotVCDir {
-		t.Errorf("Expected: %v, got: %v", errNotVCDir, err)
+	if err != versioncontrol.ErrNotVCDir {
+		t.Errorf("Expected: %v, got: %v", versioncontrol.ErrNotVCDir, err)
 	}
 
 	testStartRepoHelper(t)
@@ -144,18 +145,18 @@ func TestGetDiffFromCmd(t *testing.T) {
 	_, closeDir := setupForTest(t)
 	defer closeDir()
 
-	_, err := GetDiffFromGit()
-	if err != errNotVCDir {
+	_, err := config.vc.GetDiff()
+	if err != versioncontrol.ErrNotVCDir {
 		t.Errorf("Expected not a git repo, got: %v", err)
 	}
 	testStartRepoHelper(t)
-	diff, err := GetDiffFromGit()
-	if err != ErrNoDiff {
+	diff, err := config.vc.GetDiff()
+	if err != versioncontrol.ErrNoDiff {
 		t.Errorf("expected diff to be empty: %v: %v", err, diff)
 	}
 	file := testMockFileHelper(t)
 	testAddToGitHelper(t, file)
-	diff, err = GetDiffFromGit()
+	diff, err = config.vc.GetDiff()
 	if err != nil {
 		t.Errorf("Unexpected error getting diff: %v", err)
 	}

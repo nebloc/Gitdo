@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 	"os"
 	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/app/versioncontrol"
+	"github.com/nebloc/gitdo/app/utils"
 	"strings"
 )
 
 type Config struct {
-	vc VersionControl
+	vc versioncontrol.VersionControl
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
 	// Plugin to use at push time
@@ -62,7 +64,7 @@ func (c *Config) interpreterIsSet() bool {
 func LoadConfig(_ *cli.Context) error {
 	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		Warn("Could not find configuration file for gitdo. Have you ran \"gitdo init\"?")
+		utils.Warn("Could not find configuration file for gitdo. Have you ran \"gitdo init\"?")
 		return err
 	}
 

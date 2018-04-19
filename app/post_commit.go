@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
@@ -21,7 +22,7 @@ func PostCommit(_ *cli.Context) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		Warn("No tasks file")
+		utils.Warn("No tasks file")
 		return nil
 	}
 	for id, task := range tasks.NewTasks {
@@ -34,12 +35,12 @@ func PostCommit(_ *cli.Context) error {
 
 	bUpdated, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
-		Danger("couldn't marshal tasks with added hash")
+		utils.Danger("couldn't marshal tasks with added hash")
 		return err
 	}
 	err = ioutil.WriteFile(stagedTasksFile, bUpdated, os.ModePerm)
 	if err != nil {
-		Danger("couldn't write tasks with hash back to tasks.json")
+		utils.Danger("couldn't write tasks with hash back to tasks.json")
 		return err
 	}
 	return nil

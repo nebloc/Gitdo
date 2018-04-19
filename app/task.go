@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 type Task struct {
@@ -73,7 +74,7 @@ func getTasksFile() (*Tasks, error) {
 	}
 	err = json.Unmarshal(bExisting, &existingTasks)
 	if err != nil {
-		Danger("Poorly formatted staged JSON")
+		utils.Danger("Poorly formatted staged JSON")
 		return existingTasks, err
 	}
 	for id, task := range existingTasks.NewTasks {
@@ -96,12 +97,12 @@ func NewTaskMap() *Tasks {
 func writeTasksFile(tasks *Tasks) error {
 	btask, err := json.MarshalIndent(*tasks, "", "\t")
 	if err != nil {
-		Danger("couldn't marshal tasks")
+		utils.Danger("couldn't marshal tasks")
 		return err
 	}
 	err = ioutil.WriteFile(stagedTasksFile, btask, os.ModePerm)
 	if err != nil {
-		Danger("couldn't write new staged tasks")
+		utils.Danger("couldn't write new staged tasks")
 		return err
 	}
 	return nil

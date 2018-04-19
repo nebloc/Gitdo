@@ -1,62 +1,16 @@
 package main
 
 import (
-	"errors"
 	"io/ioutil"
-	"os/exec"
 	"regexp"
 	"strings"
 
 	"github.com/nebloc/gitdo/app/diffparse"
 	"github.com/urfave/cli"
 	"fmt"
+	"github.com/nebloc/gitdo/app/versioncontrol"
+	"github.com/nebloc/gitdo/app/utils"
 )
-
-var (
-	errNotVCDir = errors.New("directory is not a git or mercurial repo")
-	ErrNoDiff   = errors.New("diff is empty")
-)
-
-// GetDiffFromGit runs the git diff command on the OS and returns a string of
-// the result or the error that the cmd produced.
-func GetDiffFromGit() (string, error) {
-	// Run a git diff to look for changes --cached to be added for
-	// pre-commit hook
-	cmd := exec.Command("git", "diff", "--cached")
-	resp, err := cmd.CombinedOutput()
-
-	// If error running git diff abort all
-	if err != nil {
-		if err.Error() == "exit status 129" {
-			return "", errNotVCDir
-		}
-		if err, ok := err.(*exec.ExitError); ok {
-			Dangerf("failed to exit git diff: %v, %v", err, stripNewlineChar(resp))
-			return "", err
-		}
-		Danger("git diff couldn't be ran")
-		return "", err
-	}
-	diff := stripNewlineChar(resp)
-	if diff == "" {
-		return "", ErrNoDiff
-	}
-
-	return diff, nil
-}
-
-func GetDiffFromHG() (string, error) {
-	cmd := exec.Command("Hg", "diff")
-	resp, err := cmd.CombinedOutput()
-	if err != nil {
-		panic("Hg failed to diff")
-	}
-	diff := stripNewlineChar(resp)
-	if diff == "" {
-		return "", ErrNoDiff
-	}
-	return diff, nil
-}
 
 // CommitTasks gets existing tasks, removes them from the task file if deleted, adds new tasks, and runs the done plugin
 // where applicable
@@ -68,7 +22,7 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		Warnf("Could not read existing tasks: %v", err)
+		utils.Warnf("Could not read existing tasks: %v", err)
 	}
 	for id := range deleted {
 		if _, exists := tasks.NewTasks[id]; exists {
@@ -87,8 +41,8 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 func Commit(_ *cli.Context) error {
 	rawDiff, err := config.vc.GetDiff()
 
-	if err == ErrNoDiff {
-		Warn("Empty diff")
+	if err == versioncontrol.ErrNoDiff {
+		utils.Warn("Empty diff")
 		return nil
 	}
 	if err != nil {
@@ -98,7 +52,7 @@ func Commit(_ *cli.Context) error {
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		Dangerf("Error processing diff: %v", err)
+		utils.Dangerf("Error processing diff: %v", err)
 		return err
 	}
 
@@ -109,7 +63,7 @@ func Commit(_ *cli.Context) error {
 
 	changes := processDiff(lines, taskChan)
 	for _, task := range changes.New {
-		Highlightf("new task: %v", task.String())
+		utils.Highlightf("new task: %v", task.String())
 	}
 	err = CommitTasks(changes.New, changes.Deleted)
 	if err != nil {
@@ -117,13 +71,13 @@ func Commit(_ *cli.Context) error {
 	}
 	<-done
 	for _, task := range changes.New {
-		err := config.vc.RestageTasks(task)
+		err := config.vc.RestageTasks(task.FileName)
 		if err != nil {
-			Warnf("could not restage after tagging: %v", err)
+			utils.Warnf("could not restage after tagging: %v", err)
 		}
 	}
 
-	Highlight(changes.String())
+	utils.Highlight(changes.String())
 
 	return nil
 }
@@ -186,7 +140,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 		if open {
 			err := MarkSourceLines(task)
 			if err != nil {
-				Warnf("Error tagging source: %v", err)
+				utils.Warnf("Error tagging source: %v", err)
 				continue
 			}
 		} else {
@@ -201,7 +155,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 func MarkSourceLines(task Task) error {
 	fileCont, err := ioutil.ReadFile(task.FileName)
 	if err != nil {
-		Dangerf("Could not mark source code as extracted: %v", err)
+		utils.Dangerf("Could not mark source code as extracted: %v", err)
 		return err
 	}
 
@@ -221,7 +175,7 @@ func MarkSourceLines(task Task) error {
 	lines[taskIndex] += " <" + task.id + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, sep)), 0644)
 	if err != nil {
-		Dangerf("could not mark source code as extracted: %v", err)
+		utils.Dangerf("could not mark source code as extracted: %v", err)
 		return err
 	}
 	return nil
@@ -258,7 +212,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 
 		resp, err := RunPlugin(GETID, t)
 		if err != nil {
-			Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
+			utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
 			panic("Couldn't get id for task in plugin - " + err.Error() + resp)
 		}
 		t.id = resp

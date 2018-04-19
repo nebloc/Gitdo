@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
+	"github.com/nebloc/gitdo/app/utils"
 	"github.com/urfave/cli"
 )
 
@@ -26,10 +26,10 @@ func ConfirmUser(ctx *cli.Context) error {
 		return nil
 	}
 	var ans string
-	Warn("Are you sure you want to purge the task file? (y/n)")
+	utils.Warn("Are you sure you want to purge the task file? (y/n)")
 	_, err := fmt.Scan(&ans)
 	if err != nil {
-		Warnf("Not purging: %v", err)
+		utils.Warnf("Not purging: %v", err)
 		return nil
 	}
 	ans = strings.TrimSpace(ans)
@@ -40,6 +40,6 @@ func ConfirmUser(ctx *cli.Context) error {
 		return nil
 	}
 
-	Warn("Not Purging")
+	utils.Warn("Not Purging")
 	return nil
 }

@@ -4,14 +4,13 @@ import (
 	"github.com/urfave/cli"
 	"testing"
 	"os"
+	"github.com/nebloc/gitdo/app/versioncontrol"
 )
 
 var gitdo *cli.App
 
 func init() {
 	gitdo = AppBuilder()
-	cachedFlag = true
-	verboseLogFlag = true
 }
 
 // setupForTest creates a directory in the os.TMPDIR and moves in to it, sets the configuration and creates a new app
@@ -21,7 +20,7 @@ func setupForTest(t *testing.T) (*cli.Context, func()) {
 	t.Logf("working in dir: %s", cDir)
 
 	config = &Config{
-		vc:                NewGit(),
+		vc:                versioncontrol.NewGit(),
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "Test",
 		PluginInterpreter: "python",

@@ -1,4 +1,4 @@
-package main
+package versioncontrol
 
 import (
 	"os/exec"
@@ -8,11 +8,12 @@ import (
 	"bufio"
 	"os"
 	"strings"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 // Hg is an implementation of the VersionControl interface for the Mercurial version control system.
 type Hg struct {
-	topLevel string
+	TopLevel string
 	name     string
 	dir      string
 }
@@ -30,7 +31,7 @@ func NewHg() *Hg {
 func (h *Hg) SetHooks(homeDir string) error {
 	srcHook := filepath.Join(homeDir, "hgrc")
 	dstHook := filepath.Join(h.dir, "hgrc")
-	err := appendFile(srcHook, dstHook)
+	err := utils.AppendFile(srcHook, dstHook)
 	if err != nil {
 		return fmt.Errorf("could not move .hgrc to inside %s: %v", h.dir, err)
 	}
@@ -49,7 +50,7 @@ func (h *Hg) NameOfVC() string {
 
 // PathOfTopLevel returns the value of topLevel where the path to the root of the project is kept (e.g. dir with ".hg")
 func (h *Hg) PathOfTopLevel() string {
-	return h.topLevel
+	return h.TopLevel
 }
 
 // GetDiff executes a "hg diff" command to return the difference between current files that are tracked since last
@@ -59,9 +60,9 @@ func (*Hg) GetDiff() (string, error) {
 	cmd := exec.Command("hg", "diff")
 	resp, err := cmd.CombinedOutput()
 	if err != nil {
-		panic("mercurial failed to give diff")
+		return "", fmt.Errorf("failed to get hg diff")
 	}
-	diff := stripNewlineChar(resp)
+	diff := utils.StripNewlineChar(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -69,7 +70,7 @@ func (*Hg) GetDiff() (string, error) {
 }
 
 // RestageTasks returns nil as there is no need to re-stage in Mercurial
-func (*Hg) RestageTasks(task Task) error {
+func (*Hg) RestageTasks(fileName string) error {
 	return nil
 }
 
@@ -105,7 +106,7 @@ func (*Hg) GetBranch() (string, error) {
 		return "", errors.New("could not get branch of last commit")
 	}
 
-	branch := stripNewlineChar(resp)
+	branch := utils.StripNewlineChar(resp)
 	return branch, nil
 }
 
@@ -116,6 +117,6 @@ func (*Hg) GetHash() (string, error) {
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
 	}
-	hash := stripNewlineChar(resp)
+	hash := utils.StripNewlineChar(resp)
 	return hash, nil
 }

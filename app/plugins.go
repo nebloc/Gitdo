@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 var (
@@ -95,10 +96,10 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	err = cmd.Run()
 	resp = out.Bytes()
 	if err != nil {
-		Warn(stripNewlineChar(resp))
-		return stripNewlineChar(resp), err
+		utils.Warn(utils.StripNewlineChar(resp))
+		return utils.StripNewlineChar(resp), err
 	}
-	return stripNewlineChar(resp), nil
+	return utils.StripNewlineChar(resp), nil
 }
 
 func MarshalTask(task Task) ([]byte, error) {

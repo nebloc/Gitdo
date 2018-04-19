@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
-
 	"path/filepath"
 
 	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/app/versioncontrol"
+	"github.com/nebloc/gitdo/app/utils"
 )
 
 var (
@@ -21,10 +21,6 @@ var (
 		Plugin:            "",
 		PluginInterpreter: "",
 	}
-
-	// Flags
-	cachedFlag     bool
-	verboseLogFlag bool
 
 	// Current version
 	version string
@@ -43,7 +39,7 @@ func main() {
 	gitdo := AppBuilder()
 	err := gitdo.Run(os.Args)
 	if err != nil {
-		Warnf("Gitdo failed to run: %v", err)
+		utils.Warnf("Gitdo failed to run: %v", err)
 	}
 }
 
@@ -60,13 +56,6 @@ func AppBuilder() *cli.App {
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",
-	}
-	gitdo.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:        "verbose, v",
-			Usage:       "sets logging to debug level",
-			Destination: &verboseLogFlag,
-		},
 	}
 	gitdo.Commands = []cli.Command{
 		{
@@ -134,21 +123,6 @@ func List(ctx *cli.Context) error {
 	return nil
 }
 
-// stripNewLineChar takes a byte array (usually from an exec.Command run) and strips the newline characters, returning
-// a string
-func stripNewlineChar(orig []byte) string {
-	var newStr string
-	// Strip line feed
-	if strings.HasSuffix(string(orig), "\n") {
-		newStr = string(orig)[:len(orig)-1]
-	}
-	// Strip carriage return
-	if strings.HasSuffix(newStr, "\r") {
-		newStr = newStr[:len(newStr)-1]
-	}
-	return newStr
-}
-
 // ChangeToVCRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
 // to git or mercurial
 func ChangeToVCRoot(_ *cli.Context) error {
@@ -156,7 +130,7 @@ func ChangeToVCRoot(_ *cli.Context) error {
 	TryHgTopLevel()
 
 	if config.vc == nil {
-		return errNotVCDir
+		return versioncontrol.ErrNotVCDir
 	}
 	if config.vc.PathOfTopLevel() == "" {
 		return fmt.Errorf("could not determine root directory of project from %s", config.vc.NameOfVC())
@@ -178,8 +152,8 @@ func TryGitTopLevel() {
 	if err != nil {
 		return
 	}
-	vc := NewGit()
-	vc.topLevel = stripNewlineChar(result)
+	vc := versioncontrol.NewGit()
+	vc.TopLevel = utils.StripNewlineChar(result)
 	config.vc = vc
 }
 
@@ -194,12 +168,10 @@ func TryHgTopLevel() {
 	if err != nil {
 		return
 	}
-	vc := NewHg()
-	vc.topLevel = stripNewlineChar(result)
+	vc := versioncontrol.NewHg()
+	vc.TopLevel = utils.StripNewlineChar(result)
 	config.vc = vc
 }
-
-type VersionControlTypes string
 
 func SetVCPaths() {
 	gitdoDir = filepath.Join(config.vc.NameOfDir(), "gitdo")
