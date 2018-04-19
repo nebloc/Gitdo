@@ -99,7 +99,7 @@ func (*Hg) Init() error {
 
 // GetBranch retrieves the current Mercurial branch being used.
 func (*Hg) GetBranch() (string, error) {
-	cmd := exec.Command("Hg", "branch")
+	cmd := exec.Command("hg", "branch")
 	resp, err := cmd.Output()
 	if err != nil {
 		return "", errors.New("could not get branch of last commit")
@@ -111,7 +111,7 @@ func (*Hg) GetBranch() (string, error) {
 
 // GetHash retrieves the short hash of the current HEAD.
 func (*Hg) GetHash() (string, error) {
-	cmd := exec.Command("Hg", "id", "-i")
+	cmd := exec.Command("hg", "id", "-i")
 	resp, err := cmd.Output()
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
