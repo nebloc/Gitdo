@@ -124,3 +124,16 @@ func (*Git) GetHash() (string, error) {
 	hash := utils.StripNewlineChar(resp)
 	return hash, nil
 }
+
+// CreateBranch creates a new git branch for gitdo to tag files on
+func (*Git) CreateBranch() error {
+	cmd := exec.Command("git", "branch", NewBranchName)
+	err := cmd.Run()
+	return err
+}
+
+// SwitchBranch attempts to switch to the GITDO_FORCED branch to safely tag source code.
+func (*Git) SwitchBranch() error {
+	cmd := exec.Command("git", "checkout", NewBranchName)
+	return cmd.Run()
+}

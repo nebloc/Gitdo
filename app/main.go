@@ -5,12 +5,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"runtime"
 	"path/filepath"
+	"runtime"
 
-	"github.com/urfave/cli"
-	"github.com/nebloc/gitdo/app/versioncontrol"
 	"github.com/nebloc/gitdo/app/utils"
+	"github.com/nebloc/gitdo/app/versioncontrol"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -96,6 +96,12 @@ func AppBuilder() *cli.App {
 			Flags:  []cli.Flag{cli.BoolFlag{Name: "yes", Usage: "confirms purge of task file"}},
 			Before: ConfirmUser,
 			Action: Destroy,
+		},
+		{
+			Name:   "force-all-test",
+			Usage:  "Tag all files",
+			Action: ForceAll,
+			After:  NotifyFinished,
 		},
 	}
 	return gitdo

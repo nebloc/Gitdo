@@ -1,14 +1,14 @@
 package versioncontrol
 
 import (
-	"os/exec"
-	"errors"
-	"path/filepath"
-	"fmt"
 	"bufio"
-	"os"
-	"strings"
+	"errors"
+	"fmt"
 	"github.com/nebloc/gitdo/app/utils"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 // Hg is an implementation of the VersionControl interface for the Mercurial version control system.
@@ -119,4 +119,12 @@ func (*Hg) GetHash() (string, error) {
 	}
 	hash := utils.StripNewlineChar(resp)
 	return hash, nil
+}
+
+func (*Hg) CreateBranch() error {
+	return errors.New("Not Implemented")
+}
+
+func (*Hg) SwitchBranch() error {
+	return errors.New("Not Implemented")
 }
