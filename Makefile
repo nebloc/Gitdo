@@ -8,6 +8,8 @@ install:
 test:
 	vgo test github.com/nebloc/gitdo/app
 	vgo test github.com/nebloc/gitdo/app/diffparse
+	vgo test github.com/nebloc/gitdo/app/utils
+	vgo test github.com/nebloc/gitdo/app/versioncontrol
 
 release_dir:
 	rm -rf release/
