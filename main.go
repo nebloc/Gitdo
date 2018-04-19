@@ -158,11 +158,11 @@ func ChangeToVCRoot(_ *cli.Context) error {
 	if config.vc == nil {
 		return errNotVCDir
 	}
-	if config.vc.GetTopLevel() == "" {
+	if config.vc.PathOfTopLevel() == "" {
 		return fmt.Errorf("could not determine root directory of project from %s", config.vc.NameOfVC())
 	}
 	SetVCPaths()
-	err := os.Chdir(config.vc.GetTopLevel())
+	err := os.Chdir(config.vc.PathOfTopLevel())
 	return err
 }
 
@@ -189,7 +189,7 @@ func TryHgTopLevel() {
 	if config.vc != nil {
 		return
 	}
-	cmd := exec.Command("Hg", "root")
+	cmd := exec.Command("hg", "root")
 	result, err := cmd.Output()
 	if err != nil {
 		return
@@ -209,4 +209,3 @@ func SetVCPaths() {
 	configFilePath = filepath.Join(gitdoDir, "config.json")
 	pluginDirPath = filepath.Join(gitdoDir, "plugins")
 }
-

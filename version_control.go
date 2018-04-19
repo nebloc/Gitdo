@@ -13,10 +13,7 @@ type VersionControl interface {
 	// Get details of the version control being used
 	NameOfDir() string
 	NameOfVC() string
-
-	// Get the top level directory for the project
-	SetTopLevel(topLevel string)
-	GetTopLevel() string
+	PathOfTopLevel() string
 
 	// Add changed tasks back to staging
 	RestageTasks(task Task) error

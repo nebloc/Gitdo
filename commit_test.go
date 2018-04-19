@@ -150,7 +150,7 @@ func TestGetDiffFromCmd(t *testing.T) {
 	}
 	testStartRepoHelper(t)
 	diff, err := GetDiffFromGit()
-	if err != errNoDiff {
+	if err != ErrNoDiff {
 		t.Errorf("expected diff to be empty: %v: %v", err, diff)
 	}
 	file := testMockFileHelper(t)

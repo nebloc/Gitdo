@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 )
 
+// Git is an implementation of the VersionControl interface for the Git version control system.
 type Git struct {
 	name     string
 	dir      string
 	topLevel string
 }
 
-// NewGit returns a pointer to a new git implementation of the VersionControl interface.
+// NewGit returns a pointer to a new Git implementation of the VersionControl interface.
 func NewGit() *Git {
 	git := new(Git)
 	git.name = "Git"
@@ -21,7 +22,7 @@ func NewGit() *Git {
 	return git
 }
 
-// SetHooks creates a
+// SetHooks copies the files inside the hooks subdirectory of the given homeDir
 func (g *Git) SetHooks(homeDir string) error {
 	srcHooks := filepath.Join(homeDir, "hooks")
 	dstHooks := filepath.Join(g.dir, "hooks")
@@ -30,22 +31,24 @@ func (g *Git) SetHooks(homeDir string) error {
 	return err
 }
 
-func (g *Git) SetTopLevel(topLevel string) {
-	g.topLevel = topLevel
-}
-
-func (g *Git) GetTopLevel() string {
-	return g.topLevel
-}
-
+// NameOfDir returns the hidden directory name where git stores data. Should always be ".git"
 func (g *Git) NameOfDir() string {
 	return g.dir
 }
 
+// NameOfVC returns the name of the version control system for printing to the user. Should always be "Git"
 func (g *Git) NameOfVC() string {
 	return g.name
 }
 
+// PathOfTopLevel returns the value of topLevel where the path to the root of the project is kept (e.g. dir with ".git")
+func (g *Git) PathOfTopLevel() string {
+	return g.topLevel
+}
+
+// GetDiff executes a "git diff --cached" command to return the difference between files that are staged for a commit.
+// Returns with an ErrNoDiff if the returned diff was empty. Results from the diff cmd are striped of ending new line
+// character and returned as a string.
 func (*Git) GetDiff() (string, error) {
 	// Run a git diff to look for changes --cached to be added for
 	// pre-commit hook
@@ -66,12 +69,13 @@ func (*Git) GetDiff() (string, error) {
 	}
 	diff := stripNewlineChar(resp)
 	if diff == "" {
-		return "", errNoDiff
+		return "", ErrNoDiff
 	}
 
 	return diff, nil
 }
 
+// RestageTasks runs a "git add" on a new task's file name to re-stage it so that the ID is in the immediate commit.
 func (*Git) RestageTasks(task Task) error {
 	cmd := exec.Command("git", "add", task.FileName)
 	if _, err := cmd.Output(); err != nil {
@@ -80,6 +84,7 @@ func (*Git) RestageTasks(task Task) error {
 	return nil
 }
 
+// GetEmail probes git's user.email config and returns it as a string.
 func (*Git) GetEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")
 	resp, err := cmd.Output()
@@ -90,6 +95,7 @@ func (*Git) GetEmail() (string, error) {
 	return stripNewlineChar(resp), nil
 }
 
+// Init Initialises a Git repository in the current directory.
 func (*Git) Init() error {
 	fmt.Println("Initializing git...")
 	cmd := exec.Command("git", "init")
@@ -101,6 +107,7 @@ func (*Git) Init() error {
 	return nil
 }
 
+// GetBranch retrieves the current git branch being used.
 func (*Git) GetBranch() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	resp, err := cmd.Output()
@@ -112,6 +119,7 @@ func (*Git) GetBranch() (string, error) {
 	return branch, nil
 }
 
+// GetHash retrieves the long hash of the current HEAD.
 func (*Git) GetHash() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	resp, err := cmd.Output()

@@ -14,7 +14,7 @@ import (
 
 var (
 	errNotVCDir = errors.New("directory is not a git or mercurial repo")
-	errNoDiff   = errors.New("diff is empty")
+	ErrNoDiff   = errors.New("diff is empty")
 )
 
 // GetDiffFromGit runs the git diff command on the OS and returns a string of
@@ -39,7 +39,7 @@ func GetDiffFromGit() (string, error) {
 	}
 	diff := stripNewlineChar(resp)
 	if diff == "" {
-		return "", errNoDiff
+		return "", ErrNoDiff
 	}
 
 	return diff, nil
@@ -53,7 +53,7 @@ func GetDiffFromHG() (string, error) {
 	}
 	diff := stripNewlineChar(resp)
 	if diff == "" {
-		return "", errNoDiff
+		return "", ErrNoDiff
 	}
 	return diff, nil
 }
@@ -87,7 +87,7 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 func Commit(_ *cli.Context) error {
 	rawDiff, err := config.vc.GetDiff()
 
-	if err == errNoDiff {
+	if err == ErrNoDiff {
 		Warn("Empty diff")
 		return nil
 	}
