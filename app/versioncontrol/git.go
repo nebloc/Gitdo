@@ -1,11 +1,11 @@
 package versioncontrol
 
 import (
-	"os/exec"
-	"fmt"
 	"errors"
-	"path/filepath"
+	"fmt"
 	"github.com/nebloc/gitdo/app/utils"
+	"os/exec"
+	"path/filepath"
 )
 
 // Git is an implementation of the VersionControl interface for the Git version control system.
