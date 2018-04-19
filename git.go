@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"errors"
 	"path/filepath"
-	"os"
 )
 
 type Git struct {
@@ -14,6 +13,7 @@ type Git struct {
 	topLevel string
 }
 
+// NewGit returns a pointer to a new git implementation of the VersionControl interface.
 func NewGit() *Git {
 	git := new(Git)
 	git.name = "Git"
@@ -21,16 +21,12 @@ func NewGit() *Git {
 	return git
 }
 
+// SetHooks creates a
 func (g *Git) SetHooks(homeDir string) error {
 	srcHooks := filepath.Join(homeDir, "hooks")
 	dstHooks := filepath.Join(g.dir, "hooks")
 
-	err := os.MkdirAll(dstHooks, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("could not create hook dir inside .git/gitdo: %v", err)
-	}
-
-	err = copyFolder(srcHooks, dstHooks)
+	err := copyFolder(srcHooks, dstHooks)
 	return err
 }
 
