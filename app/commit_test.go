@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nebloc/gitdo/diffparse"
+	"github.com/nebloc/gitdo/app/diffparse"
 )
 
 func TestRegexs(t *testing.T) {

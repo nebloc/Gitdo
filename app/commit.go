@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/nebloc/gitdo/diffparse"
+	"github.com/nebloc/gitdo/app/diffparse"
 	"github.com/urfave/cli"
 	"fmt"
 )
