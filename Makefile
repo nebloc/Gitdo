@@ -6,7 +6,8 @@ cached: build
 	cd ./bin/ && ./gitdo -c
 
 install: 
-	vgo install ${VERSION}
+	vgo build ${VERSION} .
+	mv gitdo /usr/local/bin/
 
 test:
 	vgo test github.com/nebloc/gitdo
