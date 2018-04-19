@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
-
 	"github.com/urfave/cli"
 	"strings"
 )
 
 type Config struct {
-	VC VersionControl `json:"vc"`
+	vc VersionControl
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
 	// Plugin to use at push time
@@ -26,7 +24,9 @@ type Config struct {
 
 // String returns a human readable format of the Config struct
 func (c *Config) String() string {
-	return fmt.Sprintf("Version Control: %s\nAuthor: %s\nPlugin: %s\nInterpreter: %s", c.VC, c.Author, c.Plugin, c.PluginInterpreter)
+	return fmt.Sprintf(
+		"Author: %s\nPlugin: %s\nInterpreter: %s",
+		c.Author, c.Plugin, c.PluginInterpreter)
 }
 
 // Checks that the configuration has all the information needed
@@ -72,18 +72,6 @@ func LoadConfig(_ *cli.Context) error {
 	}
 
 	return nil
-}
-
-//TODO: Find if there is an equivalent way of getting email from mercurial
-// getGitEmail runs the 'git config user.email' command to get the default email address of the user for the current dir
-func getGitEmail() (string, error) {
-	cmd := exec.Command("git", "config", "user.email")
-	resp, err := cmd.Output()
-	if err != nil {
-		Warn("Please set your git email address for this repo. git config user.email example@email.com")
-		return "", fmt.Errorf("Could not get user.email from git: %v", err)
-	}
-	return stripNewlineChar(resp), nil
 }
 
 // WriteConfig saves the current config to be loaded in after setting

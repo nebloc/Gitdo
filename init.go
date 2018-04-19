@@ -22,11 +22,8 @@ func Init(ctx *cli.Context) error {
 		}
 	}
 
+	Highlightf("Making %s/gitdo", config.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
-		return err
-	}
-
-	if err := CreateHooks(); err != nil {
 		return err
 	}
 
@@ -34,11 +31,16 @@ func Init(ctx *cli.Context) error {
 		return err
 	}
 
-	if err := CreatePlugins(); err != nil {
+	if err := CreatePluginsDir(); err != nil {
 		return err
 	}
 
+	Highlight("Running plugin's setup...")
 	if _, err := RunPlugin(SETUP, ""); err != nil {
+		return err
+	}
+
+	if err := CreateHooks(); err != nil {
 		return err
 	}
 
@@ -46,9 +48,9 @@ func Init(ctx *cli.Context) error {
 	return nil
 }
 
-func CreatePlugins() error {
+// CreatePluginsDir creates a directory structure inside the Gitdo folder for Plugins to use as working space.
+func CreatePluginsDir() error {
 	path := filepath.Join(pluginDirPath, config.Plugin)
-	Warn(path)
 	err := os.MkdirAll(path, os.ModePerm)
 	return err
 }
@@ -105,7 +107,7 @@ func InitGit() error {
 
 // AskAuthor notifies user of email address used
 func AskAuthor() (string, error) {
-	email, err := getGitEmail()
+	email, err := config.vc.GetEmail()
 	if err != nil {
 		return "", err
 	}
@@ -169,44 +171,24 @@ func AskInterpreter() (string, error) {
 	return interp, nil
 }
 
+// CreateHooks gets the users main Gitdo directory and copies the hooks from it to the correct version control hidden
+// folder
 func CreateHooks() error {
 	homeDir, err := GetHomeDir()
 	if err != nil {
 		return err
 	}
-
-	switch config.VC {
-	case GIT:
-		srcHooks := filepath.Join(homeDir, "hooks")
-		dstHooks := filepath.Join(".git", "hooks")
-
-		err = os.MkdirAll(dstHooks, os.ModePerm)
-		if err != nil {
-			return fmt.Errorf("could not create hook dir inside .git/gitdo: %v", err)
-		}
-
-		err = copyFolder(srcHooks, dstHooks)
-		if err != nil {
-			return err
-		}
-	case HG:
-		srcHook := filepath.Join(homeDir, "hgrc")
-		dstHook := filepath.Join(".hg", "hgrc")
-		err = appendFile(srcHook, dstHook)
-		if err != nil {
-			return fmt.Errorf("could not move .hgrc to inside .hgrc: %v", err)
-		}
-	}
-
-	return nil
+	Highlight("Copying hooks...")
+	return config.vc.SetHooks(homeDir)
 }
 
+// appendFile copies the contents of a file from src and appends to dst.
 func appendFile(src, dst string) error {
 	from, err := ioutil.ReadFile(src)
 	if err != nil {
 		return err
 	}
-	to, err := os.OpenFile(dst, os.O_APPEND|os.O_WRONLY, 0600)
+	to, err := os.OpenFile(dst, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

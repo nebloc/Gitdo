@@ -9,11 +9,12 @@ import (
 
 	"github.com/nebloc/gitdo/diffparse"
 	"github.com/urfave/cli"
+	"fmt"
 )
 
 var (
-	errNotGitDir = errors.New("directory is not a git repo")
-	errNoDiff    = errors.New("diff is empty")
+	errNotVCDir = errors.New("directory is not a git or mercurial repo")
+	errNoDiff   = errors.New("diff is empty")
 )
 
 // GetDiffFromGit runs the git diff command on the OS and returns a string of
@@ -27,7 +28,7 @@ func GetDiffFromGit() (string, error) {
 	// If error running git diff abort all
 	if err != nil {
 		if err.Error() == "exit status 129" {
-			return "", errNotGitDir
+			return "", errNotVCDir
 		}
 		if err, ok := err.(*exec.ExitError); ok {
 			Dangerf("failed to exit git diff: %v, %v", err, stripNewlineChar(resp))
@@ -45,10 +46,10 @@ func GetDiffFromGit() (string, error) {
 }
 
 func GetDiffFromHG() (string, error) {
-	cmd := exec.Command("hg", "diff")
+	cmd := exec.Command("Hg", "diff")
 	resp, err := cmd.CombinedOutput()
 	if err != nil {
-		panic("HG failed to diff")
+		panic("Hg failed to diff")
 	}
 	diff := stripNewlineChar(resp)
 	if diff == "" {
@@ -84,16 +85,7 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(_ *cli.Context) error {
-
-	var err error
-	var rawDiff string
-
-	switch config.VC {
-	case GIT:
-		rawDiff, err = GetDiffFromGit()
-	case HG:
-		rawDiff, err = GetDiffFromHG()
-	}
+	rawDiff, err := config.vc.GetDiff()
 
 	if err == errNoDiff {
 		Warn("Empty diff")
@@ -125,27 +117,14 @@ func Commit(_ *cli.Context) error {
 	}
 	<-done
 	for _, task := range changes.New {
-		err := RestageTasks(task)
+		err := config.vc.RestageTasks(task)
 		if err != nil {
 			Warnf("could not restage after tagging: %v", err)
 		}
 	}
 
-	Highlightf("No. of tasks added: %d", len(changes.New))
-	Highlightf("No. of tasks moved: %d", len(changes.Moved))
-	Highlightf("No. of tasks deleted: %d", len(changes.Deleted))
-	return nil
-}
+	Highlight(changes.String())
 
-// RestageTasks runs git add on the file that has had a tag added
-func RestageTasks(task Task) error {
-	if config.VC != GIT {
-		return nil
-	}
-	cmd := exec.Command("git", "add", task.FileName)
-	if _, err := cmd.Output(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -292,4 +271,10 @@ type taskChanges struct {
 	New     map[string]Task
 	Deleted map[string]bool
 	Moved   []string
+}
+
+func (ch *taskChanges) String() string {
+	return fmt.Sprintf(
+		"Tasks Added: %d, Moved: %d, Done: %d",
+		len(ch.New), len(ch.Moved), len(ch.Deleted))
 }

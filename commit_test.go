@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/nebloc/gitdo/diffparse"
-	"github.com/urfave/cli"
 )
 
 func TestRegexs(t *testing.T) {
@@ -26,31 +25,13 @@ func TestRegexs(t *testing.T) {
 	}
 }
 
-func setupForTest(t *testing.T) (*cli.Context, func()) {
-	config = &Config{
-		VC:                GIT,
-		Author:            "benjamin.coleman@me.com",
-		Plugin:            "Test",
-		PluginInterpreter: "python3",
-	}
-	SetVCPaths()
-
-	cDir, closeDir := testDirHelper(t)
-	t.Logf("working in dir: %s", cDir)
-	ctx := cli.NewContext(gitdo, nil, nil)
-
-	return ctx, closeDir
-}
-
 func TestCommit(t *testing.T) {
 	ctx, closeDir := setupForTest(t)
 	defer closeDir()
 
-	t.Log(config.String())
-
 	err := Commit(ctx)
-	if err != errNotGitDir {
-		t.Errorf("Expected: %v, got: %v", errNotGitDir, err)
+	if err != errNotVCDir {
+		t.Errorf("Expected: %v, got: %v", errNotVCDir, err)
 	}
 
 	testStartRepoHelper(t)
@@ -74,7 +55,7 @@ func TestCommit(t *testing.T) {
 	if bytes.Compare([]byte(goldenFileContent), bMock) != 0 {
 		t.Errorf("expected:\n%s \n\ngot:\n%s", goldenFileContent, bMock)
 	}
-	tasks := testTaskFileCorrect(t)
+	tasks := testTaskFileCorrectHelper(t)
 	if len(tasks.NewTasks) != 1 {
 		t.Errorf("Should have 1 task in the new task area. Have: %d", len(tasks.NewTasks))
 	}
@@ -86,36 +67,13 @@ func TestCommit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected: %v", err)
 	}
-	tasks = testTaskFileCorrect(t)
+	tasks = testTaskFileCorrectHelper(t)
 	if len(tasks.DoneTasks) != 1 {
 		t.Errorf("Should have 1 task in the done task area. Have: %d", len(tasks.DoneTasks))
 	}
 }
 
-func testTaskFileCorrect(t *testing.T) *Tasks {
-	tasks, err := getTasksFile()
-	if err != nil {
-		t.Errorf("Could not load tasks file to check: %v", err)
-	}
-	return tasks
-}
-
-func testDeleteTaskCommentHelper(t *testing.T, fileName string) {
-	fileCont, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		t.Errorf("Could not get mock file: %v", err)
-	}
-	newCont := strings.Replace(string(fileCont), "// TODO: Test <1234>\n", "", 1)
-
-	err = ioutil.WriteFile(fileName, []byte(newCont), os.ModePerm)
-	if err != nil {
-		t.Errorf("Could not write new file with todo removed: %v", err)
-	}
-	testAddToGitHelper(t, fileName)
-}
-
 func TestCheckTagged(t *testing.T) {
-	t.Log(config.String())
 	line := diffparse.SourceLine{
 		FileFrom: "main.go",
 		FileTo:   "main.go",
@@ -157,7 +115,6 @@ func TestCheckTagged(t *testing.T) {
 }
 
 func TestCheckTaskRegex(t *testing.T) {
-	t.Log(config.String())
 	testData := []struct {
 		LineContent string
 		ExpTask     string
@@ -186,10 +143,9 @@ func TestCheckTaskRegex(t *testing.T) {
 func TestGetDiffFromCmd(t *testing.T) {
 	_, closeDir := setupForTest(t)
 	defer closeDir()
-	t.Log(config.String())
 
 	_, err := GetDiffFromGit()
-	if err != errNotGitDir {
+	if err != errNotVCDir {
 		t.Errorf("Expected not a git repo, got: %v", err)
 	}
 	testStartRepoHelper(t)
@@ -205,80 +161,6 @@ func TestGetDiffFromCmd(t *testing.T) {
 	}
 	if diff != mockDiffExample {
 		t.Errorf("Expected diff to be \n%v\nGot: \n%v", mockDiffExample, diff)
-	}
-}
-
-// testMockFileHelper creates a file that has a TODO comment.
-func testMockFileHelper(t *testing.T) string {
-	t.Helper()
-	fileName := "main.go"
-	err := ioutil.WriteFile(fileName, []byte(mockFileContent), os.ModePerm)
-	if err != nil {
-		t.Fatal("could not create mock file")
-	}
-	testAddToGitHelper(t, fileName)
-	return fileName
-}
-
-// testAddToGitHelper runs 'git add $fileName'
-func testAddToGitHelper(t *testing.T, fileName string) {
-	t.Helper()
-	cmd := exec.Command("git", "add", fileName)
-	err := cmd.Run()
-	if err != nil {
-		t.Fatalf("could not 'git add %s'", fileName)
-	}
-	t.Logf("Added file: %s", fileName)
-}
-
-func testCommitHelper(t *testing.T) {
-	cmd := exec.Command("git", "commit", "-am", "new file")
-	err := cmd.Run()
-	if err != nil {
-		t.Fatalf("error commiting file: %v", err)
-	}
-	t.Log("Committed staged files")
-}
-
-// testStartRepoHelper runs git init and adds the gitdo folder, which is otherwise done in the Setup() func
-func testStartRepoHelper(t *testing.T) {
-	t.Helper()
-	t.Log("Started repo")
-	cmd := exec.Command("git", "init")
-	if err := cmd.Run(); err != nil {
-		t.Fatal("could not create repo")
-	}
-	if err := os.MkdirAll(".git/gitdo/plugins/Test", os.ModePerm); err != nil {
-		t.Fatal("could not create gitdo folder")
-	}
-}
-
-// testCommitHelper creates a new directory and moves in to it, returning a close function to be called to move back to the original dir
-func testDirHelper(t *testing.T) (string, func()) {
-	t.Helper()
-	origPath, err := os.Getwd()
-	if err != nil {
-		t.Fatal("couldn't get current path")
-	}
-	dirPath := os.TempDir() + "gitdotest/"
-
-	if err = os.RemoveAll(dirPath); err != nil {
-		t.Fatal("could not remove temp dir")
-	}
-
-	err = os.Mkdir(dirPath, os.ModePerm)
-	if err != nil {
-		t.Fatal("couldn't create temp dir")
-	}
-	err = os.Chdir(dirPath)
-	if err != nil {
-		t.Fatalf("couldn't move in to temp dir: %v", err)
-	}
-	return dirPath, func() {
-		err := os.Chdir(origPath)
-		if err != nil {
-			t.Fatal("couldn't change back to default dir")
-		}
 	}
 }
 
@@ -315,3 +197,74 @@ index 0000000..a30278c
 +	fmt.Println("Hello Ben")
 +}
 \ No newline at end of file`
+
+//////////////////////////////
+// Helper functions
+//////////////////////////////
+
+// testStartRepoHelper runs git init and adds the gitdo folder, which is otherwise done in the Setup() func
+func testStartRepoHelper(t *testing.T) {
+	t.Helper()
+	t.Log("Started repo")
+	cmd := exec.Command("git", "init")
+	if err := cmd.Run(); err != nil {
+		t.Fatal("could not create repo")
+	}
+	if err := os.MkdirAll(".git/gitdo/plugins/Test", os.ModePerm); err != nil {
+		t.Fatal("could not create gitdo folder")
+	}
+}
+
+func testCommitHelper(t *testing.T) {
+	cmd := exec.Command("git", "commit", "-am", "new file")
+	err := cmd.Run()
+	if err != nil {
+		t.Fatalf("error commiting file: %v", err)
+	}
+	t.Log("Committed staged files")
+}
+
+// testAddToGitHelper runs 'git add $fileName'
+func testAddToGitHelper(t *testing.T, fileName string) {
+	t.Helper()
+	cmd := exec.Command("git", "add", fileName)
+	err := cmd.Run()
+	if err != nil {
+		t.Fatalf("could not 'git add %s'", fileName)
+	}
+	t.Logf("Added file: %s", fileName)
+}
+
+// testMockFileHelper creates a file that has a TODO comment.
+func testMockFileHelper(t *testing.T) string {
+	t.Helper()
+	fileName := "main.go"
+	err := ioutil.WriteFile(fileName, []byte(mockFileContent), os.ModePerm)
+	if err != nil {
+		t.Fatal("could not create mock file")
+	}
+	testAddToGitHelper(t, fileName)
+	return fileName
+}
+
+func testTaskFileCorrectHelper(t *testing.T) *Tasks {
+	tasks, err := getTasksFile()
+	if err != nil {
+		t.Errorf("Could not load tasks file to check: %v", err)
+	}
+	return tasks
+}
+
+func testDeleteTaskCommentHelper(t *testing.T, fileName string) {
+	fileCont, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		t.Errorf("Could not get mock file: %v", err)
+	}
+	newCont := strings.Replace(string(fileCont), "// TODO: Test <1234>\n", "", 1)
+
+	err = ioutil.WriteFile(fileName, []byte(newCont), os.ModePerm)
+	if err != nil {
+		t.Errorf("Could not write new file with todo removed: %v", err)
+	}
+	testAddToGitHelper(t, fileName)
+}

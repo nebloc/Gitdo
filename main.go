@@ -138,9 +138,11 @@ func List(ctx *cli.Context) error {
 // a string
 func stripNewlineChar(orig []byte) string {
 	var newStr string
+	// Strip line feed
 	if strings.HasSuffix(string(orig), "\n") {
 		newStr = string(orig)[:len(orig)-1]
 	}
+	// Strip carriage return
 	if strings.HasSuffix(newStr, "\r") {
 		newStr = newStr[:len(newStr)-1]
 	}
@@ -150,59 +152,61 @@ func stripNewlineChar(orig []byte) string {
 // ChangeToVCRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
 // to git or mercurial
 func ChangeToVCRoot(_ *cli.Context) error {
-	dir, isGit := TryGitTopLevel()
-	if !isGit {
-		var isHg bool
-		dir, isHg = TryHgTopLevel()
-		if !isHg {
-			return errNotGitDir
-		}
+	TryGitTopLevel()
+	TryHgTopLevel()
+
+	if config.vc == nil {
+		return errNotVCDir
+	}
+	if config.vc.GetTopLevel() == "" {
+		return fmt.Errorf("could not determine root directory of project from %s", config.vc.NameOfVC())
 	}
 	SetVCPaths()
-	err := os.Chdir(dir)
+	err := os.Chdir(config.vc.GetTopLevel())
 	return err
 }
 
-type VersionControl string
+// TryGitTopLevel tries to get the root directory of the project from Git, if it can't we assume it is not a
+// Git project.
+func TryGitTopLevel() {
+	if config.vc != nil {
+		return
+	}
 
-func TryGitTopLevel() (string, bool) {
 	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 	result, err := cmd.Output()
 	if err != nil {
-		return "", false
+		return
 	}
-	config.VC = GIT
-	return stripNewlineChar(result), true
+	vc := NewGit()
+	vc.topLevel = stripNewlineChar(result)
+	config.vc = vc
 }
 
-func TryHgTopLevel() (string, bool) {
-	cmd := exec.Command("hg", "root")
+// TryHGTopLevel tries to get the root directory of the project from mercuruial, if it can't we assume it is not a
+// Git project.
+func TryHgTopLevel() {
+	if config.vc != nil {
+		return
+	}
+	cmd := exec.Command("Hg", "root")
 	result, err := cmd.Output()
 	if err != nil {
-		return "", false
+		return
 	}
-	config.VC = HG
-	return stripNewlineChar(result), true
+	vc := NewHg()
+	vc.topLevel = stripNewlineChar(result)
+	config.vc = vc
 }
 
-const (
-	GIT VersionControl = "Git"
-	HG  VersionControl = "HG"
-)
+type VersionControlTypes string
 
-// TODO: Find a convenient way to find if HG or Git
 func SetVCPaths() {
-	switch config.VC {
-	case GIT:
-		gitdoDir = filepath.Join(".git", "gitdo")
-	case HG:
-		gitdoDir = filepath.Join(".hg", "gitdo")
-	}
-
+	gitdoDir = filepath.Join(config.vc.NameOfDir(), "gitdo")
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
 	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
 	configFilePath = filepath.Join(gitdoDir, "config.json")
 	pluginDirPath = filepath.Join(gitdoDir, "plugins")
-
 }
+
