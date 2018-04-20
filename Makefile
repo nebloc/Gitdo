@@ -1,5 +1,5 @@
 HASH = $(shell git rev-parse --short HEAD)
-VERNUM=0.0.0-A5
+VERNUM=0.0.6-A5
 VERSION=-ldflags "-X main.version=$(VERNUM)-$(HASH)"
 
 install: 
