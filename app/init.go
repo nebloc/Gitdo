@@ -3,14 +3,15 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/urfave/cli"
 	"github.com/nebloc/gitdo/app/utils"
+	"github.com/urfave/cli"
 )
 
 // Init initialises the gitdo project by scaffolding the gitdo folder
@@ -77,9 +78,14 @@ func SetConfig() error {
 	}
 
 	if !config.interpreterIsSet() {
-		interp, err := AskInterpreter()
+		interp, err := GetInterp()
 		if err != nil {
-			return err
+			utils.Warnf("No interp file in %s dir", config.Plugin)
+			interp, err = AskInterpreter()
+			if err != nil {
+				return err
+			}
+
 		}
 		config.PluginInterpreter = interp
 	}
@@ -168,6 +174,20 @@ func AskInterpreter() (string, error) {
 	}
 	utils.Highlightf("Using %s", interp)
 	return interp, nil
+}
+
+func GetInterp() (string, error) {
+	homePath, err := GetHomeDir()
+	if err != nil {
+		return "", err
+	}
+	contents, err := ioutil.ReadFile(filepath.Join(homePath, "plugins", config.Plugin, "interp"))
+	if err != nil {
+		return "", err
+	}
+	interp := utils.StripNewlineChar(contents)
+	utils.Highlightf("Using %s - found in interp file", interp)
+	return interp, err
 }
 
 // CreateHooks gets the users main Gitdo directory and copies the hooks from it to the correct version control hidden
