@@ -51,12 +51,12 @@ func TestGit_GetDiff(t *testing.T) {
 	if err != nil {
 		t.Errorf("didn't expect an error in GetDiff: %v", err)
 	}
-	if diff != expectedDiff {
-		t.Logf("Expected:\n%s\n\nGot:\n%s\n", expectedDiff, diff)
+	if diff != expectedGitDiff {
+		t.Errorf("Expected:\n%s\n\nGot:\n%s\n", expectedGitDiff, diff)
 	}
 }
 
-var expectedDiff = `diff --git a/new.txt b/new.txt
+var expectedGitDiff = `diff --git a/new.txt b/new.txt
 new file mode 100755
 index 0000000..f500b14
 --- /dev/null
@@ -71,7 +71,7 @@ func TestGit_SetHooks(t *testing.T) {
 	VCMap[GIT_NAME].moveToDir(t)
 	err := VCMap[GIT_NAME].SetHooks(HomeDir)
 	if err != nil {
-		t.Errorf("Didn't expect error: %v", err)
+		t.Errorf("Didn't expect error setting hooks: %v", err)
 	}
 	for _, fileName := range Hooks {
 		filePath := filepath.Join(VCMap[GIT_NAME].NameOfDir(), "hooks", fileName)
@@ -81,7 +81,9 @@ func TestGit_SetHooks(t *testing.T) {
 			t.Errorf("couldn't read new %s: %v", filePath, err)
 		}
 
-		strings.Contains(string(fileCont), "gitdo")
+		if !strings.Contains(string(fileCont), "gitdo") {
+			t.Errorf("hooks do not contain gitdo command")
+		}
 	}
 
 }
