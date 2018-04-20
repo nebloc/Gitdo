@@ -89,7 +89,6 @@ func SetConfig() error {
 		}
 		config.PluginInterpreter = interp
 	}
-
 	err := WriteConfig()
 	if err != nil {
 		utils.Dangerf("Couldn't save config: %v", err)
