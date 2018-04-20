@@ -3,8 +3,8 @@ DIR=$HOME/.gitdo
 mkdir $DIR
 echo "Copying plugins..."
 echo "Copying hooks..."
-cp -r ./plugins $DIR
-cp -r ./hooks $DIR
+cp -r ./plugins $DIR/
+cp -r ./hooks $DIR/
 
 GOOS=`uname | awk '{print tolower($0)}'`
 MACHINE_TYPE=`uname -m`
