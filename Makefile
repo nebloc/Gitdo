@@ -6,7 +6,7 @@ install:
 	vgo build ${VERSION} -o /usr/local/bin/gitdo ./app/gitdo
 
 
-test2:
+test:
 	vgo test github.com/nebloc/gitdo/app/...
 
 release_dir:
