@@ -14,7 +14,7 @@ func AppendFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	to, err := os.OpenFile(dst, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	to, err := os.OpenFile(dst, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
 	}
