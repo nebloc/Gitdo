@@ -95,7 +95,7 @@ func (*Git) GetEmail() (string, error) {
 // Init Initialises a Git repository in the current directory.
 func (*Git) Init() error {
 	cmd := exec.Command("git", "init")
-	_, err := cmd.CombinedOutput()
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
