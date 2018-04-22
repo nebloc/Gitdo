@@ -84,6 +84,7 @@ func AppBuilder() *cli.App {
 			Action: Init,
 		},
 		{
+			Before: LoadConfig,
 			Name:   "post-commit",
 			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
 			Action: PostCommit,
