@@ -61,7 +61,11 @@ func (c *Config) interpreterIsSet() bool {
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
-func LoadConfig(_ *cli.Context) error {
+func LoadConfig(ctx *cli.Context) error {
+	if err := ChangeToVCRoot(ctx); err != nil {
+		return err
+	}
+
 	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		utils.Warn("Could not find configuration file for gitdo. Have you ran \"gitdo init\"?")

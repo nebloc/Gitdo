@@ -25,7 +25,7 @@ func NewGit() *Git {
 
 // SetHooks copies the files inside the hooks subdirectory of the given homeDir
 func (g *Git) SetHooks(homeDir string) error {
-	srcHooks := filepath.Join(homeDir, "hooks")
+	srcHooks := filepath.Join(homeDir, "hooks", "git")
 	dstHooks := filepath.Join(g.dir, "hooks")
 
 	err := utils.CopyFolder(srcHooks, dstHooks)
@@ -95,7 +95,7 @@ func (*Git) GetEmail() (string, error) {
 // Init Initialises a Git repository in the current directory.
 func (*Git) Init() error {
 	cmd := exec.Command("git", "init")
-	_, err := cmd.CombinedOutput()
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}

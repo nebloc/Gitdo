@@ -57,7 +57,7 @@ func Commit(_ *cli.Context) error {
 	}
 
 	taskChan := make(chan Task, 2)
-	done := make(chan bool)
+	done := make(chan struct{})
 
 	go SourceChanger(taskChan, done)
 
@@ -134,7 +134,7 @@ func CheckTagged(line diffparse.SourceLine) (string, bool) {
 // SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
 // on them. When all tasks have been sent and the channel is closed it finishes
 // it's write and sends a done signal
-func SourceChanger(taskChan <-chan Task, done chan<- bool) {
+func SourceChanger(taskChan <-chan Task, done chan<- struct{}) {
 	for {
 		task, open := <-taskChan
 		if open {
@@ -144,7 +144,7 @@ func SourceChanger(taskChan <-chan Task, done chan<- bool) {
 				continue
 			}
 		} else {
-			done <- true
+			close(done)
 			return
 		}
 	}
@@ -200,6 +200,8 @@ func CheckTaskRegex(line string) []string {
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
 	match := CheckTaskRegex(line.Content)
 	if len(match) > 0 { // if match was found
+
+		// Create Task
 		t := Task{
 			id:       "",
 			FileName: strings.TrimSpace(line.FileTo),
@@ -210,6 +212,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 			Branch:   "",
 		}
 
+		// Get ID for task
 		resp, err := RunPlugin(GETID, t)
 		if err != nil {
 			utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)

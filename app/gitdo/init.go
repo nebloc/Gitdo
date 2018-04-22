@@ -5,21 +5,40 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/nebloc/gitdo/app/utils"
 	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/app/versioncontrol"
 )
 
 // Init initialises the gitdo project by scaffolding the gitdo folder
 func Init(ctx *cli.Context) error {
-	if ctx.Bool("with-git") {
-		if err := InitGit(); err != nil {
-			return err
+	// Initialise repo
+	withVC := strings.ToLower(ctx.String("with-vc"))
+
+	if withVC != "" {
+		utils.Highlightf("Initialising: %s", withVC)
+		switch withVC {
+		case "git":
+			if err := versioncontrol.NewGit().Init(); err != nil {
+				utils.Warnf("could not create a Git repo")
+				return err
+			}
+		case "mercurial":
+			if err := versioncontrol.NewHg().Init(); err != nil {
+				utils.Warnf("could not create a Mercurial repo")
+				return err
+			}
+		default:
+			return fmt.Errorf("could not initialise version control for: %s", withVC)
 		}
+	}
+
+	if err := ChangeToVCRoot(ctx); err != nil {
+		return err
 	}
 
 	utils.Highlightf("Making %s/gitdo", config.vc.NameOfDir())
@@ -94,18 +113,6 @@ func SetConfig() error {
 		utils.Dangerf("Couldn't save config: %v", err)
 		return err
 	}
-	return nil
-}
-
-// InitGit initialises a git repo before initialising gitdo
-func InitGit() error {
-	fmt.Println("Initializing git...")
-	cmd := exec.Command("git", "init")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-	fmt.Println("Git initialized")
 	return nil
 }
 
