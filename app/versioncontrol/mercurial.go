@@ -29,7 +29,7 @@ func NewHg() *Hg {
 // SetHooks attempts to append the hgrc file in the homeDir to the end of the .hg/hgrc file. If the file is missing,
 // it will create one.
 func (h *Hg) SetHooks(homeDir string) error {
-	srcHook := filepath.Join(homeDir, "hgrc")
+	srcHook := filepath.Join(homeDir, "hooks", "mercurial", "hgrc")
 	dstHook := filepath.Join(h.dir, "hgrc")
 	err := utils.AppendFile(srcHook, dstHook)
 	if err != nil {

@@ -3,22 +3,42 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/urfave/cli"
 	"github.com/nebloc/gitdo/app/utils"
+	"github.com/urfave/cli"
+	"github.com/nebloc/gitdo/app/versioncontrol"
 )
 
 // Init initialises the gitdo project by scaffolding the gitdo folder
 func Init(ctx *cli.Context) error {
-	if ctx.Bool("with-git") {
-		if err := InitGit(); err != nil {
-			return err
+	// Initialise repo
+	withVC := strings.ToLower(ctx.String("with-vc"))
+
+	if withVC != "" {
+		utils.Highlightf("Initialising: %s", withVC)
+		switch withVC {
+		case "git":
+			if err := versioncontrol.NewGit().Init(); err != nil {
+				utils.Warnf("could not create a Git repo")
+				return err
+			}
+		case "mercurial":
+			if err := versioncontrol.NewHg().Init(); err != nil {
+				utils.Warnf("could not create a Mercurial repo")
+				return err
+			}
+		default:
+			return fmt.Errorf("could not initialise version control for: %s", withVC)
 		}
+	}
+
+	if err := ChangeToVCRoot(ctx); err != nil {
+		return err
 	}
 
 	utils.Highlightf("Making %s/gitdo", config.vc.NameOfDir())
@@ -77,30 +97,22 @@ func SetConfig() error {
 	}
 
 	if !config.interpreterIsSet() {
-		interp, err := AskInterpreter()
+		interp, err := GetInterp()
 		if err != nil {
-			return err
+			utils.Warnf("No interp file in %s dir", config.Plugin)
+			interp, err = AskInterpreter()
+			if err != nil {
+				return err
+			}
+
 		}
 		config.PluginInterpreter = interp
 	}
-
 	err := WriteConfig()
 	if err != nil {
 		utils.Dangerf("Couldn't save config: %v", err)
 		return err
 	}
-	return nil
-}
-
-// InitGit initialises a git repo before initialising gitdo
-func InitGit() error {
-	fmt.Println("Initializing git...")
-	cmd := exec.Command("git", "init")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-	fmt.Println("Git initialized")
 	return nil
 }
 
@@ -168,6 +180,20 @@ func AskInterpreter() (string, error) {
 	}
 	utils.Highlightf("Using %s", interp)
 	return interp, nil
+}
+
+func GetInterp() (string, error) {
+	homePath, err := GetHomeDir()
+	if err != nil {
+		return "", err
+	}
+	contents, err := ioutil.ReadFile(filepath.Join(homePath, "plugins", config.Plugin, "interp"))
+	if err != nil {
+		return "", err
+	}
+	interp := utils.StripNewlineChar(contents)
+	utils.Highlightf("Using %s - found in interp file", interp)
+	return interp, err
 }
 
 // CreateHooks gets the users main Gitdo directory and copies the hooks from it to the correct version control hidden

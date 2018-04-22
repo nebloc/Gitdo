@@ -52,19 +52,20 @@ func AppBuilder() *cli.App {
 	if version != "" {
 		gitdo.Version = fmt.Sprintf("App: %s, Build: %s_%s", version, runtime.GOOS, runtime.GOARCH)
 	}
-	gitdo.Before = ChangeToVCRoot
 	cli.VersionFlag = cli.BoolFlag{
 		Name:  "version, V",
 		Usage: "print the app version",
 	}
 	gitdo.Commands = []cli.Command{
 		{
+			Before: ChangeToVCRoot,
 			Name:   "list",
 			Usage:  "prints the json of staged tasks",
 			Flags:  []cli.Flag{cli.BoolFlag{Name: "config", Usage: "prints the current configuration"}},
 			Action: List,
 		},
 		{
+
 			Name:   "commit",
 			Usage:  "gets git diff and stages any new tasks - normally ran from pre-commit hook",
 			Action: Commit,
@@ -72,12 +73,18 @@ func AppBuilder() *cli.App {
 			After:  NotifyFinished,
 		},
 		{
-			Name:   "init",
-			Usage:  "sets the gitdo configuration for the current git repo",
-			Flags:  []cli.Flag{cli.BoolFlag{Name: "with-git", Usage: "Initialises a git repo first, then gitdo"}},
+			Name:  "init",
+			Usage: "sets the gitdo configuration for the current git repo",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "with-vc",
+					Usage: "Must be 'Mercurial' or 'Git'. Initialises a repo first",
+				},
+			},
 			Action: Init,
 		},
 		{
+			Before: LoadConfig,
 			Name:   "post-commit",
 			Usage:  "adds the commit hash that has just been committed to tasks with empty hash fields",
 			Action: PostCommit,
@@ -131,7 +138,7 @@ func List(ctx *cli.Context) error {
 
 // ChangeToVCRoot allows the running of Gitdo from subdirectories by moving the working dir to the top level according
 // to git or mercurial
-func ChangeToVCRoot(_ *cli.Context) error {
+func ChangeToVCRoot(_s *cli.Context) error {
 	TryGitTopLevel()
 	TryHgTopLevel()
 
