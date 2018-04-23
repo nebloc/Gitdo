@@ -191,7 +191,7 @@ func GetInterp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	interp := utils.StripNewlineChar(contents)
+	interp := utils.StripNewlineByte(contents)
 	utils.Highlightf("Using %s - found in interp file", interp)
 	return interp, err
 }

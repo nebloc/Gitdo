@@ -11,6 +11,7 @@ type VersionControl interface {
 	GetEmail() (string, error)
 	GetBranch() (string, error)
 	GetHash() (string, error)
+	GetTrackedFiles() ([]string, error)
 
 	// Get details of the version control being used
 	NameOfDir() string

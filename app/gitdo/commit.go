@@ -2,7 +2,6 @@ package main
 
 import (
 	"io/ioutil"
-	"regexp"
 	"strings"
 
 	"github.com/nebloc/gitdo/app/diffparse"
@@ -82,15 +81,6 @@ func Commit(_ *cli.Context) error {
 	return nil
 }
 
-var (
-	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
-	// todoReg is a compiled regex to match the TODO comments
-	todoReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(.*)`)
-	taggedReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(?:.*)<(.*)>`)
-)
-
 // processDiff Takes a diff section for a file and extracts TODO comments
 // TODO: Be able to support multi line todo messages. <zyWHSPaM>
 func processDiff(lines []diffparse.SourceLine, taskChan chan<- Task) taskChanges {
@@ -100,7 +90,7 @@ func processDiff(lines []diffparse.SourceLine, taskChan chan<- Task) taskChanges
 		Deleted: make(map[string]bool, 0),
 	}
 	for _, line := range lines {
-		id, tagged := CheckTagged(line)
+		id, tagged := CheckRegex(taggedReg, line.Content)
 		switch {
 		case line.Mode == diffparse.REMOVED && tagged:
 			changes.Deleted[id] = true
@@ -120,15 +110,6 @@ func processDiff(lines []diffparse.SourceLine, taskChan chan<- Task) taskChanges
 		delete(changes.Deleted, id)
 	}
 	return changes
-}
-
-// CheckTagged runs the tagged regex and returns the ID and whether it was a match or not
-func CheckTagged(line diffparse.SourceLine) (string, bool) {
-	match := taggedReg.FindStringSubmatch(line.Content)
-	if len(match) != 2 {
-		return "", false
-	}
-	return match[1], true
 }
 
 // SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
@@ -189,39 +170,33 @@ func isCRLF(line string) bool {
 	return false
 }
 
-// CheckTaskRegex checks the line given against the todoReg and returns an array
-// of the submatches
-func CheckTaskRegex(line string) []string {
-	return todoReg.FindStringSubmatch(line)
-}
-
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	match := CheckTaskRegex(line.Content)
-	if len(match) > 0 { // if match was found
-
-		// Create Task
-		t := Task{
-			id:       "",
-			FileName: strings.TrimSpace(line.FileTo),
-			TaskName: match[1],
-			FileLine: line.Position,
-			Author:   config.Author,
-			Hash:     "",
-			Branch:   "",
-		}
-
-		// Get ID for task
-		resp, err := RunPlugin(GETID, t)
-		if err != nil {
-			utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
-			panic("Couldn't get id for task in plugin - " + err.Error() + resp)
-		}
-		t.id = resp
-		return t, true
+	taskName, isTask := CheckRegex(todoReg, line.Content)
+	if !isTask {
+		return Task{}, false
 	}
-	return Task{}, false
+
+	// Create Task
+	t := Task{
+		id:       "",
+		FileName: strings.TrimSpace(line.FileTo),
+		TaskName: taskName,
+		FileLine: line.Position,
+		Author:   config.Author,
+		Hash:     "",
+		Branch:   "",
+	}
+
+	// Get ID for task
+	resp, err := RunPlugin(GETID, t)
+	if err != nil {
+		utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
+		panic("Couldn't get id for task in plugin - " + err.Error() + resp)
+	}
+	t.id = resp
+	return t, true
 }
 
 type taskChanges struct {

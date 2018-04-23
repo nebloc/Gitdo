@@ -101,10 +101,11 @@ func AppBuilder() *cli.App {
 			Name:   "destroy",
 			Usage:  "deletes all of the stored tasks",
 			Flags:  []cli.Flag{cli.BoolFlag{Name: "yes", Usage: "confirms purge of task file"}},
-			Before: ConfirmUser,
+			Before: CheckPurge,
 			Action: Destroy,
 		},
 		{
+			Before: LoadConfig,
 			Name:   "force-all-test",
 			Usage:  "Tag all files",
 			Action: ForceAll,
@@ -166,7 +167,7 @@ func TryGitTopLevel() {
 		return
 	}
 	vc := versioncontrol.NewGit()
-	vc.TopLevel = utils.StripNewlineChar(result)
+	vc.TopLevel = utils.StripNewlineByte(result)
 	config.vc = vc
 }
 
@@ -182,7 +183,7 @@ func TryHgTopLevel() {
 		return
 	}
 	vc := versioncontrol.NewHg()
-	vc.TopLevel = utils.StripNewlineChar(result)
+	vc.TopLevel = utils.StripNewlineByte(result)
 	config.vc = vc
 }
 

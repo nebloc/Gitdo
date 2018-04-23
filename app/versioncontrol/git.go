@@ -6,6 +6,7 @@ import (
 	"github.com/nebloc/gitdo/app/utils"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Git is an implementation of the VersionControl interface for the Git version control system.
@@ -64,7 +65,7 @@ func (*Git) GetDiff() (string, error) {
 		}
 		return "", err
 	}
-	diff := utils.StripNewlineChar(resp)
+	diff := utils.StripNewlineByte(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -89,7 +90,7 @@ func (*Git) GetEmail() (string, error) {
 		utils.Warn("Please set your git email address for this repo. git config user.email example@email.com")
 		return "", fmt.Errorf("Could not get user.email from git: %v", err)
 	}
-	return utils.StripNewlineChar(resp), nil
+	return utils.StripNewlineByte(resp), nil
 }
 
 // Init Initialises a Git repository in the current directory.
@@ -110,7 +111,7 @@ func (*Git) GetBranch() (string, error) {
 		return "", errors.New("could not get branch of last commit")
 	}
 
-	branch := utils.StripNewlineChar(resp)
+	branch := utils.StripNewlineByte(resp)
 	return branch, nil
 }
 
@@ -121,7 +122,7 @@ func (*Git) GetHash() (string, error) {
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
 	}
-	hash := utils.StripNewlineChar(resp)
+	hash := utils.StripNewlineByte(resp)
 	return hash, nil
 }
 
@@ -136,4 +137,23 @@ func (*Git) CreateBranch() error {
 func (*Git) SwitchBranch() error {
 	cmd := exec.Command("git", "checkout", NewBranchName)
 	return cmd.Run()
+}
+
+func (*Git) GetTrackedFiles() ([]string, error) {
+	cmd := exec.Command("git", "ls-tree", "-r", "master", "--name-only")
+	raw, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	files := strings.Split(string(raw), "\n")
+	if len(files) == 0 {
+		return nil, err
+	}
+	if strings.HasSuffix(files[0], "\r") {
+		for i, fileName := range files {
+			files[i] = utils.StripNewlineString(fileName)
+		}
+	}
+
+	return files, nil
 }

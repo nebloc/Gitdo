@@ -62,7 +62,7 @@ func (*Hg) GetDiff() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get hg diff")
 	}
-	diff := utils.StripNewlineChar(resp)
+	diff := utils.StripNewlineByte(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -106,7 +106,7 @@ func (*Hg) GetBranch() (string, error) {
 		return "", errors.New("could not get branch of last commit")
 	}
 
-	branch := utils.StripNewlineChar(resp)
+	branch := utils.StripNewlineByte(resp)
 	return branch, nil
 }
 
@@ -117,14 +117,36 @@ func (*Hg) GetHash() (string, error) {
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
 	}
-	hash := utils.StripNewlineChar(resp)
+	hash := utils.StripNewlineByte(resp)
 	return hash, nil
 }
 
 func (*Hg) CreateBranch() error {
-	return errors.New("Not Implemented")
+	cmd := exec.Command("hg", "branch", NewBranchName)
+	return cmd.Run()
 }
 
 func (*Hg) SwitchBranch() error {
-	return errors.New("Not Implemented")
+	//cmd := exec.Command("hg", "update", NewBranchName)
+	//return cmd.Run()
+	return nil
+}
+
+func (*Hg) GetTrackedFiles() ([]string, error) {
+	cmd := exec.Command("hg", "locate")
+	raw, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	files := strings.Split(string(raw), "\n")
+	if len(files) == 0 {
+		return nil, err
+	}
+	if strings.HasSuffix(files[0], "\r") {
+		for i, fileName := range files {
+			files[i] = utils.StripNewlineString(fileName)
+		}
+	}
+
+	return files, nil
 }

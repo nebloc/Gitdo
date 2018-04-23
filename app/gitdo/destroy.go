@@ -20,26 +20,36 @@ func Destroy(ctx *cli.Context) error {
 	return os.Remove(stagedTasksFile)
 }
 
-// ConfirmUser asks if the user really wants to delete the file, if yes it sets the yes flag
-func ConfirmUser(ctx *cli.Context) error {
+// CheckPurge asks if the user really wants to delete the file, if yes it sets the yes flag
+func CheckPurge(ctx *cli.Context) error {
 	if ctx.Bool("yes") {
 		return nil
 	}
+
+	confirmed := ConfirmWithUser("Are you sure you want to purge the task file?")
+	if confirmed {
+		ctx.Set("yes", "true")
+		return nil
+	}
+
+	return nil
+}
+
+func ConfirmWithUser(message string) bool {
 	var ans string
-	utils.Warn("Are you sure you want to purge the task file? (y/n)")
+	utils.Warnf("%s (y/n)", message)
 	_, err := fmt.Scan(&ans)
 	if err != nil {
-		utils.Warnf("Not purging: %v", err)
-		return nil
+		utils.Warnf("Backing out: %v", err)
+		return false
 	}
 	ans = strings.TrimSpace(ans)
 	ans = strings.ToLower(ans)
 
 	if ans == "y" || ans == "yes" {
-		ctx.Set("yes", "true")
-		return nil
+		return true
 	}
 
-	utils.Warn("Not Purging")
-	return nil
+	utils.Warn("Backing out")
+	return false
 }

@@ -25,7 +25,7 @@ func TestStripNewlineChar(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		result := StripNewlineChar(test.in)
+		result := StripNewlineByte(test.in)
 		if result != test.out {
 			t.Errorf("Epected: %s, got: %s", test.out, result)
 		}

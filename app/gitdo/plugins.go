@@ -96,10 +96,10 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	err = cmd.Run()
 	resp = out.Bytes()
 	if err != nil {
-		utils.Warn(utils.StripNewlineChar(resp))
-		return utils.StripNewlineChar(resp), err
+		utils.Warn(utils.StripNewlineByte(resp))
+		return utils.StripNewlineByte(resp), err
 	}
-	return utils.StripNewlineChar(resp), nil
+	return utils.StripNewlineByte(resp), nil
 }
 
 func MarshalTask(task Task) ([]byte, error) {

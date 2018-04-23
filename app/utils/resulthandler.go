@@ -4,15 +4,19 @@ import "strings"
 
 // stripNewLineChar takes a byte array (usually from an exec.Command run) and strips the newline characters, returning
 // a string
-func StripNewlineChar(orig []byte) string{
-	newStr := string(orig)
+func StripNewlineByte(bytes []byte) string {
+	return StripNewlineString(string(bytes))
+}
+
+func StripNewlineString(str string) string {
 	// Strip line feed
-	if strings.HasSuffix(newStr, "\n") {
-		newStr = newStr[:len(newStr)-1]
+	if strings.HasSuffix(str, "\n") {
+		str = str[:len(str)-1]
 	}
 	// Strip carriage return
-	if strings.HasSuffix(newStr, "\r") {
-		newStr = newStr[:len(newStr)-1]
+	if strings.HasSuffix(str, "\r") {
+		str = str[:len(str)-1]
 	}
-	return newStr
+
+	return str
 }
