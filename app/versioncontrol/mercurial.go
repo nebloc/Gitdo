@@ -18,6 +18,15 @@ type Hg struct {
 	dir      string
 }
 
+func (*Hg) CheckClean() (bool) {
+	panic("implement me")
+}
+
+func (*Hg) NewCommit(message string) error {
+	cmd := exec.Command("hg", "commit", "-m", message)
+	return cmd.Run()
+}
+
 // NewHGreturns a pointer to a new Mercurial implementation of the VersionControl interface.
 func NewHg() *Hg {
 	hg := new(Hg)

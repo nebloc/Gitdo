@@ -16,6 +16,25 @@ type Git struct {
 	TopLevel string
 }
 
+func (*Git) CheckClean() (bool) {
+	cmd := exec.Command("git", "diff-files", "--quiet")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	cmd = exec.Command("git", "diff", "--quiet", "--cached")
+	err = cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (*Git) NewCommit(message string) error {
+	cmd := exec.Command("git", "commit", "-m", message)
+	return cmd.Run()
+}
+
 // NewGit returns a pointer to a new Git implementation of the VersionControl interface.
 func NewGit() *Git {
 	git := new(Git)

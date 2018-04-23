@@ -5,6 +5,8 @@ VERSION=-ldflags "-X main.version=$(VERNUM)-$(HASH)"
 install: 
 	vgo build ${VERSION} -o /usr/local/bin/gitdo ./app/gitdo
 
+raceinstall:
+	vgo build -race ${VERSION} -o /usr/local/bin/gitdo ./app/gitdo
 
 test:
 	vgo test github.com/nebloc/gitdo/app/...

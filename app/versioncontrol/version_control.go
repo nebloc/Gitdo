@@ -25,6 +25,9 @@ type VersionControl interface {
 
 	// Set the hooks that are needed for the VC during init
 	SetHooks(homeDir string) error
+
+	NewCommit(message string) error
+	CheckClean() (bool)
 }
 
 var (

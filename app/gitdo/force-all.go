@@ -7,18 +7,41 @@ import (
 	"strings"
 	"github.com/nebloc/gitdo/app/versioncontrol"
 	"fmt"
+	"os"
+	"sync"
+)
+
+var (
+	mu            sync.Mutex
+	pluginFailure = false
 )
 
 func ForceAll(ctx *cli.Context) error {
-	ConfirmWithUser("If a lot of tasks are found you may hit the rate limit of your task manager\nAre you sure you want to run this?")
+	clean := config.vc.CheckClean()
+	if !clean {
+		utils.Warnf("Please start with a clean repository directory.")
+		return nil
+	}
 
-	utils.Highlightf("Creating new branch to make changes on - %s", versioncontrol.NewBranchName)
-	if err := config.vc.CreateBranch(); err != nil {
-		utils.Danger("Could not Create branch")
+	confirmed := ConfirmWithUser("If a lot of tasks are found you may hit the rate limit of your task manager\nAre you sure you want to run this?")
+	if !confirmed {
+		return nil
+	}
+
+	hash, err := config.vc.GetHash()
+	if err != nil {
 		return err
 	}
+
+	branch, err := config.vc.GetBranch()
+	if err != nil {
+		return err
+	}
+
+	utils.Highlightf("switching to new branch to make changes on - %s", versioncontrol.NewBranchName)
+	config.vc.CreateBranch()
 	if err := config.vc.SwitchBranch(); err != nil {
-		utils.Danger("Could not Switch branch")
+		utils.Danger("Could not switch branch")
 		return err
 	}
 
@@ -32,7 +55,7 @@ func ForceAll(ctx *cli.Context) error {
 	tasks := make(map[string]Task)
 
 	for _, file := range filesToCheck {
-		go TagFile(file, taskc, donec)
+		go TagFile(file, hash, branch, taskc, donec)
 	}
 
 	finished := 0
@@ -44,55 +67,104 @@ func ForceAll(ctx *cli.Context) error {
 			finished++
 		}
 	}
+	if len(tasks) == 0 {
+		utils.Highlight("No tasks found.")
+		return nil
+	}
+	utils.Highlightf("Found %d tasks", len(tasks))
 
 	err = CommitTasks(tasks, nil)
 	if err != nil {
 		return err
 	}
 
-	utils.Highlight("Please run any unit tests to ensure the code's working, and check the diff, before merging back")
+	err = config.vc.RestageTasks(".")
+	if err != nil {
+		utils.Dangerf("Could not re-stage files: %v", err)
+	}
+	err = config.vc.NewCommit("gitdo tagged files")
+	if err != nil {
+		utils.Warnf("Could not commit changes: %v", err)
+	}
+	utils.Highlight("Please run any unit tests to ensure the code's working\nCheck the diff with 'git diff HEAD~1', before merging")
 	return nil
 }
-func TagFile(fileName string, taskc chan<- Task, donec chan<- struct{}) {
+func TagFile(fileName string, hash string, branch string, taskc chan<- Task, donec chan<- struct{}) {
 	if fileName == "" {
 		donec <- struct{}{}
 		return
 	}
 
-	fmt.Printf("Checking file: %s\n", fileName)
 	cont, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		utils.Dangerf("Could not read: %s to tag", fileName)
 		donec <- struct{}{}
 		return
 	}
-	lines := strings.Split(string(cont), "\n")
+
+	sep := "\n"
+	lines := strings.Split(string(cont), sep)
+	if isCRLF(lines[0]) {
+		sep = "\r\n"
+	}
+
+	changed := false
 	for ind, line := range lines {
+		line = utils.StripNewlineString(line)
 		taskname, isTask := CheckRegex(looseTODOReg, line)
 		if isTask {
-			fmt.Printf("Found task: %s#L%d - %s\n", fileName, ind, taskname)
+			// Ignore tagged tasks
+			if _, isTagged := CheckRegex(taggedReg, line); isTagged {
+				continue
+			}
+			utils.Highlightf("Found: %s#L%d - %s", fileName, ind+1, taskname)
+
 			// Create Task
 			t := Task{
 				id:       "",
 				FileName: fileName,
 				TaskName: taskname,
-				FileLine: ind,
+				FileLine: ind + 1,
 				Author:   config.Author,
-				Hash:     "",
-				Branch:   "",
+				Hash:     hash,
+				Branch:   branch,
 			}
 
-			// Get ID for task
-			resp, err := RunPlugin(GETID, t)
-			if err != nil {
-				utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
-				panic("Couldn't get id for task in plugin - " + err.Error() + resp)
+			mu.Lock()
+			if pluginFailure {
+				mu.Unlock()
+				break
 			}
+			// Get ID for task
+			resp, err := RunPlugin(CREATE, t)
+			if err != nil {
+				pluginFailure = true
+				utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
+				mu.Unlock()
+				break
+			}
+			mu.Unlock()
+
 			t.id = resp
 			taskc <- t
+
+			fStr := "%s <%s>"
+			if sep == "\r\n" {
+				fStr = "%s <%s>\r"
+			}
+
+			lines[ind] = fmt.Sprintf(fStr, line, t.id)
+			changed = true
 		}
 	}
-	fmt.Printf("Checking file: %s\n", fileName)
+
+	if changed {
+		err := ioutil.WriteFile(fileName, []byte(strings.Join(lines, sep)), os.ModePerm)
+		if err != nil {
+			utils.Dangerf("Could not tag %s", fileName)
+		}
+	}
+
 	donec <- struct{}{}
 	return
 }
