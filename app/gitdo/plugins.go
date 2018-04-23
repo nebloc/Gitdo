@@ -76,8 +76,10 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			cmd.Args = append(cmd.Args, task.id)
 			cmd.Args = append(cmd.Args, string(bT))
+			if task.id != "" {
+				cmd.Args = append(cmd.Args, task.id)
+			}
 		} else {
 			return "", errNotTask
 		}
