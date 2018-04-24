@@ -11,7 +11,7 @@ MACHINE_TYPE=`uname -m`
 echo ${GOOS}
 
 GOARCH=``
-if [[ ${MACHINE_TYPE} == 'x86_64' ]]; then
+if [ ${MACHINE_TYPE} = 'x86_64' ]; then
 	GOARCH="64"
 else
 	GOARCH="32"
@@ -20,6 +20,7 @@ fi
 
 VERSIONTOCP="gitdo_${GOOS}_${GOARCH}"
 echo "Copying $VERSIONTOCP to your /usr/local/bin/ ..."
-cp $VERSIONTOCP /usr/local/bin/gitdo
+sudo cp $VERSIONTOCP /usr/local/bin/gitdo
+sudo chmod +x /usr/local/bin/gitdo
 
 echo "Done."
