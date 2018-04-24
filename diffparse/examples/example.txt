@@ -1,0 +1,45 @@
+diff --git a/lorem.txt b/lorem.txt
+index a3653c4..6f9f76d 100644
+--- a/lorem.txt
++++ b/lorem.txt
+@@ -1,19 +1,17 @@
+ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vel orci tincidunt,
+ sollicitudin odio vel, mollis augue. Praesent rhoncus finibus maximus. Donec pulvinar 
+-sodales mollis. Donec pharetra et nibh sed suscipit. Cras quis maximus risus. Duis vitae
+-metus justo. Quisque vel dignissim felis. Aenean aliquam ipsum non auctor tempor.
+ Phasellus condimentum velit consequat ipsum imperdiet, ac tristique lectus varius.
+ Mauris vitae nunc a lectus eleifend fringilla mollis id ante. Morbi pharetra orci
+ id euismod rhoncus.
+ 
+ Phasellus turpis lorem, venenatis a dui non, bibendum varius lectus. Pellentesque
+-scelerisque libero vestibulum mollis imperdiet. Proin nec justo quis mauris ullamcorper
+ finibus a quis nisl. Proin lacinia aliquet ligula non viverra. Morbi a sodales diam.
+ Vivamus et sapien a metus commodo ornare vel et metus. Aenean eget odio varius, viverra
+ ipsum ut, euismod risus. Nullam in dui aliquam, tempus justo eu, facilisis ante. Proin
+ malesuada semper dui nec ultricies. Pellentesque habitant morbi tristique senectus et 
+ netus et malesuada fames ac turpis egestas. Vestibulum ante ipsum primis in faucibus orci
+-luctus et ultrices posuere cubilia Curae; Integer nibh quam, finibus in augue id,
++Etiam eget nulla vel mauris aliquam pulvinar in ut urna. Vestibulum ante ipsum primis in
++faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam erat volutpat. 
+ fringilla fermentum urna. Sed interdum, enim sed porta faucibus, metus metus hendrerit
+ magna, vitae luctus arcu neque at magna. Aliquam non est velit. Sed suscipit libero in
+ purus sodales, quis maximus velit tincidunt.
+@@ -23,15 +21,14 @@ ultricies, lacus ligula gravida sapien, congue interdum ipsum metus a ante. Null
+ tellus augue. Duis convallis eget elit vitae sagittis. Aliquam sem leo, tempus non aliquet
+ ut, placerat id enim. Pellentesque consequat nisl justo. Ut iaculis enim eget ante dictum,
+ a laoreet urna sollicitudin. Donec sit amet ligula id ligula venenatis tincidunt sit amet
+-et ipsum.
++et ipsum
+ 
+ Vestibulum a erat vitae massa vestibulum efficitur. Maecenas a diam cursus felis feugiat
+-laoreet imperdiet sit amet erat. Morbi et purus pulvinar, imperdiet sapien vitae,
+ efficitur erat. Phasellus eget nisi ligula. Nulla purus lacus, posuere ac cursus vitae,
+ maximus lacinia sem. Nunc cursus lectus et velit tempor, et elementum sapien sodales.
+ Cras ultricies facilisis ipsum a placerat.
++Quisque mauris in orci cursus lobortis. Sed sed faucibus tellus. 
+ 
+ Sed porttitor purus id posuere dictum. Ut vitae leo ac felis mollis accumsan ac at eros.
+ Donec at nisl a lorem mollis finibus. Fusce vel gravida nulla. Phasellus pharetra
+ consectetur nulla vel porta. Pellentesque fringilla turpis eu iaculis iaculis. Proin
+-consequat neque mi, quis congue purus luctus non. 
+\ No newline at end of file

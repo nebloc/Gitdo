@@ -1,0 +1,4 @@
+[hooks]
+pre-commit = gitdo commit
+post-commit = gitdo post-commit
+pre-push = gitdo push

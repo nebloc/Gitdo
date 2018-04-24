@@ -3,21 +3,21 @@ VERNUM=0.0.8
 VERSION=-ldflags "-X main.version=$(VERNUM)-$(HASH)"
 
 install: 
-	vgo build ${VERSION} -o /usr/local/bin/gitdo ./app/gitdo
+	vgo build ${VERSION} -o /usr/local/bin/gitdo ./gitdo
 
 
 test:
-	vgo test github.com/nebloc/gitdo/app/...
+	vgo test github.com/nebloc/gitdo/...
 
 release_dir:
 	rm -rf release/
 	mkdir release/
-	env GOOS=windows GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_win_32.exe ./app/gitdo
-	env GOOS=windows GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_win_64.exe ./app/gitdo
-	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_32 ./app/gitdo
-	env GOOS=darwin GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_darwin_64 ./app/gitdo
-	env GOOS=linux GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_linux_32 ./app/gitdo
-	env GOOS=linux GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_linux_64 ./app/gitdo
+	env GOOS=windows GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_win_32.exe ./gitdo
+	env GOOS=windows GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_win_64.exe ./gitdo
+	env GOOS=darwin GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_darwin_32 ./gitdo
+	env GOOS=darwin GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_darwin_64 ./gitdo
+	env GOOS=linux GOARCH=386 vgo build ${VERSION} -o ./release/gitdo_linux_32 ./gitdo
+	env GOOS=linux GOARCH=amd64 vgo build ${VERSION} -o ./release/gitdo_linux_64 ./gitdo
 	cp -r ./hooks ./release/
 	cp -r ./plugins ./release/
 	cp mac_linux_install.sh ./release/
