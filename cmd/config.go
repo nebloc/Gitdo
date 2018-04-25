@@ -59,7 +59,7 @@ func (c *config) interpreterIsSet() bool {
 	return strings.TrimSpace(c.PluginInterpreter) != ""
 }
 
-// LoadConfig opens a configuration file and reads it in to the Config struct
+// loadConfig opens a configuration file and reads it in to the Config struct
 func loadConfig() error {
 	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
@@ -74,7 +74,7 @@ func loadConfig() error {
 	return nil
 }
 
-// WriteConfig saves the current config to be loaded in after setting
+// writeConfig saves the current config to be loaded in after setting
 func writeConfig() error {
 	bConf, err := json.MarshalIndent(app, "", "\t")
 	if err != nil {
