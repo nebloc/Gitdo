@@ -4,7 +4,7 @@ VERNUM=0.1.0
 VERSION=-ldflags '-X "main.version=$(VERNUM) ($(HASH)$(DATE))"'
 
 install: 
-	vgo build ${VERSION} -o /usr/local/bin/gitdo ./gitdo
+	vgo build ${VERSION} -o /usr/local/bin/gitdo .
 
 build:
 	vgo build ${VERSION} .

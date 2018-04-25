@@ -69,6 +69,9 @@ More information and documentation can be found at https://github.com/nebloc/git
 	// POST COMMIT
 	rootCmd.AddCommand(postCommitCmd)
 
+	// PUSH
+	rootCmd.AddCommand(pushCmd)
+
 	return rootCmd
 }
 
