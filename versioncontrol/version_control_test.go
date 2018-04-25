@@ -36,7 +36,7 @@ func init() {
 
 	VCMap = make(map[string]*TestVC)
 	VCMap[GIT_NAME] = &TestVC{NewGit(), ""}
-	VCMap[MERCURIAL_NAME] = &TestVC{NewHg(), ""}
+	VCMap[mercurial_name] = &TestVC{NewHg(), ""}
 
 	for i, vc := range VCMap {
 		VCMap[i].tmpDir = path.Join(os.TempDir(), "Gitdo_versioncontrol_"+vc.NameOfVC())

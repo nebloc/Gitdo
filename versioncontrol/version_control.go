@@ -2,6 +2,7 @@ package versioncontrol
 
 import "errors"
 
+// VersionControl is the interface for different version control systems
 type VersionControl interface {
 	// Initialise the VC system on init
 	Init() error
@@ -27,12 +28,15 @@ type VersionControl interface {
 	SetHooks(homeDir string) error
 
 	NewCommit(message string) error
-	CheckClean() (bool)
+	CheckClean() bool
 }
 
 var (
+	// ErrNotVCDir is thrown when the current directory is not inside a repository
 	ErrNotVCDir = errors.New("directory is not a git or mercurial repo")
-	ErrNoDiff   = errors.New("diff is empty")
+	// ErrNoDiff is thrown when the diff output is empty
+	ErrNoDiff = errors.New("diff is empty")
 )
 
+// NewBranchName is the name of the branch that force-all does it's tagging on
 const NewBranchName = "gitdo/taggingall"
