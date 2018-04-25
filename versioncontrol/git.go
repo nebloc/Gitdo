@@ -109,7 +109,6 @@ func (*Git) GetEmail() (string, error) {
 	cmd := exec.Command("git", "config", "user.email")
 	resp, err := cmd.Output()
 	if err != nil {
-		utils.Warn("Please set your git email address for this repo. git config user.email example@email.com")
 		return "", fmt.Errorf("Could not get user.email from git: %v", err)
 	}
 	return utils.StripNewlineByte(resp), nil

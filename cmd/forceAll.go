@@ -25,13 +25,12 @@ var (
 	reqsPerSec           int
 	numberOfFileCrawlers int
 	rate                 time.Second
-	throttle             chan time.Time
 )
 
 var forceAllCmd = &cobra.Command{
 	Use:   "force-all",
 	Short: "Checks and adds all files in git repository for task annotations. Does so on a new branch.",
-	Run: func(cmd *cmd.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		if err := setup(); err != nil {
 			pDanger("Could not load gitdo: %v\n", err)
 			return
@@ -62,16 +61,16 @@ var forceAllCmd = &cobra.Command{
 	},
 }
 
-var throttle <-chan time.Time
+var throttle chan time.Time
 
 func canForceAll() bool {
 	clean := app.vc.CheckClean()
 	if !clean {
-		utils.Warnf("Please start with a clean repository directory.")
+		pWarning("Please start with a clean repository directory.")
 		return false
 	}
 
-	utils.Danger("This is an unstable feature.")
+	pDanger("This is an unstable feature.")
 	confirmed := ConfirmWithUser("If a lot of tasks are found you may hit the rate limit of your task manager.\nAre you sure you want to run this?")
 	if !confirmed {
 		return false
@@ -80,7 +79,7 @@ func canForceAll() bool {
 }
 
 func ForceAll() error {
-	filesToCheck, err := config.vc.GetTrackedFiles()
+	filesToCheck, err := app.vc.GetTrackedFiles()
 	if err != nil {
 		return err
 	}
@@ -88,22 +87,22 @@ func ForceAll() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hash, err := config.vc.GetHash()
+	hash, err := app.vc.GetHash()
 	if err != nil {
 		return err
 	}
 	ctx = context.WithValue(ctx, keyHash, hash)
 
-	branch, err := config.vc.GetBranch()
+	branch, err := app.vc.GetBranch()
 	if err != nil {
 		return err
 	}
 	ctx = context.WithValue(ctx, keyBranch, branch)
 
-	utils.Highlightf("switching to new branch to make changes on - %s", versioncontrol.NewBranchName)
-	config.vc.CreateBranch()
-	if err := config.vc.SwitchBranch(); err != nil {
-		utils.Danger("Could not switch branch")
+	pInfo("switching to new branch to make changes on - %s", versioncontrol.NewBranchName)
+	app.vc.CreateBranch()
+	if err := app.vc.SwitchBranch(); err != nil {
+		pDanger("Could not switch branch")
 		return err
 	}
 
@@ -128,7 +127,7 @@ func ForceAll() error {
 		case err := <-errorc:
 			if !errorThrown {
 				cancel()
-				utils.Dangerf("Recieved error processing files, stopping...\nFirst error: %v", err)
+				pDanger("Recieved error processing files, stopping...\nFirst error: %v", err)
 				errorThrown = true
 
 			}
@@ -138,25 +137,25 @@ func ForceAll() error {
 	}
 
 	if len(tasks) == 0 {
-		utils.Highlight("No tasks found.")
+		pInfo("No tasks found.")
 		return nil
 	}
-	utils.Highlightf("Found %d tasks", len(tasks))
+	pInfo("Found %d tasks", len(tasks))
 
 	err = CommitTasks(tasks, nil)
 	if err != nil {
 		return err
 	}
 
-	err = config.vc.RestageTasks(".")
+	err = app.vc.RestageTasks(".")
 	if err != nil {
-		utils.Dangerf("Could not re-stage files: %v", err)
+		pDanger("Could not re-stage files: %v", err)
 	}
-	err = config.vc.NewCommit("gitdo tagged files")
+	err = app.vc.NewCommit("gitdo tagged files")
 	if err != nil {
-		utils.Warnf("Could not commit changes: %v", err)
+		pWarning("Could not commit changes: %v", err)
 	}
-	utils.Highlight("Please run any unit tests to ensure the code's working\nCheck the diff with 'git diff HEAD~1 -U0', before merging")
+	pNormal("Please run any unit tests to ensure the code's working\nCheck the diff with 'git diff HEAD~1 -U0', before merging")
 	return nil
 }
 
@@ -200,10 +199,10 @@ func processFile(ctx context.Context, filename string, taskc chan<- Task) error 
 
 	for ind, line := range lines {
 		line = utils.StripNewlineString(line)
-		taskname, isTask := CheckRegex(looseTODOReg, line)
+		taskname, isTask := checkRegex(looseTODOReg, line)
 		if isTask {
 			// Ignore tagged tasks
-			if _, isTagged := CheckRegex(taggedReg, line); isTagged {
+			if _, isTagged := checkRegex(taggedReg, line); isTagged {
 				continue
 			}
 			// Create Task

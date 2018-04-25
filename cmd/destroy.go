@@ -10,25 +10,25 @@ import (
 	"os"
 	"strings"
 
-	"github.com/nebloc/gitdo/utils"
 	"github.com/spf13/cobra"
 )
 
 // Destroy deletes the staged tasks file if you need it to
 func Destroy(cmd *cobra.Command, args []string) error {
-	if ConfirmUser(cmd, args) {
+	if ConfirmWithUser("Are you sure you want to purge the tasks.json?") {
+		pWarning("Deleting")
 		return os.Remove(stagedTasksFile)
 	}
+	pWarning("Cancelling")
 	return nil
 }
 
-// ConfirmUser asks if the user really wants to delete the file, if yes it sets the yes flag
-func ConfirmUser(cmd *cobra.Command, args []string) bool {
+// ConfirmWithUser asks the user a message with Y/N and returns true if their answer is yes or Y
+func ConfirmWithUser(message string) bool {
 	var ans string
-	utils.Warn("Are you sure you want to purge the task file? (y/n)")
+	pNormal("%s %s", message, "(y/n): ")
 	_, err := fmt.Scan(&ans)
 	if err != nil {
-		utils.Warnf("Not purging: %v", err)
 		return false
 	}
 	ans = strings.TrimSpace(ans)
@@ -37,7 +37,5 @@ func ConfirmUser(cmd *cobra.Command, args []string) bool {
 	if ans == "y" || ans == "yes" {
 		return true
 	}
-
-	utils.Warn("Not Purging")
 	return false
 }
