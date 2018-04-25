@@ -38,6 +38,6 @@ var listConfigCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Could not print configuration: %v\n", err)
 			return
 		}
-		fmt.Println(config.String())
+		fmt.Println(app.String())
 	},
 }

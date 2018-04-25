@@ -30,11 +30,11 @@ var postCommitCmd = &cobra.Command{
 // PostCommit is ran from a git post-commit hook to set the hash values and branch values of any tasks that have just
 // been committed
 func PostCommit(cmd *cobra.Command, args []string) error {
-	hash, err := config.vc.GetHash()
+	hash, err := app.vc.GetHash()
 	if err != nil {
 		return err
 	}
-	branch, err := config.vc.GetHash()
+	branch, err := app.vc.GetHash()
 	if err != nil {
 		return err
 	}

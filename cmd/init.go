@@ -53,7 +53,7 @@ func Init(cmd *cobra.Command, args []string) error {
 	}
 	SetVCPaths()
 
-	utils.Highlightf("Making %s/gitdo", config.vc.NameOfDir())
+	utils.Highlightf("Making %s/gitdo", app.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
 		return err
 	}
@@ -81,44 +81,44 @@ func Init(cmd *cobra.Command, args []string) error {
 
 // CreatePluginsDir creates a directory structure inside the Gitdo folder for Plugins to use as working space.
 func CreatePluginsDir() error {
-	path := filepath.Join(pluginDirPath, config.Plugin)
+	path := filepath.Join(pluginDirPath, app.Plugin)
 	err := os.MkdirAll(path, os.ModePerm)
 	return err
 }
 
 // SetConfig checks the config is not set and asks the user relevant questions to set it
 func SetConfig() error {
-	if config.IsSet() {
+	if app.IsSet() {
 		return nil
 	}
 
-	if !config.authorIsSet() {
+	if !app.authorIsSet() {
 		author, err := AskAuthor()
 		if err != nil {
 			return err
 		}
-		config.Author = author
+		app.Author = author
 	}
 
-	if !config.pluginIsSet() {
+	if !app.pluginIsSet() {
 		plugin, err := AskPlugin()
 		if err != nil {
 			return err
 		}
-		config.Plugin = plugin
+		app.Plugin = plugin
 	}
 
-	if !config.interpreterIsSet() {
+	if !app.interpreterIsSet() {
 		interp, err := GetInterp()
 		if err != nil {
-			utils.Warnf("No interp file in %s dir", config.Plugin)
+			utils.Warnf("No interp file in %s dir", app.Plugin)
 			interp, err = AskInterpreter()
 			if err != nil {
 				return err
 			}
 
 		}
-		config.PluginInterpreter = interp
+		app.PluginInterpreter = interp
 	}
 	err := WriteConfig()
 	if err != nil {
@@ -130,7 +130,7 @@ func SetConfig() error {
 
 // AskAuthor notifies user of email address used
 func AskAuthor() (string, error) {
-	email, err := config.vc.GetEmail()
+	email, err := app.vc.GetEmail()
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +199,7 @@ func GetInterp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	contents, err := ioutil.ReadFile(filepath.Join(homePath, "plugins", config.Plugin, "interp"))
+	contents, err := ioutil.ReadFile(filepath.Join(homePath, "plugins", app.Plugin, "interp"))
 	if err != nil {
 		return "", err
 	}
@@ -216,5 +216,5 @@ func CreateHooks() error {
 		return err
 	}
 	utils.Highlight("Copying hooks...")
-	return config.vc.SetHooks(homeDir)
+	return app.vc.SetHooks(homeDir)
 }

@@ -40,15 +40,15 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		return "", err
 	}
 
-	interp := strings.Split(config.PluginInterpreter, " ")
+	interp := strings.Split(app.PluginInterpreter, " ")
 	var cmd *exec.Cmd
 	if len(interp) == 1 {
 		cmd = exec.Command(interp[0]) // i.e. 'python'
 	} else {
 		cmd = exec.Command(interp[0], interp[1:]...) // i.e. 'osascript -l JavaScript'
 	}
-	os.MkdirAll(filepath.Join(pluginDirPath, config.Plugin), os.ModePerm) // Create plugin working dir if not exist
-	cmd.Dir = filepath.Join(pluginDirPath, config.Plugin)                 // move to plugin working dir
+	os.MkdirAll(filepath.Join(pluginDirPath, app.Plugin), os.ModePerm) // Create plugin working dir if not exist
+	cmd.Dir = filepath.Join(pluginDirPath, app.Plugin)                 // move to plugin working dir
 
 	out := bytes.Buffer{}
 
@@ -57,7 +57,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 
 	var resp []byte
 
-	plugin := filepath.Join(homeDir, "plugins", config.Plugin, string(command))
+	plugin := filepath.Join(homeDir, "plugins", app.Plugin, string(command))
 
 	cmd.Args = append(cmd.Args, plugin) // command to run
 	switch command {

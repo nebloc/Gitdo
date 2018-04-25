@@ -32,20 +32,20 @@ var commitCmd = &cobra.Command{
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
 func Commit(cmd *cobra.Command, args []string) error {
-	rawDiff, err := config.vc.GetDiff()
+	rawDiff, err := app.vc.GetDiff()
 
 	if err == versioncontrol.ErrNoDiff {
 		pWarning("Empty diff\n")
 		return nil
 	}
 	if err != nil {
-		return fmt.Errorf("did not recieve %s diff: %v", config.vc.NameOfVC(), err)
+		return fmt.Errorf("did not recieve %s diff: %v", app.vc.NameOfVC(), err)
 	}
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		return fmt.Errorf("error processing %s diff: %v", config.vc.NameOfVC(), err)
+		return fmt.Errorf("error processing %s diff: %v", app.vc.NameOfVC(), err)
 	}
 
 	taskChan := make(chan Task, 2)
@@ -63,7 +63,7 @@ func Commit(cmd *cobra.Command, args []string) error {
 	}
 	<-done
 	for _, task := range changes.New {
-		err := config.vc.RestageTasks(task.FileName)
+		err := app.vc.RestageTasks(task.FileName)
 		if err != nil {
 			pWarning("Could not restage task files after tagging: %v\n", err)
 		}
@@ -226,7 +226,7 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 			FileName: strings.TrimSpace(line.FileTo),
 			TaskName: match[1],
 			FileLine: line.Position,
-			Author:   config.Author,
+			Author:   app.Author,
 			Hash:     "",
 			Branch:   "",
 		}

@@ -66,7 +66,7 @@ func LoadConfig() error {
 		return fmt.Errorf("could not read in configuration file: %v", err)
 	}
 
-	err = json.Unmarshal(bConfig, config)
+	err = json.Unmarshal(bConfig, app)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func LoadConfig() error {
 
 // WriteConfig saves the current config to be loaded in after setting
 func WriteConfig() error {
-	bConf, err := json.MarshalIndent(config, "", "\t")
+	bConf, err := json.MarshalIndent(app, "", "\t")
 	if err != nil {
 		return err
 	}

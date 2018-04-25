@@ -24,7 +24,7 @@ func Setup() error {
 // TryGitTopLevel tries to get the root directory of the project from Git, if it can't we assume it is not a
 // Git project.
 func TryGitTopLevel() {
-	if config.vc != nil {
+	if app.vc != nil {
 		return
 	}
 
@@ -35,12 +35,12 @@ func TryGitTopLevel() {
 	}
 	vc := versioncontrol.NewGit()
 	vc.TopLevel = utils.StripNewlineChar(result)
-	config.vc = vc
+	app.vc = vc
 }
 
 // TryHgTopLevel tries to get the root directory of the project from mercuruial, if it can't we assume it is not a Mercurial project.
 func TryHgTopLevel() {
-	if config.vc != nil {
+	if app.vc != nil {
 		return
 	}
 	cmd := exec.Command("hg", "root")
@@ -50,11 +50,11 @@ func TryHgTopLevel() {
 	}
 	vc := versioncontrol.NewHg()
 	vc.TopLevel = utils.StripNewlineChar(result)
-	config.vc = vc
+	app.vc = vc
 }
 
 func SetVCPaths() {
-	gitdoDir = filepath.Join(config.vc.NameOfDir(), "gitdo")
+	gitdoDir = filepath.Join(app.vc.NameOfDir(), "gitdo")
 	// File name for writing and reading staged tasks from (between commit
 	// and push)
 	stagedTasksFile = filepath.Join(gitdoDir, "tasks.json")
@@ -68,12 +68,12 @@ func ChangeToVCRoot() error {
 	TryGitTopLevel()
 	TryHgTopLevel()
 
-	if config.vc == nil {
+	if app.vc == nil {
 		return versioncontrol.ErrNotVCDir
 	}
-	if config.vc.PathOfTopLevel() == "" {
-		return fmt.Errorf("could not determine root directory of project from %s", config.vc.NameOfVC())
+	if app.vc.PathOfTopLevel() == "" {
+		return fmt.Errorf("could not determine root directory of project from %s", app.vc.NameOfVC())
 	}
-	err := os.Chdir(config.vc.PathOfTopLevel())
+	err := os.Chdir(app.vc.PathOfTopLevel())
 	return err
 }

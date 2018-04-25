@@ -43,7 +43,7 @@ func Push(cmd *cobra.Command, args []string) error {
 			pDanger("Failed to add task '%s': %v\n", task.String(), err)
 			continue
 		}
-		pNormal("Task %s added to %s\n", id, config.Plugin)
+		pNormal("Task %s added to %s\n", id, app.Plugin)
 		tasks.RemoveTask(id)
 	}
 
