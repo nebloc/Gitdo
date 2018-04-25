@@ -142,7 +142,7 @@ func AskAuthor() (string, error) {
 func AskPlugin() (string, error) {
 	fmt.Println("Available plugins:")
 
-	plugins, err := GetPlugins()
+	plugins, err := getPlugins()
 	if err != nil {
 		return "", err
 	}

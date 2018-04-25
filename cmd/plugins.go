@@ -63,7 +63,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	switch command {
 	case GETID:
 		if task, ok := elem.(Task); ok {
-			bT, err := MarshalTask(task)
+			bT, err := marshalTask(task)
 			if err != nil {
 				return "", err
 			}
@@ -73,7 +73,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 		}
 	case CREATE:
 		if task, ok := elem.(Task); ok {
-			bT, err := MarshalTask(task)
+			bT, err := marshalTask(task)
 			if err != nil {
 				return "", err
 			}
@@ -105,7 +105,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	return utils.StripNewlineChar(resp), nil
 }
 
-func MarshalTask(task Task) ([]byte, error) {
+func marshalTask(task Task) ([]byte, error) {
 	bT, err := json.MarshalIndent(task, "", "\t")
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func MarshalTask(task Task) ([]byte, error) {
 	return bT, nil
 }
 
-func GetPlugins() ([]string, error) {
+func getPlugins() ([]string, error) {
 	homeDir, err := GetHomeDir()
 	if err != nil {
 		return nil, err
