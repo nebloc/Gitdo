@@ -17,6 +17,7 @@ type Git struct {
 	TopLevel string
 }
 
+// CheckClean verifies that the current git repository is clean
 func (*Git) CheckClean() bool {
 	cmd := exec.Command("git", "diff-files", "--quiet")
 	err := cmd.Run()
@@ -31,6 +32,7 @@ func (*Git) CheckClean() bool {
 	return true
 }
 
+// NewCommit creates a new git commit with the given message
 func (*Git) NewCommit(message string) error {
 	cmd := exec.Command("git", "commit", "-m", message)
 	return cmd.Run()
@@ -159,6 +161,7 @@ func (*Git) SwitchBranch() error {
 	return cmd.Run()
 }
 
+// GetTrackedFiles returns a string of files that are being trakced by Git
 func (*Git) GetTrackedFiles() ([]string, error) {
 	cmd := exec.Command("git", "ls-tree", "-r", "master", "--name-only")
 	raw, err := cmd.Output()

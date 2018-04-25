@@ -19,16 +19,18 @@ type Hg struct {
 	dir      string
 }
 
+// CheckClean checks that the current directory is clean.
 func (*Hg) CheckClean() bool {
 	panic("implement me")
 }
 
+// NewCommit creates a new mercurial commit with the passed message
 func (*Hg) NewCommit(message string) error {
 	cmd := exec.Command("hg", "commit", "-m", message)
 	return cmd.Run()
 }
 
-// NewHGreturns a pointer to a new Mercurial implementation of the VersionControl interface.
+// NewHg returns a pointer to a new Mercurial implementation of the VersionControl interface.
 func NewHg() *Hg {
 	hg := new(Hg)
 	hg.dir = ".hg"
@@ -131,17 +133,20 @@ func (*Hg) GetHash() (string, error) {
 	return hash, nil
 }
 
+// CreateBranch runs a 'hg branch' to create a new Mercurial Branch
 func (*Hg) CreateBranch() error {
 	cmd := exec.Command("hg", "branch", NewBranchName)
 	return cmd.Run()
 }
 
+// SwitchBranch should switch to a new Mercurial branch
 func (*Hg) SwitchBranch() error {
 	//cmd := exec.Command("hg", "update", NewBranchName)
 	//return cmd.Run()
 	return nil
 }
 
+// GetTrackedFiles runs a 'hg locate' command to get the name and path of tracked files
 func (*Hg) GetTrackedFiles() ([]string, error) {
 	cmd := exec.Command("hg", "locate")
 	raw, err := cmd.Output()

@@ -35,8 +35,8 @@ func init() {
 	HomeDir = filepath.Join(filepath.Dir(dir), "resources")
 
 	VCMap = make(map[string]*TestVC)
-	VCMap[GIT_NAME] = &TestVC{NewGit(), ""}
-	VCMap[mercurial_name] = &TestVC{NewHg(), ""}
+	VCMap[gitKey] = &TestVC{NewGit(), ""}
+	VCMap[mercurialKey] = &TestVC{NewHg(), ""}
 
 	for i, vc := range VCMap {
 		VCMap[i].tmpDir = path.Join(os.TempDir(), "Gitdo_versioncontrol_"+vc.NameOfVC())

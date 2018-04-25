@@ -9,10 +9,10 @@ import (
 	"testing"
 )
 
-const mercurial_name string = "Mercurial"
+const mercurialKey string = "Mercurial"
 
 func Testmercurial_nameOfDir(t *testing.T) {
-	result := VCMap[mercurial_name].NameOfDir()
+	result := VCMap[mercurialKey].NameOfDir()
 	expected := ".hg"
 	if result != expected {
 		t.Errorf("Expected NameOfDir to return %s, got %s", expected, result)
@@ -20,7 +20,7 @@ func Testmercurial_nameOfDir(t *testing.T) {
 }
 
 func Testmercurial_nameOfVC(t *testing.T) {
-	result := VCMap[mercurial_name].NameOfVC()
+	result := VCMap[mercurialKey].NameOfVC()
 	expected := "Mercurial"
 	if result != expected {
 		t.Errorf("Expected NameOfVC to return %s, got %s", expected, result)
@@ -28,7 +28,7 @@ func Testmercurial_nameOfVC(t *testing.T) {
 }
 
 func TestMercurial_GetDiff(t *testing.T) {
-	VCMap[mercurial_name].moveToDir(t)
+	VCMap[mercurialKey].moveToDir(t)
 
 	fileName := "new.txt"
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, os.ModePerm)
@@ -47,7 +47,7 @@ func TestMercurial_GetDiff(t *testing.T) {
 		t.Fatalf("failed to add %s to mercurial: %v", fileName, err)
 	}
 
-	diff, err := VCMap[mercurial_name].GetDiff()
+	diff, err := VCMap[mercurialKey].GetDiff()
 	if err != nil {
 		t.Errorf("didn't expect an error in GetDiff: %v", err)
 	}
@@ -57,13 +57,13 @@ func TestMercurial_GetDiff(t *testing.T) {
 }
 
 func TestMercurial_SetHooks(t *testing.T) {
-	VCMap[mercurial_name].moveToDir(t)
-	err := VCMap[mercurial_name].SetHooks(HomeDir)
+	VCMap[mercurialKey].moveToDir(t)
+	err := VCMap[mercurialKey].SetHooks(HomeDir)
 	if err != nil {
 		t.Errorf("Didn't expect error setting hooks: %v", err)
 		return
 	}
-	hgrc := filepath.Join(VCMap[mercurial_name].NameOfDir(), "hgrc")
+	hgrc := filepath.Join(VCMap[mercurialKey].NameOfDir(), "hgrc")
 	contents, err := ioutil.ReadFile(hgrc)
 	if !strings.Contains(string(contents), "gitdo commit") {
 		t.Errorf("Expected .hgrc to contain 'gitdo commit' command, instead: %s", contents)
