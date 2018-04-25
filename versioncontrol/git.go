@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/nebloc/gitdo/utils"
 )
@@ -14,6 +15,25 @@ type Git struct {
 	name     string
 	dir      string
 	TopLevel string
+}
+
+func (*Git) CheckClean() bool {
+	cmd := exec.Command("git", "diff-files", "--quiet")
+	err := cmd.Run()
+	if err != nil {
+		return false
+	}
+	cmd = exec.Command("git", "diff", "--quiet", "--cached")
+	err = cmd.Run()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (*Git) NewCommit(message string) error {
+	cmd := exec.Command("git", "commit", "-m", message)
+	return cmd.Run()
 }
 
 // NewGit returns a pointer to a new Git implementation of the VersionControl interface.
@@ -65,7 +85,7 @@ func (*Git) GetDiff() (string, error) {
 		}
 		return "", err
 	}
-	diff := utils.StripNewlineChar(resp)
+	diff := utils.StripNewlineByte(resp)
 	if diff == "" {
 		return "", ErrNoDiff
 	}
@@ -90,7 +110,7 @@ func (*Git) GetEmail() (string, error) {
 		utils.Warn("Please set your git email address for this repo. git config user.email example@email.com")
 		return "", fmt.Errorf("Could not get user.email from git: %v", err)
 	}
-	return utils.StripNewlineChar(resp), nil
+	return utils.StripNewlineByte(resp), nil
 }
 
 // Init Initialises a Git repository in the current directory.
@@ -111,7 +131,7 @@ func (*Git) GetBranch() (string, error) {
 		return "", errors.New("could not get branch of last commit")
 	}
 
-	branch := utils.StripNewlineChar(resp)
+	branch := utils.StripNewlineByte(resp)
 	return branch, nil
 }
 
@@ -122,6 +142,38 @@ func (*Git) GetHash() (string, error) {
 	if err != nil {
 		return "", errors.New("could not get hash of last commit")
 	}
-	hash := utils.StripNewlineChar(resp)
+	hash := utils.StripNewlineByte(resp)
 	return hash, nil
+}
+
+// CreateBranch creates a new git branch for gitdo to tag files on
+func (*Git) CreateBranch() error {
+	cmd := exec.Command("git", "branch", NewBranchName)
+	err := cmd.Run()
+	return err
+}
+
+// SwitchBranch attempts to switch to the GITDO_FORCED branch to safely tag source code.
+func (*Git) SwitchBranch() error {
+	cmd := exec.Command("git", "checkout", NewBranchName)
+	return cmd.Run()
+}
+
+func (*Git) GetTrackedFiles() ([]string, error) {
+	cmd := exec.Command("git", "ls-tree", "-r", "master", "--name-only")
+	raw, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	files := strings.Split(string(raw), "\n")
+	if len(files) == 0 {
+		return nil, err
+	}
+	if strings.HasSuffix(files[0], "\r") {
+		for i, fileName := range files {
+			files[i] = utils.StripNewlineString(fileName)
+		}
+	}
+
+	return files, nil
 }

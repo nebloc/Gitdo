@@ -9,10 +9,10 @@ import (
 	"testing"
 )
 
-const GitName string = "Git"
+const GIT_NAME string = "Git"
 
 func TestGit_NameOfDir(t *testing.T) {
-	result := VCMap[GitName].NameOfDir()
+	result := VCMap[GIT_NAME].NameOfDir()
 	expected := ".git"
 	if result != expected {
 		t.Errorf("Expected NameOfDir to return %s, got %s", expected, result)
@@ -20,7 +20,7 @@ func TestGit_NameOfDir(t *testing.T) {
 }
 
 func TestGit_NameOfVC(t *testing.T) {
-	result := VCMap[GitName].NameOfVC()
+	result := VCMap[GIT_NAME].NameOfVC()
 	expected := "Git"
 	if result != expected {
 		t.Errorf("Expected NameOfVC to return %s, got %s", expected, result)
@@ -28,7 +28,7 @@ func TestGit_NameOfVC(t *testing.T) {
 }
 
 func TestGit_GetDiff(t *testing.T) {
-	VCMap[GitName].moveToDir(t)
+	VCMap[GIT_NAME].moveToDir(t)
 
 	fileName := "new.txt"
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, os.ModePerm)
@@ -47,7 +47,7 @@ func TestGit_GetDiff(t *testing.T) {
 		t.Fatalf("failed to add %s to git: %v", fileName, err)
 	}
 
-	diff, err := VCMap[GitName].GetDiff()
+	diff, err := VCMap[GIT_NAME].GetDiff()
 	if err != nil {
 		t.Errorf("didn't expect an error in GetDiff: %v", err)
 	}
@@ -68,14 +68,14 @@ index 0000000..f500b14
 func TestGit_SetHooks(t *testing.T) {
 	Hooks := []string{"pre-commit", "post-commit", "pre-push"}
 
-	VCMap[GitName].moveToDir(t)
-	err := VCMap[GitName].SetHooks(HomeDir)
+	VCMap[GIT_NAME].moveToDir(t)
+	err := VCMap[GIT_NAME].SetHooks(HomeDir)
 	if err != nil {
 		t.Errorf("Didn't expect error setting hooks: %v", err)
 		return
 	}
 	for _, fileName := range Hooks {
-		filePath := filepath.Join(VCMap[GitName].NameOfDir(), "hooks", fileName)
+		filePath := filepath.Join(VCMap[GIT_NAME].NameOfDir(), "hooks", fileName)
 
 		fileCont, err := ioutil.ReadFile(filePath)
 		if err != nil {
@@ -86,4 +86,5 @@ func TestGit_SetHooks(t *testing.T) {
 			t.Errorf("hooks do not contain gitdo command")
 		}
 	}
+
 }

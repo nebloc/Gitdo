@@ -1,7 +1,7 @@
 package versioncontrol
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -31,16 +31,12 @@ type TestVC struct {
 var VCMap map[string]*TestVC
 
 func init() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Could not get current directory: %v", err)
-	}
+	dir, _ := os.Getwd()
 	HomeDir = filepath.Join(filepath.Dir(dir), "resources")
-	log.Print(HomeDir)
 
 	VCMap = make(map[string]*TestVC)
-	VCMap[GitName] = &TestVC{NewGit(), ""}
-	VCMap[MercurialName] = &TestVC{NewHg(), ""}
+	VCMap[GIT_NAME] = &TestVC{NewGit(), ""}
+	VCMap[MERCURIAL_NAME] = &TestVC{NewHg(), ""}
 
 	for i, vc := range VCMap {
 		VCMap[i].tmpDir = path.Join(os.TempDir(), "Gitdo_versioncontrol_"+vc.NameOfVC())
@@ -62,7 +58,7 @@ func init() {
 	}
 
 	for name, val := range VCMap {
-		log.Printf("%s: %s\n", name, val.tmpDir)
+		fmt.Printf("%s: %s\n", name, val.tmpDir)
 	}
 
 }

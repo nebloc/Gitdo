@@ -42,7 +42,7 @@ var (
 func New(version string) *cobra.Command {
 	initCmd.PersistentFlags().StringVarP(&withVC, "with-vc", "w", "", "Initialises repository as well as gitdo. Supports 'Git' and 'Mercurial'")
 
-	rootCmd := &cobra.Command{
+	gitdoCmd := &cobra.Command{
 		Use:   "gitdo",
 		Short: "A tool for tracking task annotations using version control systems.",
 		Long: fmt.Sprintf(`A tool for tracking task annotations using version control systems.
@@ -61,26 +61,26 @@ More information and documentation can be found at https://github.com/nebloc/git
 			fmt.Println(versionString(version))
 		},
 	}
-	rootCmd.AddCommand(versionCmd)
+	gitdoCmd.AddCommand(versionCmd)
 
 	// INIT
-	rootCmd.AddCommand(initCmd)
+	gitdoCmd.AddCommand(initCmd)
 
 	// LIST
 	listCmd.AddCommand(listConfigCmd)
 	listCmd.AddCommand(listTasksCmd)
-	rootCmd.AddCommand(listCmd)
+	gitdoCmd.AddCommand(listCmd)
 
 	// COMMIT
-	rootCmd.AddCommand(commitCmd)
+	gitdoCmd.AddCommand(commitCmd)
 
 	// POST COMMIT
-	rootCmd.AddCommand(postCommitCmd)
+	gitdoCmd.AddCommand(postCommitCmd)
 
 	// PUSH
-	rootCmd.AddCommand(pushCmd)
+	gitdoCmd.AddCommand(pushCmd)
 
-	return rootCmd
+	return gitdoCmd
 }
 
 func versionString(version string) string {
