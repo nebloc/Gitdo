@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// List pretty prints the tasks that are in file
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "lists data stored by Gitdo",

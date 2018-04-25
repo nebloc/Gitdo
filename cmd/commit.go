@@ -2,35 +2,50 @@ package cmd
 
 import (
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 
 	"fmt"
 
 	"github.com/nebloc/gitdo/diffparse"
-	"github.com/nebloc/gitdo/utils"
 	"github.com/nebloc/gitdo/versioncontrol"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 )
+
+var commitCmd = &cobra.Command{
+	Use:   "commit",
+	Short: "Gets git diff and stages any new tasks - normally ran from pre-commit hook",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := Setup()
+		if err != nil {
+			pDanger("Could not load gitdo: %v\n", err)
+			return
+		}
+		Commit(cmd, args)
+		pNormal("Gitdo finished commit process\n")
+	},
+}
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
-func Commit(_ *cli.Context) error {
+func Commit(cmd *cobra.Command, args []string) {
 	rawDiff, err := config.vc.GetDiff()
 
 	if err == versioncontrol.ErrNoDiff {
-		utils.Warn("Empty diff")
-		return nil
+		pWarning("Empty diff\n")
+		return
 	}
 	if err != nil {
-		return err
+		pDanger("Didn't recieve %s diff: %v\n", config.vc.NameOfVC, err)
+		return
 	}
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		utils.Dangerf("Error processing diff: %v", err)
-		return err
+		pDanger("Error processing %s diff: %v\n", config.vc.NameOfVC, err)
+		return
 	}
 
 	taskChan := make(chan Task, 2)
@@ -40,23 +55,24 @@ func Commit(_ *cli.Context) error {
 
 	changes := processDiff(lines, taskChan)
 	for _, task := range changes.New {
-		utils.Highlightf("new task: %v", task.String())
+		pInfo("New task: %v\n", task.String())
 	}
 	err = CommitTasks(changes.New, changes.Deleted)
 	if err != nil {
-		return err
+		pDanger("Could not commit new tasks: %v\n", err)
+		return
 	}
 	<-done
 	for _, task := range changes.New {
 		err := config.vc.RestageTasks(task.FileName)
 		if err != nil {
-			utils.Warnf("could not restage after tagging: %v", err)
+			pWarning("Could not restage task files after tagging: %v\n", err)
 		}
 	}
 
-	utils.Highlight(changes.String())
+	pInfo("%s\n", changes.String())
 
-	return nil
+	return
 }
 
 // SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
@@ -68,7 +84,8 @@ func SourceChanger(taskChan <-chan Task, done chan<- struct{}) {
 		if open {
 			err := MarkSourceLines(task)
 			if err != nil {
-				utils.Warnf("Error tagging source: %v", err)
+				// Continue attempting to mark other tasks
+				pWarning("Error tagging %s source: %v\n", task.id, err)
 				continue
 			}
 		} else {
@@ -119,7 +136,11 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		utils.Warnf("Could not read existing tasks: %v", err)
+		if os.IsNotExist(err) {
+			pWarning("No existing tasks\n")
+		} else {
+			return fmt.Errorf("could not get existing tasks file: %v", err)
+		}
 	}
 	for id := range deleted {
 		if _, exists := tasks.NewTasks[id]; exists {
@@ -156,8 +177,7 @@ func CheckTagged(line diffparse.SourceLine) (string, bool) {
 func MarkSourceLines(task Task) error {
 	fileCont, err := ioutil.ReadFile(task.FileName)
 	if err != nil {
-		utils.Dangerf("Could not mark source code as extracted: %v", err)
-		return err
+		return fmt.Errorf("could not read in source file: %v", err)
 	}
 
 	sep := "\n"
@@ -176,8 +196,7 @@ func MarkSourceLines(task Task) error {
 	lines[taskIndex] += " <" + task.id + ">"
 	err = ioutil.WriteFile(task.FileName, []byte(strings.Join(lines, sep)), 0644)
 	if err != nil {
-		utils.Dangerf("could not mark source code as extracted: %v", err)
-		return err
+		return fmt.Errorf("could not write updated source file: %v", err)
 	}
 	return nil
 }
@@ -216,8 +235,8 @@ func CheckTask(line diffparse.SourceLine) (Task, bool) {
 		// Get ID for task
 		resp, err := RunPlugin(GETID, t)
 		if err != nil {
-			utils.Dangerf("couldn't get ID for task in plugin: %s, %v", resp, err)
-			panic("Couldn't get id for task in plugin - " + err.Error() + resp)
+			pDanger("Couldn't get ID for task in plugin: %s, %v\n", resp, err)
+			os.Exit(1)
 		}
 		t.id = resp
 		return t, true
