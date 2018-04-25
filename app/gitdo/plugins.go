@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
 	"github.com/nebloc/gitdo/app/utils"
 )
 
@@ -98,7 +99,7 @@ func RunPlugin(command plugcommand, elem interface{}) (string, error) {
 	err = cmd.Run()
 	resp = out.Bytes()
 	if err != nil {
-		utils.Warn(utils.StripNewlineByte(resp))
+		//utils.Warn(utils.StripNewlineByte(resp))
 		return utils.StripNewlineByte(resp), err
 	}
 	return utils.StripNewlineByte(resp), nil

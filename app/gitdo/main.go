@@ -106,10 +106,22 @@ func AppBuilder() *cli.App {
 		},
 		{
 			Before: LoadConfig,
-			Name:   "force-all-test",
+			Name:   "force-all",
 			Usage:  "Tag all files",
 			Action: ForceAll,
-			After:  NotifyFinished,
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "requests-per-second,r",
+					Usage: "How many requests per second to the plugin.",
+					Value: 5,
+				},
+				cli.IntFlag{
+					Name:  "number-of-crawlers,c",
+					Usage: "How many file crawlers.",
+					Value: 5,
+				},
+			},
+			After: NotifyFinished,
 		},
 	}
 	return gitdo
