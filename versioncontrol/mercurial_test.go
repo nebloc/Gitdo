@@ -11,7 +11,7 @@ import (
 
 const mercurialKey string = "Mercurial"
 
-func Testmercurial_nameOfDir(t *testing.T) {
+func TestMercurial_nameOfDir(t *testing.T) {
 	result := VCMap[mercurialKey].NameOfDir()
 	expected := ".hg"
 	if result != expected {
@@ -19,7 +19,7 @@ func Testmercurial_nameOfDir(t *testing.T) {
 	}
 }
 
-func Testmercurial_nameOfVC(t *testing.T) {
+func TestMercurial_nameOfVC(t *testing.T) {
 	result := VCMap[mercurialKey].NameOfVC()
 	expected := "Mercurial"
 	if result != expected {
