@@ -17,35 +17,35 @@ var commitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Gets git diff and stages any new tasks - normally ran from pre-commit hook",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := Setup()
-		if err != nil {
+		if err := Setup(); err != nil {
 			pDanger("Could not load gitdo: %v\n", err)
 			return
 		}
-		Commit(cmd, args)
+		if err := Commit(cmd, args); err != nil {
+			pDanger("Failed to run gitdo commit: %v\n", err)
+			return
+		}
 		pNormal("Gitdo finished commit process\n")
 	},
 }
 
 // Commit is called when commit mode. It gathers the git diff, parses it in to
 // source lines and starts the processing for tasks and writing of staged tasks.
-func Commit(cmd *cobra.Command, args []string) {
+func Commit(cmd *cobra.Command, args []string) error {
 	rawDiff, err := config.vc.GetDiff()
 
 	if err == versioncontrol.ErrNoDiff {
 		pWarning("Empty diff\n")
-		return
+		return nil
 	}
 	if err != nil {
-		pDanger("Didn't recieve %s diff: %v\n", config.vc.NameOfVC, err)
-		return
+		return fmt.Errorf("did not recieve %s diff: %v", config.vc.NameOfVC(), err)
 	}
 
 	// Parse diff output
 	lines, err := diffparse.ParseGitDiff(rawDiff)
 	if err != nil {
-		pDanger("Error processing %s diff: %v\n", config.vc.NameOfVC, err)
-		return
+		return fmt.Errorf("error processing %s diff: %v", config.vc.NameOfVC(), err)
 	}
 
 	taskChan := make(chan Task, 2)
@@ -59,8 +59,7 @@ func Commit(cmd *cobra.Command, args []string) {
 	}
 	err = CommitTasks(changes.New, changes.Deleted)
 	if err != nil {
-		pDanger("Could not commit new tasks: %v\n", err)
-		return
+		return fmt.Errorf("could not commit new tasks: %v", err)
 	}
 	<-done
 	for _, task := range changes.New {
@@ -72,7 +71,7 @@ func Commit(cmd *cobra.Command, args []string) {
 
 	pInfo("%s\n", changes.String())
 
-	return
+	return nil
 }
 
 // SourceChanger waits for tasks on the given taskChan, and runs MarkSourceLines
