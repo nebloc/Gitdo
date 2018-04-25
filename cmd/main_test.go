@@ -5,32 +5,26 @@ import (
 	"testing"
 
 	"github.com/nebloc/gitdo/versioncontrol"
-	"github.com/urfave/cli"
 )
 
-var gitdo *cli.App
-
 func init() {
-	//gitdo = AppBuilder()
-}
-
-// setupForTest creates a directory in the os.TMPDIR and moves in to it, sets the configuration and creates a new app
-// context. Returns the app context and a function to chdir back.
-func setupForTest(t *testing.T) (*cli.Context, func()) {
-	cDir, closeDir := testDirHelper(t)
-	t.Logf("working in dir: %s", cDir)
-
-	app = &Config{
+	app = &config{
 		vc:                versioncontrol.NewGit(),
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "Test",
 		PluginInterpreter: "python",
 	}
+}
+
+// setupForTest creates a directory in the os.TMPDIR and moves in to it, sets the configuration and creates a new app
+// context. Returns the app context and a function to chdir back.
+func setupForTest(t *testing.T) func() {
+	cDir, closeDir := testDirHelper(t)
+	t.Logf("working in dir: %s", cDir)
+
 	SetVCPaths()
 
-	ctx := cli.NewContext(gitdo, nil, nil)
-
-	return ctx, closeDir
+	return closeDir
 }
 
 // testCommitHelper creates a new directory and moves in to it, returning a close function to be called to move back to

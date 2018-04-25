@@ -120,7 +120,7 @@ func SetConfig() error {
 		}
 		app.PluginInterpreter = interp
 	}
-	err := WriteConfig()
+	err := writeConfig()
 	if err != nil {
 		utils.Dangerf("Couldn't save config: %v", err)
 		return err

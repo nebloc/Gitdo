@@ -15,7 +15,7 @@ func Setup() error {
 		return fmt.Errorf("could not change to the root of the VCS: %v", err)
 	}
 	SetVCPaths()
-	if err := LoadConfig(); err != nil {
+	if err := loadConfig(); err != nil {
 		return fmt.Errorf("could not load configuration: %v", err)
 	}
 	return nil

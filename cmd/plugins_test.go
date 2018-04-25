@@ -39,7 +39,7 @@ func TestRunPlugin(t *testing.T) {
 			"Marking 1234 as done",
 		},
 	}
-	app = &Config{
+	app = &config{
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "test",
 		PluginInterpreter: "python",

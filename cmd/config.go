@@ -10,7 +10,7 @@ import (
 	"github.com/nebloc/gitdo/versioncontrol"
 )
 
-type Config struct {
+type config struct {
 	vc versioncontrol.VersionControl
 	// Author to attach to task in task manager.
 	Author string `json:"author"`
@@ -24,14 +24,14 @@ type Config struct {
 }
 
 // String returns a human readable format of the Config struct
-func (c *Config) String() string {
+func (c *config) String() string {
 	return fmt.Sprintf(
 		"Author: %s\nPlugin: %s\nInterpreter: %s",
 		c.Author, c.Plugin, c.PluginInterpreter)
 }
 
 // Checks that the configuration has all the information needed
-func (c *Config) IsSet() bool {
+func (c *config) IsSet() bool {
 	if !c.pluginIsSet() {
 		return false
 	}
@@ -45,22 +45,22 @@ func (c *Config) IsSet() bool {
 }
 
 // pluginIsSet returns if the plugin in config is not empty
-func (c *Config) pluginIsSet() bool {
+func (c *config) pluginIsSet() bool {
 	return strings.TrimSpace(c.Plugin) != ""
 }
 
 // authorIsSet returns if the author in config is not empty
-func (c *Config) authorIsSet() bool {
+func (c *config) authorIsSet() bool {
 	return strings.TrimSpace(c.Author) != ""
 }
 
 // interpreterIsSet returns if the plugin interpreter in config is not empty
-func (c *Config) interpreterIsSet() bool {
+func (c *config) interpreterIsSet() bool {
 	return strings.TrimSpace(c.PluginInterpreter) != ""
 }
 
 // LoadConfig opens a configuration file and reads it in to the Config struct
-func LoadConfig() error {
+func loadConfig() error {
 	bConfig, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		return fmt.Errorf("could not read in configuration file: %v", err)
@@ -75,7 +75,7 @@ func LoadConfig() error {
 }
 
 // WriteConfig saves the current config to be loaded in after setting
-func WriteConfig() error {
+func writeConfig() error {
 	bConf, err := json.MarshalIndent(app, "", "\t")
 	if err != nil {
 		return err

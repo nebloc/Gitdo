@@ -19,7 +19,7 @@ var (
 var (
 	// Config needed for commit and push to use plugins and add author metadata
 	// to task
-	app = &Config{
+	app = &config{
 		Author:            "",
 		Plugin:            "",
 		PluginInterpreter: "",
