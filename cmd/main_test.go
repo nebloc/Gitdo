@@ -20,7 +20,7 @@ func setupForTest(t *testing.T) (*cli.Context, func()) {
 	cDir, closeDir := testDirHelper(t)
 	t.Logf("working in dir: %s", cDir)
 
-	config = &Config{
+	app = &Config{
 		vc:                versioncontrol.NewGit(),
 		Author:            "benjamin.coleman@me.com",
 		Plugin:            "Test",
