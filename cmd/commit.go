@@ -162,15 +162,6 @@ var (
 		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(?:.*)<(.*)>`)
 )
 
-// CheckTagged runs the tagged regex and returns the ID and whether it was a match or not
-func CheckTagged(line diffparse.SourceLine) (string, bool) {
-	match := taggedReg.FindStringSubmatch(line.Content)
-	if len(match) != 2 {
-		return "", false
-	}
-	return match[1], true
-}
-
 // MarkSourceLines takes a task, opens it's original file and replaces the
 // corresponding comments file line with the same line plus a tag in the form "<GITDO>"
 func MarkSourceLines(task Task) error {
@@ -206,12 +197,6 @@ func isCRLF(line string) bool {
 		return true
 	}
 	return false
-}
-
-// CheckTaskRegex checks the line given against the todoReg and returns an array
-// of the submatches
-func CheckTaskRegex(line string) []string {
-	return todoReg.FindStringSubmatch(line)
 }
 
 // CheckTask takes the given source line and checks for a match against the TODO regex.
