@@ -2,6 +2,7 @@
 Not really maintained - not a very useful command to users in it's current state, should make it uninstall all from the
 project in future
 */
+
 package cmd
 
 import (
