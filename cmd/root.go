@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -24,9 +25,6 @@ var (
 		PluginInterpreter: "",
 	}
 
-	// Current version
-	version string
-
 	// Gitdo working directory (holds plugins, secrets, tasks, etc.)
 	gitdoDir string
 
@@ -37,15 +35,28 @@ var (
 	pluginDirPath   string
 )
 
-func New() *cobra.Command {
+// New creates a new base command for executing Gitdo
+func New(version string) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "gitdo",
 		Short: "A tool for tracking task annotations using version control systems.",
-		Long: `A tool for tracking task annotations using version control systems.
-		
+		Long: fmt.Sprintf(`A tool for tracking task annotations using version control systems.
+
+%s
+
 Please run gitdo help to see a list of commands.
-More information and documentation can be found at https://github.com/nebloc/gitdo`,
+More information and documentation can be found at https://github.com/nebloc/gitdo`, versionString(version)),
 	}
+
+	// VERSION
+	versionCmd := &cobra.Command{
+		Use:   "version",
+		Short: "Prints the version number of the current Gitdo app.",
+		Run: func(*cobra.Command, []string) {
+			fmt.Println(versionString(version))
+		},
+	}
+	rootCmd.AddCommand(versionCmd)
 
 	// LIST
 	listCmd.AddCommand(listConfigCmd)
@@ -56,6 +67,13 @@ More information and documentation can be found at https://github.com/nebloc/git
 	rootCmd.AddCommand(commitCmd)
 
 	return rootCmd
+}
+
+func versionString(version string) string {
+	if version == "" {
+		pWarning("No version number set on this build\n")
+	}
+	return fmt.Sprintf("Version: %s\nBuild: %s_%s", version, runtime.GOOS, runtime.GOARCH)
 }
 
 /**

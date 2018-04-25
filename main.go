@@ -4,6 +4,8 @@ import (
 	"github.com/nebloc/gitdo/cmd"
 )
 
+var version string
+
 func main() {
-	cmd.New().Execute()
+	cmd.New(version).Execute()
 }

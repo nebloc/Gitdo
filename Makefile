@@ -1,11 +1,13 @@
 HASH = $(shell git rev-parse --short HEAD)
-VERNUM=0.0.8
-VERSION=-ldflags "-X main.version=$(VERNUM)-$(HASH)"
+DATE = $(shell date -u +.%Y%m%d.%H%M%S)
+VERNUM=0.1.0
+VERSION=-ldflags '-X "main.version=$(VERNUM) ($(HASH)$(DATE))"'
 
 install: 
 	vgo build ${VERSION} -o /usr/local/bin/gitdo ./gitdo
 
-
+build:
+	vgo build ${VERSION} .
 test:
 	vgo test github.com/nebloc/gitdo/...
 
