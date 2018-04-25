@@ -22,7 +22,7 @@ func setupForTest(t *testing.T) func() {
 	cDir, closeDir := testDirHelper(t)
 	t.Logf("working in dir: %s", cDir)
 
-	SetVCPaths()
+	setVCPaths()
 
 	return closeDir
 }

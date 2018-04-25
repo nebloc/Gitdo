@@ -14,7 +14,7 @@ var postCommitCmd = &cobra.Command{
 	Short: "Tags all entries in the tasks.json file with current data",
 	Long:  "Tags all entries in the tasks.json file with the current version control hash, and branch.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Setup(); err != nil {
+		if err := setup(); err != nil {
 			pDanger("Could not load gitdo: %v\n", err)
 			return
 		}

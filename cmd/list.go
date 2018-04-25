@@ -16,7 +16,7 @@ var listTasksCmd = &cobra.Command{
 	Use:   "tasks",
 	Short: "Lists the program tasks",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Setup(); err != nil {
+		if err := setup(); err != nil {
 			fmt.Fprintf(os.Stderr, "Could not print tasks: %v\n", err)
 			return
 		}
@@ -34,7 +34,7 @@ var listConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Lists the current configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Setup(); err != nil {
+		if err := setup(); err != nil {
 			fmt.Fprintf(os.Stderr, "Could not print configuration: %v\n", err)
 			return
 		}

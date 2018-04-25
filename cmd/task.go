@@ -12,6 +12,7 @@ import (
 	"github.com/nebloc/gitdo/utils"
 )
 
+// Task is a struct that holds basic information of a task annotation.
 type Task struct {
 	id       string
 	FileName string `json:"file_name"`
@@ -28,7 +29,7 @@ func (t *Task) String() string {
 		t.FileName, t.FileLine, t.TaskName, t.id)
 }
 
-// Not sure why I need two stores now...
+// Tasks is the form that the tasks.json file uses.
 type Tasks struct {
 	NewTasks  map[string]Task `json:"new_tasks,omitempty"`
 	DoneTasks []string        `json:"done_tasks,omitempty"`

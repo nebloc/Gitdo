@@ -17,7 +17,7 @@ var commitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Gets git diff and stages any new tasks - normally ran from pre-commit hook",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Setup(); err != nil {
+		if err := setup(); err != nil {
 			pDanger("Could not load gitdo: %v\n", err)
 			return
 		}

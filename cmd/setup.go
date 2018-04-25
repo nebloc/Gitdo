@@ -10,11 +10,11 @@ import (
 	"github.com/nebloc/gitdo/versioncontrol"
 )
 
-func Setup() error {
+func setup() error {
 	if err := ChangeToVCRoot(); err != nil {
 		return fmt.Errorf("could not change to the root of the VCS: %v", err)
 	}
-	SetVCPaths()
+	setVCPaths()
 	if err := loadConfig(); err != nil {
 		return fmt.Errorf("could not load configuration: %v", err)
 	}
@@ -53,7 +53,7 @@ func TryHgTopLevel() {
 	app.vc = vc
 }
 
-func SetVCPaths() {
+func setVCPaths() {
 	gitdoDir = filepath.Join(app.vc.NameOfDir(), "gitdo")
 	// File name for writing and reading staged tasks from (between commit
 	// and push)

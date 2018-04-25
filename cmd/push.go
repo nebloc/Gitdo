@@ -10,7 +10,7 @@ var pushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Hands all tasks since last push to the plugin create function",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := Setup(); err != nil {
+		if err := setup(); err != nil {
 			pDanger("Could not load gitdo: %v\n", err)
 			return
 		}

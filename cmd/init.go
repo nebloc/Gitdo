@@ -51,14 +51,14 @@ func Init(cmd *cobra.Command, args []string) error {
 	if err := ChangeToVCRoot(); err != nil {
 		return fmt.Errorf("could not change to root directory: %v", err)
 	}
-	SetVCPaths()
+	setVCPaths()
 
 	utils.Highlightf("Making %s/gitdo", app.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	if err := SetConfig(); err != nil {
+	if err := setConfig(); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := CreateHooks(); err != nil {
+	if err := createHooks(); err != nil {
 		return err
 	}
 
@@ -87,13 +87,13 @@ func CreatePluginsDir() error {
 }
 
 // SetConfig checks the config is not set and asks the user relevant questions to set it
-func SetConfig() error {
+func setConfig() error {
 	if app.IsSet() {
 		return nil
 	}
 
 	if !app.authorIsSet() {
-		author, err := AskAuthor()
+		author, err := askAuthor()
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func SetConfig() error {
 	}
 
 	if !app.pluginIsSet() {
-		plugin, err := AskPlugin()
+		plugin, err := askPlugin()
 		if err != nil {
 			return err
 		}
@@ -109,10 +109,10 @@ func SetConfig() error {
 	}
 
 	if !app.interpreterIsSet() {
-		interp, err := GetInterp()
+		interp, err := getInterp()
 		if err != nil {
 			utils.Warnf("No interp file in %s dir", app.Plugin)
-			interp, err = AskInterpreter()
+			interp, err = askInterpreter()
 			if err != nil {
 				return err
 			}
@@ -129,7 +129,7 @@ func SetConfig() error {
 }
 
 // AskAuthor notifies user of email address used
-func AskAuthor() (string, error) {
+func askAuthor() (string, error) {
 	email, err := app.vc.GetEmail()
 	if err != nil {
 		return "", err
@@ -139,7 +139,7 @@ func AskAuthor() (string, error) {
 }
 
 // AskPlugin reads in plugins from the directory and gives the user a list of plugins, that have a "<name>_getid"
-func AskPlugin() (string, error) {
+func askPlugin() (string, error) {
 	fmt.Println("Available plugins:")
 
 	plugins, err := getPlugins()
@@ -177,7 +177,7 @@ func AskPlugin() (string, error) {
 }
 
 // AskInterpreter asks the user what command they want to use to run the plugin
-func AskInterpreter() (string, error) {
+func askInterpreter() (string, error) {
 	utils.Warn("Currently all plugins made as an example need python 3 set up in path. Redesign of plugin language choice and use coming soon.")
 	var interp string
 	for interp == "" {
@@ -194,7 +194,7 @@ func AskInterpreter() (string, error) {
 	return interp, nil
 }
 
-func GetInterp() (string, error) {
+func getInterp() (string, error) {
 	homePath, err := GetHomeDir()
 	if err != nil {
 		return "", err
@@ -210,7 +210,7 @@ func GetInterp() (string, error) {
 
 // CreateHooks gets the users main Gitdo directory and copies the hooks from it to the correct version control hidden
 // folder
-func CreateHooks() error {
+func createHooks() error {
 	homeDir, err := GetHomeDir()
 	if err != nil {
 		return err
