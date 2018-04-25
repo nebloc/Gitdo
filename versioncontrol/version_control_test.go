@@ -35,7 +35,8 @@ func init() {
 	if err != nil {
 		log.Fatalf("Could not get current directory: %v", err)
 	}
-	HomeDir = filepath.Dir(dir)
+	HomeDir = filepath.Join(filepath.Dir(dir), "resources")
+	log.Print(HomeDir)
 
 	VCMap = make(map[string]*TestVC)
 	VCMap[GitName] = &TestVC{NewGit(), ""}
