@@ -11,35 +11,47 @@ import (
 
 	"github.com/nebloc/gitdo/utils"
 	"github.com/nebloc/gitdo/versioncontrol"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 )
 
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialises Gitdo in the current repository",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := Init(cmd, args); err != nil {
+			pDanger("Failed to run Gitdo initialisation: %v\n", err)
+			return
+		}
+
+		pNormal("Gitdo finished initialising\n")
+	},
+}
+
 // Init initialises the gitdo project by scaffolding the gitdo folder
-func Init(ctx *cli.Context) error {
+func Init(cmd *cobra.Command, args []string) error {
 	// Initialise repo
-	withVC := strings.ToLower(ctx.String("with-vc"))
+	withVC := strings.ToLower(withVC)
 
 	if withVC != "" {
 		utils.Highlightf("Initialising: %s", withVC)
 		switch withVC {
 		case "git":
 			if err := versioncontrol.NewGit().Init(); err != nil {
-				utils.Warnf("could not create a Git repo")
-				return err
+				return fmt.Errorf("could not create a Git repo: %v", err)
 			}
 		case "mercurial":
 			if err := versioncontrol.NewHg().Init(); err != nil {
-				utils.Warnf("could not create a Mercurial repo")
-				return err
+				return fmt.Errorf("could not create a Mercurial repo: %v", err)
 			}
 		default:
-			return fmt.Errorf("could not initialise version control for: %s", withVC)
+			return fmt.Errorf("could not initialise version control for %s", withVC)
 		}
 	}
 
 	if err := ChangeToVCRoot(); err != nil {
-		return err
+		return fmt.Errorf("could not change to root directory: %v", err)
 	}
+	SetVCPaths()
 
 	utils.Highlightf("Making %s/gitdo", config.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {

@@ -33,10 +33,15 @@ var (
 	stagedTasksFile string
 	configFilePath  string
 	pluginDirPath   string
+
+	// FLAGS
+	withVC string
 )
 
 // New creates a new base command for executing Gitdo
 func New(version string) *cobra.Command {
+	initCmd.PersistentFlags().StringVarP(&withVC, "with-vc", "w", "", "Initialises repository as well as gitdo. Supports 'Git' and 'Mercurial'")
+
 	rootCmd := &cobra.Command{
 		Use:   "gitdo",
 		Short: "A tool for tracking task annotations using version control systems.",
@@ -57,6 +62,9 @@ More information and documentation can be found at https://github.com/nebloc/git
 		},
 	}
 	rootCmd.AddCommand(versionCmd)
+
+	// INIT
+	rootCmd.AddCommand(initCmd)
 
 	// LIST
 	listCmd.AddCommand(listConfigCmd)

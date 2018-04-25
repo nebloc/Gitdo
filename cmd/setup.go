@@ -38,8 +38,7 @@ func TryGitTopLevel() {
 	config.vc = vc
 }
 
-// TryHGTopLevel tries to get the root directory of the project from mercuruial, if it can't we assume it is not a
-// Mercurial project.
+// TryHgTopLevel tries to get the root directory of the project from mercuruial, if it can't we assume it is not a Mercurial project.
 func TryHgTopLevel() {
 	if config.vc != nil {
 		return

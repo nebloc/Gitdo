@@ -25,7 +25,7 @@ var commitCmd = &cobra.Command{
 			pDanger("Failed to run gitdo commit: %v\n", err)
 			return
 		}
-		pNormal("Gitdo finished commit process\n")
+		pNormal("Gitdo finished committing\n")
 	},
 }
 

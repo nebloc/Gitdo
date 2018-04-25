@@ -14,12 +14,12 @@ var pushCmd = &cobra.Command{
 			pDanger("Could not load gitdo: %v\n", err)
 			return
 		}
-		if err := PostCommit(cmd, args); err != nil {
+		if err := Push(cmd, args); err != nil {
 			pDanger("Failed to run push: %v\n", err)
 			return
 		}
 
-		pNormal("Gitdo finished push process\n")
+		pNormal("Gitdo finished pushing\n")
 	},
 }
 
