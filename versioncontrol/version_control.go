@@ -12,7 +12,7 @@ type VersionControl interface {
 	GetEmail() (string, error)
 	GetBranch() (string, error)
 	GetHash() (string, error)
-	GetTrackedFiles() ([]string, error)
+	GetTrackedFiles(branch string) ([]string, error)
 
 	// Get details of the version control being used
 	NameOfDir() string

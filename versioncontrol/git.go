@@ -161,8 +161,8 @@ func (*Git) SwitchBranch() error {
 }
 
 // GetTrackedFiles returns a string of files that are being trakced by Git
-func (*Git) GetTrackedFiles() ([]string, error) {
-	cmd := exec.Command("git", "ls-tree", "-r", "master", "--name-only")
+func (*Git) GetTrackedFiles(branch string) ([]string, error) {
+	cmd := exec.Command("git", "ls-tree", "-r", branch, "--name-only")
 	raw, err := cmd.Output()
 	if err != nil {
 		return nil, err

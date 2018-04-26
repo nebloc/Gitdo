@@ -147,7 +147,7 @@ func (*Hg) SwitchBranch() error {
 }
 
 // GetTrackedFiles runs a 'hg locate' command to get the name and path of tracked files
-func (*Hg) GetTrackedFiles() ([]string, error) {
+func (*Hg) GetTrackedFiles(branch string) ([]string, error) {
 	cmd := exec.Command("hg", "locate")
 	raw, err := cmd.Output()
 	if err != nil {

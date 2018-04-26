@@ -79,11 +79,6 @@ func canForceAll() bool {
 }
 
 func ForceAll() error {
-	filesToCheck, err := app.vc.GetTrackedFiles()
-	if err != nil {
-		return err
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -91,13 +86,18 @@ func ForceAll() error {
 	if err != nil {
 		return err
 	}
-	ctx = context.WithValue(ctx, keynash, hash)
+	ctx = context.WithValue(ctx, keyHash, hash)
 
 	branch, err := app.vc.GetBranch()
 	if err != nil {
 		return err
 	}
 	ctx = context.WithValue(ctx, keyBranch, branch)
+
+	filesToCheck, err := app.vc.GetTrackedFiles(branch)
+	if err != nil {
+		return err
+	}
 
 	pInfo("switching to new branch to make changes on - %s\n", versioncontrol.NewBranchName)
 	app.vc.CreateBranch()
