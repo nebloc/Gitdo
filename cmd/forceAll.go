@@ -34,13 +34,13 @@ var forceAllCmd = &cobra.Command{
 			return
 		}
 		if reqsPerSec <= 0 {
-			pWarning("not a valid rate of requests\n")
+			pWarning("not a valid rate of requests\nSee gitdo force-all --help")
 			return
 		}
 		throttle = time.Tick(time.Second / time.Duration(reqsPerSec))
 
 		if numberOfFileCrawlers <= 0 {
-			pWarning("Not a valid number of crawlers\n")
+			pWarning("Not a valid number of crawlers\nSee gitdo force-all --help")
 			return
 		}
 
