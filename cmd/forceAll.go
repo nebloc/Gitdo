@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,9 +21,8 @@ const (
 )
 
 var (
-	reqsPerSec           int
-	numberOfFileCrawlers int
-	rate                 time.Second
+	reqsPerSec           = 5
+	numberOfFileCrawlers = 5
 )
 
 var forceAllCmd = &cobra.Command{
@@ -36,20 +34,22 @@ var forceAllCmd = &cobra.Command{
 			return
 		}
 		if reqsPerSec <= 0 {
-			return errors.New("Not a valid rate of requests")
+			pWarning("not a valid rate of requests\n")
+			return
 		}
-		rate = time.Second / time.Duration(reqsPerSec)
-		throttle = time.Tick(rate)
+		throttle = time.Tick(time.Second / time.Duration(reqsPerSec))
 
 		if numberOfFileCrawlers <= 0 {
-			return errors.New("Not a valid number of crawlers")
+			pWarning("Not a valid number of crawlers\n")
+			return
 		}
 
 		fmt.Printf("%d requests per second\n", reqsPerSec)
 		fmt.Printf("%d crawlers\n", numberOfFileCrawlers)
 
 		if !canForceAll() {
-			return nil
+			pInfo("Stopping force-all\n")
+			return
 		}
 
 		if err := ForceAll(); err != nil {
@@ -61,16 +61,16 @@ var forceAllCmd = &cobra.Command{
 	},
 }
 
-var throttle chan time.Time
+var throttle <-chan time.Time
 
 func canForceAll() bool {
 	clean := app.vc.CheckClean()
 	if !clean {
-		pWarning("Please start with a clean repository directory.")
+		pWarning("Please start with a clean repository directory.\n")
 		return false
 	}
 
-	pDanger("This is an unstable feature.")
+	pDanger("This is an unstable feature.\n")
 	confirmed := ConfirmWithUser("If a lot of tasks are found you may hit the rate limit of your task manager.\nAre you sure you want to run this?")
 	if !confirmed {
 		return false
@@ -91,7 +91,7 @@ func ForceAll() error {
 	if err != nil {
 		return err
 	}
-	ctx = context.WithValue(ctx, keyHash, hash)
+	ctx = context.WithValue(ctx, keynash, hash)
 
 	branch, err := app.vc.GetBranch()
 	if err != nil {
@@ -99,10 +99,10 @@ func ForceAll() error {
 	}
 	ctx = context.WithValue(ctx, keyBranch, branch)
 
-	pInfo("switching to new branch to make changes on - %s", versioncontrol.NewBranchName)
+	pInfo("switching to new branch to make changes on - %s\n", versioncontrol.NewBranchName)
 	app.vc.CreateBranch()
 	if err := app.vc.SwitchBranch(); err != nil {
-		pDanger("Could not switch branch")
+		pDanger("Could not switch branch\n")
 		return err
 	}
 
@@ -127,7 +127,7 @@ func ForceAll() error {
 		case err := <-errorc:
 			if !errorThrown {
 				cancel()
-				pDanger("Recieved error processing files, stopping...\nFirst error: %v", err)
+				pDanger("Recieved error processing files, stopping...\nFirst error: %v\n", err)
 				errorThrown = true
 
 			}
@@ -137,10 +137,10 @@ func ForceAll() error {
 	}
 
 	if len(tasks) == 0 {
-		pInfo("No tasks found.")
+		pInfo("No tasks found.\n")
 		return nil
 	}
-	pInfo("Found %d tasks", len(tasks))
+	pInfo("Found %d tasks\n", len(tasks))
 
 	err = CommitTasks(tasks, nil)
 	if err != nil {
@@ -149,13 +149,13 @@ func ForceAll() error {
 
 	err = app.vc.RestageTasks(".")
 	if err != nil {
-		pDanger("Could not re-stage files: %v", err)
+		pDanger("Could not re-stage files: %v\n", err)
 	}
 	err = app.vc.NewCommit("gitdo tagged files")
 	if err != nil {
-		pWarning("Could not commit changes: %v", err)
+		pWarning("Could not commit changes: %v\n", err)
 	}
-	pNormal("Please run any unit tests to ensure the code's working\nCheck the diff with 'git diff HEAD~1 -U0', before merging")
+	pNormal("Please run any unit tests to ensure the code's working\nCheck the diff with 'git diff HEAD~1 -U0', before merging\n")
 	return nil
 }
 
@@ -199,10 +199,10 @@ func processFile(ctx context.Context, filename string, taskc chan<- Task) error 
 
 	for ind, line := range lines {
 		line = utils.StripNewlineString(line)
-		taskname, isTask := checkRegex(looseTODOReg, line)
+		taskname, isTask := CheckRegex(looseTODOReg, line)
 		if isTask {
 			// Ignore tagged tasks
-			if _, isTagged := checkRegex(taggedReg, line); isTagged {
+			if _, isTagged := CheckRegex(taggedReg, line); isTagged {
 				continue
 			}
 			// Create Task
@@ -211,7 +211,7 @@ func processFile(ctx context.Context, filename string, taskc chan<- Task) error 
 				FileName: filename,
 				TaskName: taskname,
 				FileLine: ind + 1,
-				Author:   config.Author,
+				Author:   app.Author,
 				Hash:     ctx.Value(keyHash).(string),
 				Branch:   ctx.Value(keyBranch).(string),
 			}
@@ -245,7 +245,7 @@ func processFile(ctx context.Context, filename string, taskc chan<- Task) error 
 	if changed {
 		err := ioutil.WriteFile(filename, []byte(strings.Join(lines, sep)), os.ModePerm)
 		if err != nil {
-			utils.Dangerf("Could not tag %s", filename)
+			pDanger("Could not tag %s", filename)
 		}
 	}
 

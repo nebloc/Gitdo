@@ -3,7 +3,6 @@ package cmd
 import (
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 
 	"fmt"
@@ -103,7 +102,7 @@ func processDiff(lines []diffparse.SourceLine, taskChan chan<- Task) taskChanges
 		Deleted: make(map[string]bool, 0),
 	}
 	for _, line := range lines {
-		id, tagged := CheckTagged(line)
+		id, tagged := CheckRegex(taggedReg, line.Content)
 		switch {
 		case line.Mode == diffparse.REMOVED && tagged:
 			changes.Deleted[id] = true
@@ -153,15 +152,6 @@ func CommitTasks(newTasks map[string]Task, deleted map[string]bool) error {
 	return writeTasksFile(tasks)
 }
 
-var (
-	// TODO: Create a library of regex's for use with other languages. <OaTSrQjZ>
-	// todoReg is a compiled regex to match the TODO comments
-	todoReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(.*)`)
-	taggedReg = regexp.MustCompile(
-		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?:.*):[[:space:]]*(?:.*)<(.*)>`)
-)
-
 // MarkSourceLines takes a task, opens it's original file and replaces the
 // corresponding comments file line with the same line plus a tag in the form "<GITDO>"
 func MarkSourceLines(task Task) error {
@@ -202,14 +192,13 @@ func isCRLF(line string) bool {
 // CheckTask takes the given source line and checks for a match against the TODO regex.
 // If a match is found a task is created and returned, along with a found bool
 func CheckTask(line diffparse.SourceLine) (Task, bool) {
-	match := CheckTaskRegex(line.Content)
-	if len(match) > 0 { // if match was found
-
+	taskName, found := CheckRegex(todoReg, line.Content)
+	if found { // if match was found
 		// Create Task
 		t := Task{
 			id:       "",
 			FileName: strings.TrimSpace(line.FileTo),
-			TaskName: match[1],
+			TaskName: taskName,
 			FileLine: line.Position,
 			Author:   app.Author,
 			Hash:     "",

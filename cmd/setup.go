@@ -34,7 +34,7 @@ func TryGitTopLevel() {
 		return
 	}
 	vc := versioncontrol.NewGit()
-	vc.TopLevel = utils.StripNewlineChar(result)
+	vc.TopLevel = utils.StripNewlineByte(result)
 	app.vc = vc
 }
 
@@ -49,7 +49,7 @@ func TryHgTopLevel() {
 		return
 	}
 	vc := versioncontrol.NewHg()
-	vc.TopLevel = utils.StripNewlineChar(result)
+	vc.TopLevel = utils.StripNewlineByte(result)
 	app.vc = vc
 }
 

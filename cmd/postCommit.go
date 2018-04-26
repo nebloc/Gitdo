@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/nebloc/gitdo/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +40,7 @@ func PostCommit(cmd *cobra.Command, args []string) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		utils.Warn("No tasks file")
+		pWarning("No tasks file")
 		return nil
 	}
 	for id, task := range tasks.NewTasks {
@@ -54,12 +53,12 @@ func PostCommit(cmd *cobra.Command, args []string) error {
 
 	bUpdated, err := json.MarshalIndent(tasks, "", "\t")
 	if err != nil {
-		utils.Danger("couldn't marshal tasks with added hash")
+		pDanger("couldn't marshal tasks with added hash")
 		return err
 	}
 	err = ioutil.WriteFile(stagedTasksFile, bUpdated, os.ModePerm)
 	if err != nil {
-		utils.Danger("couldn't write tasks with hash back to tasks.json")
+		pDanger("couldn't write tasks with hash back to tasks.json")
 		return err
 	}
 	return nil

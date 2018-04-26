@@ -80,6 +80,9 @@ More information and documentation can be found at https://github.com/nebloc/git
 	// PUSH
 	gitdoCmd.AddCommand(pushCmd)
 
+	// FORCE ALL
+	gitdoCmd.AddCommand(forceAllCmd)
+
 	return gitdoCmd
 }
 

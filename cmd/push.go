@@ -33,7 +33,7 @@ func Push(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(tasks.NewTasks) == 0 && len(tasks.DoneTasks) == 0 {
-		pWarning("No new tasks or done tasks\n")
+		pInfo("No new tasks or done tasks\n")
 		return nil
 	}
 
@@ -43,7 +43,7 @@ func Push(cmd *cobra.Command, args []string) error {
 			pDanger("Failed to add task '%s': %v\n", task.String(), err)
 			continue
 		}
-		pNormal("Task %s added to %s\n", id, app.Plugin)
+		pInfo("Task %s added to %s\n", id, app.Plugin)
 		tasks.RemoveTask(id)
 	}
 
@@ -51,11 +51,11 @@ func Push(cmd *cobra.Command, args []string) error {
 	for _, id := range tasks.DoneTasks {
 		_, err = RunPlugin(DONE, id)
 		if err != nil {
-			pDanger("Failed to mark %s as done", id)
+			pWarning("Failed to mark %s as done\n", id)
 			failedIds = append(failedIds, id)
 			continue
 		}
-		pNormal("Task %s marked as done", id)
+		pInfo("Task %s marked as done\n", id)
 	}
 	tasks.DoneTasks = failedIds
 

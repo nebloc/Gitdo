@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/nebloc/gitdo/utils"
 )
 
 // Task is a struct that holds basic information of a task annotation.
@@ -76,8 +74,7 @@ func getTasksFile() (*Tasks, error) {
 	}
 	err = json.Unmarshal(bExisting, &existingTasks)
 	if err != nil {
-		utils.Danger("Poorly formatted staged JSON")
-		return existingTasks, err
+		return existingTasks, fmt.Errorf("couldn't unmarshal existing tasks JSON: %v", err)
 	}
 	for id, task := range existingTasks.NewTasks {
 		task.id = id
@@ -99,13 +96,11 @@ func NewTaskMap() *Tasks {
 func writeTasksFile(tasks *Tasks) error {
 	btask, err := json.MarshalIndent(*tasks, "", "\t")
 	if err != nil {
-		utils.Danger("couldn't marshal tasks")
-		return err
+		return fmt.Errorf("couldn't marshal tasks: %v", err)
 	}
 	err = ioutil.WriteFile(stagedTasksFile, btask, os.ModePerm)
 	if err != nil {
-		utils.Danger("couldn't write new staged tasks")
-		return err
+		return fmt.Errorf("couldn't write new staged tasks: %v", err)
 	}
 	return nil
 }

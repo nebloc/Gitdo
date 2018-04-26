@@ -33,7 +33,7 @@ func Init(cmd *cobra.Command, args []string) error {
 	withVC := strings.ToLower(withVC)
 
 	if withVC != "" {
-		utils.Highlightf("Initialising: %s", withVC)
+		pInfo("Initialising: %s\n", withVC)
 		switch withVC {
 		case "git":
 			if err := versioncontrol.NewGit().Init(); err != nil {
@@ -53,7 +53,7 @@ func Init(cmd *cobra.Command, args []string) error {
 	}
 	setVCPaths()
 
-	utils.Highlightf("Making %s/gitdo", app.vc.NameOfDir())
+	pInfo("Making %s/gitdo", app.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	utils.Highlight("Running plugin's setup...")
+	pInfo("Running plugin's setup...\n")
 	if _, err := RunPlugin(SETUP, ""); err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func setConfig() error {
 	if !app.interpreterIsSet() {
 		interp, err := getInterp()
 		if err != nil {
-			utils.Warnf("No interp file in %s dir", app.Plugin)
+			pWarning("No interp file in %s dir\n", app.Plugin)
 			interp, err = askInterpreter()
 			if err != nil {
 				return err
@@ -122,8 +122,7 @@ func setConfig() error {
 	}
 	err := writeConfig()
 	if err != nil {
-		utils.Dangerf("Couldn't save config: %v", err)
-		return err
+		return fmt.Errorf("couldn't write config: %v", err)
 	}
 	return nil
 }
@@ -134,7 +133,7 @@ func askAuthor() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	utils.Highlightf("Using %s", email)
+	pInfo("Using %s\n", email)
 	return email, nil
 }
 
@@ -147,7 +146,7 @@ func askPlugin() (string, error) {
 		return "", err
 	}
 	if len(plugins) < 1 {
-		utils.Warn("No plugins found")
+		pWarning("No plugins found\n")
 		return "", fmt.Errorf("no plugins")
 	}
 	for i, name := range plugins {
@@ -172,13 +171,13 @@ func askPlugin() (string, error) {
 	}
 	plugin := plugins[pN-1]
 
-	utils.Highlightf("Using %s", plugin)
+	pInfo("Using %s\n", plugin)
 	return plugin, nil
 }
 
 // AskInterpreter asks the user what command they want to use to run the plugin
 func askInterpreter() (string, error) {
-	utils.Warn("Currently all plugins made as an example need python 3 set up in path. Redesign of plugin language choice and use coming soon.")
+	pWarning("Currently all plugins made as an example need python 3 set up in path. Redesign of plugin language choice and use coming soon.\n")
 	var interp string
 	for interp == "" {
 		reader := bufio.NewReader(os.Stdin)
@@ -190,7 +189,7 @@ func askInterpreter() (string, error) {
 		}
 		interp = strings.TrimSpace(interp)
 	}
-	utils.Highlightf("Using %s", interp)
+	pInfo("Using %s\n", interp)
 	return interp, nil
 }
 
@@ -203,8 +202,8 @@ func getInterp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	interp := utils.StripNewlineChar(contents)
-	utils.Highlightf("Using %s - found in interp file", interp)
+	interp := utils.StripNewlineByte(contents)
+	pInfo("Using %s - found in interp file\n", interp)
 	return interp, err
 }
 
@@ -215,6 +214,6 @@ func createHooks() error {
 	if err != nil {
 		return err
 	}
-	utils.Highlight("Copying hooks...")
+	pInfo("Copying hooks...\n")
 	return app.vc.SetHooks(homeDir)
 }
