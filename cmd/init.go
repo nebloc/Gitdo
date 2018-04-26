@@ -75,6 +75,10 @@ func Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if err := setInterpFile(); err != nil {
+		return err
+	}
+
 	fmt.Println("Done")
 	return nil
 }
@@ -205,6 +209,16 @@ func getInterp() (string, error) {
 	interp := utils.StripNewlineByte(contents)
 	pInfo("Using %s - found in interp file\n", interp)
 	return interp, err
+}
+
+func setInterpFile() error {
+	homePath, err := GetHomeDir()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(homePath, "plugins", app.Plugin, "interp")
+	data := []byte(app.PluginInterpreter)
+	return ioutil.WriteFile(path, data, os.ModePerm)
 }
 
 // CreateHooks gets the users main Gitdo directory and copies the hooks from it to the correct version control hidden
