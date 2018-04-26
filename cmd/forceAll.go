@@ -144,10 +144,11 @@ func ForceAll() error {
 	}
 	pInfo("Found %d tasks\n", len(tasks))
 
-	err = CommitTasks(tasks, nil)
-	if err != nil {
-		return err
-	}
+	// TODO: Decide on whether tasks in a force all should follow the commit push pattern, or be visible immediately. <98dQNNRn>
+	// err = CommitTasks(tasks, nil)
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = app.vc.RestageTasks(".")
 	if err != nil {
