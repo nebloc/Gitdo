@@ -40,7 +40,6 @@ func PostCommit(cmd *cobra.Command, args []string) error {
 
 	tasks, err := getTasksFile()
 	if err != nil {
-		pWarning("No tasks file")
 		return nil
 	}
 	for id, task := range tasks.NewTasks {
