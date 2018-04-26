@@ -40,7 +40,9 @@ var (
 
 // New creates a new base command for executing Gitdo
 func New(version string) *cobra.Command {
-	initCmd.PersistentFlags().StringVarP(&withVC, "with-vc", "w", "", "Initialises repository as well as gitdo. Supports 'Git' and 'Mercurial'")
+	initCmd.PersistentFlags().StringVarP(&withVC, "with-vc", "w", "", "Initialises repository as well as gitdo. Supports 'Git' and 'Mercurial'.")
+	forceAllCmd.PersistentFlags().IntVarP(&reqsPerSec, "reqs-per-sec", "r", 5, "How many requests per second should be made to the task manager.")
+	forceAllCmd.PersistentFlags().IntVarP(&numberOfFileCrawlers, "number-crawlers", "c", 5, "How many file crawlers should be created.")
 
 	gitdoCmd := &cobra.Command{
 		Use:   "gitdo",
