@@ -53,7 +53,7 @@ func Init(cmd *cobra.Command, args []string) error {
 	}
 	setVCPaths()
 
-	pInfo("Making %s/gitdo", app.vc.NameOfDir())
+	pInfo("Making %s/gitdo\n", app.vc.NameOfDir())
 	if err := os.MkdirAll(gitdoDir, os.ModePerm); err != nil {
 		return err
 	}
