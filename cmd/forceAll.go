@@ -78,6 +78,8 @@ func canForceAll() bool {
 	return true
 }
 
+// ForceAll gets relevant information about the current version control state, moves to a new branch, and sets up file crawlers to find TODOs.
+//The task files are then tagged, staged, and committed.
 func ForceAll() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
