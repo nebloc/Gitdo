@@ -15,7 +15,7 @@ var (
 		`^[[:space:]]*(?://|#)[[:space:]]*TODO(?::|)[[:space:]]*(.*)`)
 )
 
-// Check regex, takes a regex, attempts to match it against a given string, and returns if it matched, and the first capture group.
+// CheckRegex takes a regex, attempts to match it against a given string, and returns if it matched, and the first capture group.
 func CheckRegex(reg *regexp.Regexp, str string) (string, bool) {
 	match := reg.FindStringSubmatch(str)
 	if len(match) < 2 {
