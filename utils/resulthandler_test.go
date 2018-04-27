@@ -3,31 +3,43 @@ package utils
 import "testing"
 
 func TestStripNewlineChar(t *testing.T) {
-	tests := []struct {
-		in  []byte
-		out string
+	tt := []struct {
+		name string
+		in   []byte
+		out  string
 	}{
 		{
+			"carriage return then line feed",
 			[]byte("Foo\r\n"),
 			"Foo",
 		},
 		{
+			"No new line characters",
 			[]byte("Foo Bar"),
 			"Foo Bar",
 		},
 		{
+			"carriage return only",
 			[]byte("Foo Bar\r"),
 			"Foo Bar",
 		},
 		{
+			"line feed only",
+			[]byte("Foo Bar\n"),
+			"Foo Bar",
+		},
+		{
+			"line feed then carriage return",
 			[]byte("Foo Bar\n"),
 			"Foo Bar",
 		},
 	}
-	for _, test := range tests {
-		result := StripNewlineByte(test.in)
-		if result != test.out {
-			t.Errorf("Epected: %s, got: %s", test.out, result)
-		}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := StripNewlineByte(tc.in)
+			if result != tc.out {
+				t.Fatalf("Epected: %s; got: %s", tc.out, result)
+			}
+		})
 	}
 }
