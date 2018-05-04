@@ -4,8 +4,9 @@ VERNUM=0.1.0
 VERSION=-ldflags '-X "main.version=$(VERNUM) ($(HASH)$(DATE))"'
 
 install: 
-	cp -r ./resources/hooks ~/.gitdo/
-	cp -r ./resources/plugins ~/.gitdo/
+	mkdir ~/.gitdo
+	cp -r ./resources/hooks ~/.gitdo/hooks/
+	cp -r ./resources/plugins ~/.gitdo/plugins/
 	go build ${VERSION} -o /usr/local/bin/gitdo .
 
 build:
