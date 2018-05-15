@@ -33,7 +33,7 @@ func PostCommit(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	branch, err := app.vc.GetHash()
+	branch, err := app.vc.GetBranch()
 	if err != nil {
 		return err
 	}
